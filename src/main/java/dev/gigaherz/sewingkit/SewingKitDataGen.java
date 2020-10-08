@@ -7,8 +7,11 @@ import dev.gigaherz.sewingkit.needle.Needles;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.IFinishedRecipe;
 import net.minecraft.data.RecipeProvider;
+import net.minecraft.data.ShapedRecipeBuilder;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
+import net.minecraft.item.crafting.ShapedRecipe;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.client.model.generators.ModelFile;
@@ -105,6 +108,24 @@ public class SewingKitDataGen
         @Override
         protected void registerRecipes(Consumer<IFinishedRecipe> consumer)
         {
+            Arrays.stream(Needles.values()).forEach(needle -> ShapedRecipeBuilder.shapedRecipe(needle.getNeedle())
+                                .patternLine(" D")
+                                .patternLine("D ")
+                                .key('D', needle.getRepairMaterial())
+                                .addCriterion("has_material", needle.getMaterial().map(RecipeProvider::hasItem, RecipeProvider::hasItem))
+                                .build(consumer));
+
+            ShapedRecipeBuilder.shapedRecipe(SewingKitMod.SEWING_STATION_ITEM.get())
+                    .patternLine("xxx")
+                    .patternLine("P P")
+                    .patternLine("S S")
+                    .key('x', Ingredient.fromTag(ItemTags.makeWrapperTag("minecraft:wooden_slabs")))
+                    .key('P', Ingredient.fromTag(ItemTags.makeWrapperTag("minecraft:planks")))
+                    .key('S', Ingredient.fromItems(Items.STRING))
+                    .addCriterion("has_wood", hasItem(ItemTags.makeWrapperTag("minecraft:planks")))
+                    .build(consumer);
+
+            // Sewing recipes:
             SewingRecipeBuilder.begin(SewingKitMod.LEATHER_SHEET.get(), 4)
                     .withTool(Ingredient.fromItems(Items.SHEARS))
                     .addMaterial(Ingredient.fromItems(Items.LEATHER))

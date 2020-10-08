@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " D",
+    "D "
+  ],
+  "key": {
+    "D": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "result": {
+    "item": "sewingkit:wood_sewing_needle"
+  }
+}
