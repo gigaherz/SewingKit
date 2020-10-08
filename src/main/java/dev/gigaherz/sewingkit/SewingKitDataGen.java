@@ -61,6 +61,7 @@ public class SewingKitDataGen
         {
             add("itemGroup.sewing_kit", "Sewing Kit");
             add("container.sewingkit.sewing_station", "Sewing Station");
+            add("jei.category.sewingkit.sewing", "Sewing");
 
             add(SewingKitMod.LEATHER_STRIP.get(), "Leather Strip");
             add(SewingKitMod.LEATHER_SHEET.get(), "Leather Sheet");
@@ -146,8 +147,7 @@ public class SewingKitDataGen
 
             SewingRecipeBuilder.begin(Items.LEATHER_BOOTS)
                     .withTool(ToolIngredient.fromTool(NeedleItem.SEWING_NEEDLE, 1))
-                    .addMaterial(Ingredient.fromItems(SewingKitMod.LEATHER_SHEET.get()))
-                    .addMaterial(Ingredient.fromItems(SewingKitMod.LEATHER_SHEET.get()))
+                    .addMaterial(Ingredient.fromItems(SewingKitMod.LEATHER_SHEET.get()), 2)
                     .addMaterial(Ingredient.fromItems(SewingKitMod.LEATHER_STRIP.get()))
                     .addMaterial(Ingredient.fromItems(Items.STRING))
                     .addCriterion("has_leather", hasItem(Items.LEATHER))

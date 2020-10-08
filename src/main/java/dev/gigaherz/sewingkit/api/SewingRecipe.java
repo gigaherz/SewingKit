@@ -3,6 +3,7 @@ package dev.gigaherz.sewingkit.api;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.gigaherz.sewingkit.SewingKitMod;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
@@ -19,6 +20,7 @@ import net.minecraftforge.registries.ForgeRegistryEntry;
 import net.minecraftforge.registries.ObjectHolder;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -51,6 +53,12 @@ public class SewingRecipe implements IRecipe<IInventory>
         this.output = output;
     }
 
+    public static Collection<SewingRecipe> getAllRecipes(World world)
+    {
+        return world.getRecipeManager().getRecipes(SEWING).values().stream().map(r -> (SewingRecipe) r).collect(Collectors.toList());
+    }
+
+
     @Override
     public String getGroup()
     {
@@ -67,9 +75,9 @@ public class SewingRecipe implements IRecipe<IInventory>
     public NonNullList<Ingredient> getIngredients()
     {
         NonNullList<Ingredient> allIngredients = NonNullList.create();
+        allIngredients.add(pattern != null ? pattern : Ingredient.EMPTY);
+        allIngredients.add(tool != null ? tool : Ingredient.EMPTY);
         materials.stream().map(m -> m.ingredient).forEach(allIngredients::add);
-        if (pattern != null) allIngredients.add(pattern);
-        if (tool != null) allIngredients.add(tool);
         return allIngredients;
     }
 
@@ -139,6 +147,16 @@ public class SewingRecipe implements IRecipe<IInventory>
     public ItemStack getIcon()
     {
         return new ItemStack(SewingKitMod.WOOD_SEWING_NEEDLE.get());
+    }
+
+    public Ingredient getTool()
+    {
+        return tool != null ? tool : Ingredient.EMPTY;
+    }
+
+    public Ingredient getPattern()
+    {
+        return pattern != null ? pattern : Ingredient.EMPTY;
     }
 
     public static class Serializer extends ForgeRegistryEntry<IRecipeSerializer<?>>
