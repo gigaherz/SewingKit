@@ -24,7 +24,7 @@ group = 'dev.gigaherz.sewingkit' // http://maven.apache.org/guides/mini/guide-na
 archivesBaseName = 'SewingKit-UNKNOWN'
 
 project.afterEvaluate {
-    archivesBaseName = "Survivalist-${project.MC_VERSION}"
+    archivesBaseName = "SewingKit-${project.MC_VERSION}"
 }
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
@@ -111,12 +111,24 @@ publish.dependsOn('reobfJar')
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifact jar
+            artifactId project.archivesBaseName
+            from components.java
+
+            //artifact sourceJar
+
+            pom.withXml {
+                asNode().dependencies.dependency.each { dep ->
+                    if(dep.groupId.last().value().last() in ["net.minecraftforge"]) {
+                        assert dep.parent().remove(dep)
+                    }
+                }
+            }
         }
     }
+
     repositories {
         maven {
-            url "file:///${project.projectDir}/mcmodsrepo"
+            url "$projectDir/../CommonMaven"
         }
     }
 }

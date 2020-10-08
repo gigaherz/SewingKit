@@ -1,7 +1,6 @@
 package dev.gigaherz.sewingkit;
 
 import dev.gigaherz.sewingkit.api.SewingRecipe;
-import dev.gigaherz.sewingkit.api.SewingRecipeBuilder;
 import dev.gigaherz.sewingkit.api.ToolIngredient;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
 import dev.gigaherz.sewingkit.needle.Needles;
@@ -13,20 +12,14 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.client.renderer.texture.AtlasTexture;
-import net.minecraft.data.*;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.*;
 import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
-import net.minecraftforge.client.model.generators.ItemModelProvider;
-import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.common.data.LanguageProvider;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -42,8 +35,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Arrays;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Mod(SewingKitMod.MODID)
@@ -151,7 +142,7 @@ public class SewingKitMod
 
     public void gatherData(GatherDataEvent event)
     {
-        DataGen.gatherData(event);
+        SewingKitDataGen.gatherData(event);
     }
 
     public static ResourceLocation location(String path)
@@ -170,6 +161,7 @@ public class SewingKitMod
         @SubscribeEvent
         public static void textureStitch(final TextureStitchEvent.Pre event)
         {
+            //noinspection deprecation
             if (event.getMap().getTextureLocation().equals(AtlasTexture.LOCATION_BLOCKS_TEXTURE))
             {
                 event.addSprite(location("gui/needle_slot_background"));
@@ -179,144 +171,6 @@ public class SewingKitMod
         @SubscribeEvent
         public static void modelRegistry(final ModelRegistryEvent event)
         {
-        }
-    }
-
-    public static class DataGen
-    {
-        public static void gatherData(GatherDataEvent event)
-        {
-            DataGenerator gen = event.getGenerator();
-
-            if (event.includeClient())
-            {
-                gen.addProvider(new Lang(gen));
-                // Let blockstate provider see generated item models by passing its existing file helper
-                ItemModelProvider itemModels = new ItemModels(gen, event.getExistingFileHelper());
-                gen.addProvider(itemModels);
-                //gen.addProvider(new BlockStates(gen, itemModels.existingFileHelper));
-            }
-            if (event.includeServer())
-            {
-
-                //BlockTags blockTags = new BlockTags(gen);
-                //gen.addProvider(blockTags);
-                //gen.addProvider(new ItemTags(gen, blockTags));
-                gen.addProvider(new Recipes(gen));
-                //gen.addProvider(new LootTables(gen));
-            }
-        }
-
-        public static class Lang extends LanguageProvider
-        {
-            public Lang(DataGenerator gen)
-            {
-                super(gen, MODID, "en_us");
-            }
-
-            @Override
-            protected void addTranslations()
-            {
-                add("itemGroup.sewing_kit", "Sewing Kit");
-                add("container.sewingkit.sewing_station", "Sewing Station");
-
-                add(LEATHER_STRIP.get(), "Leather Strip");
-                add(LEATHER_SHEET.get(), "Leather Sheet");
-
-                Arrays.stream(Needles.values()).forEach(needle -> {
-                    String type = needle.getType();
-                    String name = type.substring(0,1).toUpperCase() + type.substring(1);
-                    add(needle.getNeedle(), name + " Sewing Needle");
-                });
-            }
-        }
-
-        public static class ItemModels extends ItemModelProvider
-        {
-            private static final Logger LOGGER = LogManager.getLogger();
-
-            public ItemModels(DataGenerator generator, ExistingFileHelper existingFileHelper)
-            {
-                super(generator, MODID, existingFileHelper);
-            }
-
-            @Override
-            protected void registerModels()
-            {
-                basicIcon(LEATHER_STRIP.getId());
-                basicIcon(LEATHER_SHEET.getId());
-                Arrays.stream(Needles.values()).forEach(needle -> basicIcon(needle.getId()));
-            }
-
-            private void basicIcon(ResourceLocation item)
-            {
-                getBuilder(item.getPath())
-                        .parent(new ModelFile.UncheckedModelFile("item/generated"))
-                        .texture("layer0", location("item/" + item.getPath()));
-            }
-        }
-
-        private static class Recipes extends RecipeProvider
-        {
-            public Recipes(DataGenerator gen)
-            {
-                super(gen);
-            }
-
-            @Override
-            protected void registerRecipes(Consumer<IFinishedRecipe> consumer)
-            {
-                SewingRecipeBuilder.begin(LEATHER_SHEET.get(), 4)
-                        .withTool(Ingredient.fromItems(Items.SHEARS))
-                        .addMaterial(Ingredient.fromItems(Items.LEATHER))
-                        .addCriterion("has_leather", hasItem(Items.LEATHER))
-                        .build(consumer, location("leather_sheet_from_leather"));
-
-                SewingRecipeBuilder.begin(LEATHER_SHEET.get(), 1)
-                        .withTool(Ingredient.fromItems(Items.SHEARS))
-                        .addMaterial(Ingredient.fromItems(Items.RABBIT_HIDE))
-                        .addCriterion("has_leather", hasItem(Items.RABBIT_HIDE))
-                        .build(consumer, location("leather_sheet_from_rabbit_hide"));
-
-                SewingRecipeBuilder.begin(LEATHER_STRIP.get(), 3)
-                        .withTool(Ingredient.fromItems(Items.SHEARS))
-                        .addMaterial(Ingredient.fromItems(Items.LEATHER))
-                        .addCriterion("has_leather", hasItem(Items.LEATHER))
-                        .build(consumer, location("leather_strip_from_leather"));
-
-                SewingRecipeBuilder.begin(Items.LEATHER_BOOTS)
-                        .withTool(ToolIngredient.fromTool(NeedleItem.SEWING_NEEDLE, 1))
-                        .addMaterial(Ingredient.fromItems(LEATHER_SHEET.get()))
-                        .addMaterial(Ingredient.fromItems(LEATHER_SHEET.get()))
-                        .addMaterial(Ingredient.fromItems(LEATHER_STRIP.get()))
-                        .addMaterial(Ingredient.fromItems(Items.STRING))
-                        .addCriterion("has_leather", hasItem(Items.LEATHER))
-                        .build(consumer, location("leather_boots_via_sewing"));
-
-                SewingRecipeBuilder.begin(Items.LEATHER_LEGGINGS)
-                        .withTool(ToolIngredient.fromTool(NeedleItem.SEWING_NEEDLE, 1))
-                        .addMaterial(Ingredient.fromItems(LEATHER_SHEET.get()), 4)
-                        .addMaterial(Ingredient.fromItems(LEATHER_STRIP.get()), 3)
-                        .addMaterial(Ingredient.fromItems(Items.STRING))
-                        .addCriterion("has_leather", hasItem(Items.LEATHER))
-                        .build(consumer, location("leather_leggings_via_sewing"));
-
-                SewingRecipeBuilder.begin(Items.LEATHER_CHESTPLATE)
-                        .withTool(ToolIngredient.fromTool(NeedleItem.SEWING_NEEDLE, 1))
-                        .addMaterial(Ingredient.fromItems(LEATHER_SHEET.get()), 8)
-                        .addMaterial(Ingredient.fromItems(LEATHER_STRIP.get()), 2)
-                        .addMaterial(Ingredient.fromItems(Items.STRING))
-                        .addCriterion("has_leather", hasItem(Items.LEATHER))
-                        .build(consumer, location("leather_chestplate_via_sewing"));
-
-                SewingRecipeBuilder.begin(Items.LEATHER_HELMET)
-                        .withTool(ToolIngredient.fromTool(NeedleItem.SEWING_NEEDLE, 1))
-                        .addMaterial(Ingredient.fromItems(LEATHER_SHEET.get()), 2)
-                        .addMaterial(Ingredient.fromItems(LEATHER_STRIP.get()))
-                        .addMaterial(Ingredient.fromItems(Items.STRING))
-                        .addCriterion("has_leather", hasItem(Items.LEATHER))
-                        .build(consumer, location("leather_helmet_via_sewing"));
-            }
         }
     }
 }
