@@ -6,10 +6,11 @@ license="BSD (3 clause)"
     modId="sewingkit"
     version="${file.jarVersion}"
     displayName="Sewing Kit"
+    logoFile="logo.png"
     description='''
 Sewing Kit is a base mod for anything that wants to add sewing features, such as leatherworking or tailoring.
 '''
-    credits="Thanks for this example mod goes to Java"
+    credits="Image used in the mod logo taken by Marco Vech, licensed under CC BY 2.0 "
     authors="gigaherz"
     #updateJSONURL="http://myurl.me/"
     displayURL="https://github.com/gigaherz/SewingKit"
