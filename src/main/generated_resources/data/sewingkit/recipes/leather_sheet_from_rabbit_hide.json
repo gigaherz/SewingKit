@@ -1,0 +1,17 @@
+{
+  "type": "sewingkit:sewing",
+  "materials": [
+    {
+      "ingredient": {
+        "item": "minecraft:rabbit_hide"
+      },
+      "count": 1
+    }
+  ],
+  "tool": {
+    "item": "minecraft:shears"
+  },
+  "result": {
+    "item": "sewingkit:leather_sheet"
+  }
+}

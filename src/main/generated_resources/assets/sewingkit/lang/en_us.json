@@ -1,0 +1,13 @@
+{
+  "container.sewingkit.sewing_station": "Sewing Station",
+  "item.sewingkit.bone_sewing_needle": "Bone Sewing Needle",
+  "item.sewingkit.diamond_sewing_needle": "Diamond Sewing Needle",
+  "item.sewingkit.gold_sewing_needle": "Gold Sewing Needle",
+  "item.sewingkit.iron_sewing_needle": "Iron Sewing Needle",
+  "item.sewingkit.leather_sheet": "Leather Sheet",
+  "item.sewingkit.leather_strip": "Leather Strip",
+  "item.sewingkit.netherite_sewing_needle": "Netherite Sewing Needle",
+  "item.sewingkit.stone_sewing_needle": "Stone Sewing Needle",
+  "item.sewingkit.wood_sewing_needle": "Wood Sewing Needle",
+  "itemGroup.sewing_kit": "Sewing Kit"
+}

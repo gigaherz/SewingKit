@@ -1,0 +1,18 @@
+{
+  "type": "sewingkit:sewing",
+  "materials": [
+    {
+      "ingredient": {
+        "item": "minecraft:leather"
+      },
+      "count": 1
+    }
+  ],
+  "tool": {
+    "item": "minecraft:shears"
+  },
+  "result": {
+    "item": "sewingkit:leather_sheet",
+    "count": 4
+  }
+}

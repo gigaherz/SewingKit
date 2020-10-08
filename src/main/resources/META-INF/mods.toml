@@ -1,0 +1,29 @@
+modLoader="javafml"
+loaderVersion="[33,)"
+license="BSD (3 clause)"
+
+[[mods]]
+    modId="sewingkit"
+    version="${file.jarVersion}"
+    displayName="Sewing Kit"
+    description='''
+Sewing Kit is a base mod for anything that wants to add sewing features, such as leatherworking or tailoring.
+'''
+    credits="Thanks for this example mod goes to Java"
+    authors="gigaherz"
+    #updateJSONURL="http://myurl.me/"
+    displayURL="https://github.com/gigaherz/SewingKit"
+    issueTrackerURL="https://github.com/gigaherz/SewingKit/issues"
+
+[[dependencies.sewingkit]]
+    modId="forge"
+    mandatory=true
+    versionRange="[33.0,)"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.sewingkit]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.2,1.17)"
+    ordering="NONE"
+    side="BOTH"

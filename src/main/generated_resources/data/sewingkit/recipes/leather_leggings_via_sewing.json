@@ -1,0 +1,31 @@
+{
+  "type": "sewingkit:sewing",
+  "materials": [
+    {
+      "ingredient": {
+        "item": "sewingkit:leather_sheet"
+      },
+      "count": 4
+    },
+    {
+      "ingredient": {
+        "item": "sewingkit:leather_strip"
+      },
+      "count": 3
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:string"
+      },
+      "count": 1
+    }
+  ],
+  "tool": {
+    "type": "sewingkit:tool_ingredient",
+    "tool_type": "sewing_needle",
+    "tool_level": 1
+  },
+  "result": {
+    "item": "minecraft:leather_leggings"
+  }
+}
