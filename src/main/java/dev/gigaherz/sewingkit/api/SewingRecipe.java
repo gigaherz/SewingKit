@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class SewingRecipe implements IRecipe<IInventory>
 {
@@ -161,6 +160,11 @@ public class SewingRecipe implements IRecipe<IInventory>
     public static class Serializer extends ForgeRegistryEntry<IRecipeSerializer<?>>
             implements IRecipeSerializer<SewingRecipe>
     {
+        protected SewingRecipe createRecipe(ResourceLocation recipeId, String group, NonNullList<Material> materials, Ingredient pattern, Ingredient tool, ItemStack result)
+        {
+            return new SewingRecipe(recipeId, group, materials, pattern, tool, result);
+        }
+
         @Override
         public SewingRecipe read(ResourceLocation recipeId, JsonObject json)
         {
@@ -174,7 +178,7 @@ public class SewingRecipe implements IRecipe<IInventory>
             Ingredient pattern = json.has("pattern") ? CraftingHelper.getIngredient(json.get("ingredient")) : null;
             Ingredient tool = json.has("tool") ? CraftingHelper.getIngredient(json.get("tool")) : null;
             ItemStack result = CraftingHelper.getItemStack(JSONUtils.getJsonObject(json, "result"), true);
-            return new SewingRecipe(recipeId, group, materials, pattern, tool, result);
+            return createRecipe(recipeId, group, materials, pattern, tool, result);
         }
 
         @Override
@@ -192,7 +196,7 @@ public class SewingRecipe implements IRecipe<IInventory>
             boolean hasTool = buffer.readBoolean();
             Ingredient tool = hasTool ? Ingredient.read(buffer) : null;
             ItemStack result = buffer.readItemStack();
-            return new SewingRecipe(recipeId, group, materials, pattern, tool, result);
+            return createRecipe(recipeId, group, materials, pattern, tool, result);
         }
 
         @Override

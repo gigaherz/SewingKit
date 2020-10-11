@@ -34,18 +34,29 @@ public class SewingRecipeBuilder
 
     public static SewingRecipeBuilder begin(Item result)
     {
-        return new SewingRecipeBuilder(result, 1);
+        return begin(result, 1, null);
     }
 
     public static SewingRecipeBuilder begin(Item result, int count)
     {
-        return new SewingRecipeBuilder(result, count);
+        return begin(result, count, null);
     }
 
-    private SewingRecipeBuilder(Item result, int count)
+    public static SewingRecipeBuilder begin(Item result, CompoundNBT tag)
+    {
+        return begin(result, 1, tag);
+    }
+
+    public static SewingRecipeBuilder begin(Item result, int count, @Nullable CompoundNBT tag)
+    {
+        return new SewingRecipeBuilder(result, count, tag);
+    }
+
+    protected SewingRecipeBuilder(Item result, int count, @Nullable CompoundNBT tag)
     {
         this.result = result;
         this.count = count;
+        this.tag = tag;
     }
 
     public SewingRecipeBuilder withTool(Ingredient tool)
@@ -101,7 +112,13 @@ public class SewingRecipeBuilder
                 .withCriterion("has_the_recipe", RecipeUnlockedTrigger.create(id))
                 .withRewards(AdvancementRewards.Builder.recipe(id))
                 .withRequirementsStrategy(IRequirementsStrategy.OR);
-        consumerIn.accept(new SewingRecipeBuilder.Result(id, this.group == null ? "" : this.group, this.result, this.count, this.tag, this.tool, this.pattern, this.materials, this.advancementBuilder, new ResourceLocation(id.getNamespace(), "recipes/" + this.result.getGroup().getPath() + "/" + id.getPath())));
+        ResourceLocation advancementId = new ResourceLocation(id.getNamespace(), "recipes/" + this.result.getGroup().getPath() + "/" + id.getPath());
+        consumerIn.accept(createFinishedRecipe(id, this.group == null ? "" : this.group, this.result, this.count, this.tag, this.tool, this.pattern, this.materials, this.advancementBuilder, advancementId));
+    }
+
+    protected IFinishedRecipe createFinishedRecipe(ResourceLocation id, String group, Item result, int count, CompoundNBT tag, Ingredient tool, Ingredient pattern, List<SewingRecipe.Material> materials, Advancement.Builder advancementBuilder, ResourceLocation advancementId)
+    {
+        return new SewingRecipeBuilder.Result(id, group, result, count, tag, tool, pattern, materials, advancementBuilder, advancementId);
     }
 
     private void validate(ResourceLocation id) {
@@ -113,7 +130,7 @@ public class SewingRecipeBuilder
         }
     }
 
-    private static class Result implements IFinishedRecipe
+    protected static class Result implements IFinishedRecipe
     {
         private final ResourceLocation id;
         private final Item result;
