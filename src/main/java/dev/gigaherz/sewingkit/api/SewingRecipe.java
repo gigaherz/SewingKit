@@ -55,9 +55,8 @@ public class SewingRecipe implements IRecipe<IInventory>
 
     public static Collection<SewingRecipe> getAllRecipes(World world)
     {
-        return world.getRecipeManager().getRecipes(SEWING).values().stream().map(r -> (SewingRecipe) r).collect(Collectors.toList());
+        return world.getRecipeManager().getRecipesForType(SEWING);
     }
-
 
     @Override
     public String getGroup()

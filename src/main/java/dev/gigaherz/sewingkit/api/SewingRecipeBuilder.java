@@ -3,7 +3,7 @@ package dev.gigaherz.sewingkit.api;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.ICriterionInstance;
@@ -13,6 +13,7 @@ import net.minecraft.data.IFinishedRecipe;
 import net.minecraft.item.Item;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.item.crafting.Ingredient;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
 
@@ -22,13 +23,14 @@ import java.util.function.Consumer;
 
 public class SewingRecipeBuilder
 {
+    private String group;
     private Ingredient tool;
     private Ingredient pattern;
     private final List<SewingRecipe.Material> materials = Lists.newArrayList();
     private final Item result;
     private final int count;
+    private CompoundNBT tag;
     private final Advancement.Builder advancementBuilder = Advancement.Builder.builder();
-    private String group;
 
     public static SewingRecipeBuilder begin(Item result)
     {
@@ -99,7 +101,7 @@ public class SewingRecipeBuilder
                 .withCriterion("has_the_recipe", RecipeUnlockedTrigger.create(id))
                 .withRewards(AdvancementRewards.Builder.recipe(id))
                 .withRequirementsStrategy(IRequirementsStrategy.OR);
-        consumerIn.accept(new SewingRecipeBuilder.Result(id, this.result, this.count, this.group == null ? "" : this.group, this.tool, this.pattern, this.materials, this.advancementBuilder, new ResourceLocation(id.getNamespace(), "recipes/" + this.result.getGroup().getPath() + "/" + id.getPath())));
+        consumerIn.accept(new SewingRecipeBuilder.Result(id, this.group == null ? "" : this.group, this.result, this.count, this.tag, this.tool, this.pattern, this.materials, this.advancementBuilder, new ResourceLocation(id.getNamespace(), "recipes/" + this.result.getGroup().getPath() + "/" + id.getPath())));
     }
 
     private void validate(ResourceLocation id) {
@@ -111,11 +113,13 @@ public class SewingRecipeBuilder
         }
     }
 
-    private class Result implements IFinishedRecipe
+    private static class Result implements IFinishedRecipe
     {
         private final ResourceLocation id;
         private final Item result;
         private final int count;
+        @Nullable
+        private final CompoundNBT tag;
         private final String group;
         @Nullable
         private final Ingredient tool;
@@ -125,11 +129,14 @@ public class SewingRecipeBuilder
         private final Advancement.Builder advancementBuilder;
         private final ResourceLocation advancementId;
 
-        public Result(ResourceLocation id, Item result, int count, String group, @Nullable Ingredient tool, @Nullable Ingredient pattern, List<SewingRecipe.Material> materials, Advancement.Builder advancementBuilder, ResourceLocation advancementId)
+        public Result(ResourceLocation id, String group, Item result, int count, @Nullable CompoundNBT tag,
+                      @Nullable Ingredient tool, @Nullable Ingredient pattern, List<SewingRecipe.Material> materials,
+                      Advancement.Builder advancementBuilder, ResourceLocation advancementId)
         {
             this.id = id;
             this.result = result;
             this.count = count;
+            this.tag = tag;
             this.group = group;
             this.tool = tool;
             this.pattern = pattern;
@@ -165,6 +172,12 @@ public class SewingRecipeBuilder
             resultJson.addProperty("item", Registry.ITEM.getKey(this.result).toString());
             if (this.count > 1) {
                 resultJson.addProperty("count", this.count);
+            }
+            if (this.tag != null)
+            {
+                CompoundNBT.CODEC.encodeStart(JsonOps.INSTANCE, tag).result().ifPresent(
+                        result -> resultJson.add("nbt", result)
+                );
             }
             recipeJson.add("result", resultJson);
         }

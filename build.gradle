@@ -19,7 +19,7 @@ repositories {
     }
 }
 
-version = '1.0.3'
+version = '1.0.4'
 group = 'dev.gigaherz.sewingkit' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'SewingKit-UNKNOWN'
 
@@ -37,8 +37,6 @@ sourceSets {
 
 minecraft {
     mappings channel: 'snapshot', version: '20200916-1.16.2'
-
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {
         client {

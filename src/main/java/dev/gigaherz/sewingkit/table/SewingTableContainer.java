@@ -34,7 +34,6 @@ public class SewingTableContainer extends Container
     private static final int NUM_OUTPUTS = 1;
     private static final int NUM_INVENTORY = 9 * 3;
     private static final int NUM_HOTBAR = 9;
-    private static final int INPUTS_START = 0;
     private static final int OUTPUTS_START = NUM_INPUTS;
     private static final int PLAYER_START = OUTPUTS_START + NUM_OUTPUTS;
     private static final int HOTBAR_START = PLAYER_START + NUM_INVENTORY;
