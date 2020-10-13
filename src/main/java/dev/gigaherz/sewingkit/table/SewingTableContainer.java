@@ -11,6 +11,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.container.Container;
 import net.minecraft.inventory.container.ContainerType;
+import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -83,12 +84,12 @@ public class SewingTableContainer extends Container
 
         this.addSlot(new Slot(this.inputInventory, 0, 8, 15){
             {
-                this.setBackground(AtlasTexture.LOCATION_BLOCKS_TEXTURE, SewingKitMod.location("gui/needle_slot_background"));
+                this.setBackground(PlayerContainer.LOCATION_BLOCKS_TEXTURE, SewingKitMod.location("gui/needle_slot_background"));
             }
         });
         this.addSlot(new Slot(this.inputInventory, 1, 30, 15){
             {
-                this.setBackground(AtlasTexture.LOCATION_BLOCKS_TEXTURE, SewingKitMod.location("gui/pattern_slot_background"));
+                this.setBackground(PlayerContainer.LOCATION_BLOCKS_TEXTURE, SewingKitMod.location("gui/pattern_slot_background"));
             }
         });
         this.addSlot(new Slot(this.inputInventory, 2, 10, 35));
@@ -328,14 +329,14 @@ public class SewingTableContainer extends Container
         }
         else if (index >= OUTPUTS_START) 
         {
-            if (stackInSlot.getMaxStackSize() == 1)
+            if (stackInSlot.getMaxStackSize() == 1 && inventorySlots.get(0).getStack().getCount() == 0)
             {
                 startIndex = 0;
                 endIndex = 1;
             }
             /*else if (stackInSlot.getItem().isIn(SewingKitMod.PATTERNS_TAG))
             {
-                startIndex = 1;
+                startIndex = 1;e
                 endIndex = 2;
             }*/
             else

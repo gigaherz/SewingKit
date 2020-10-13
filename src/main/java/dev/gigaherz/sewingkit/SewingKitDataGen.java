@@ -66,6 +66,8 @@ public class SewingKitDataGen
             add(SewingKitMod.LEATHER_STRIP.get(), "Leather Strip");
             add(SewingKitMod.LEATHER_SHEET.get(), "Leather Sheet");
 
+            add(SewingKitMod.SEWING_STATION_BLOCK.get(), "Sewing Table");
+
             Arrays.stream(Needles.values()).forEach(needle -> {
                 String type = needle.getType();
                 String name = type.substring(0, 1).toUpperCase() + type.substring(1);
@@ -176,6 +178,14 @@ public class SewingKitDataGen
                     .addMaterial(Ingredient.fromItems(Items.STRING))
                     .addCriterion("has_leather", hasItem(Items.LEATHER))
                     .build(consumer, SewingKitMod.location("leather_helmet_via_sewing"));
+
+            SewingRecipeBuilder.begin(Items.LEATHER_HORSE_ARMOR)
+                    .withTool(ToolIngredient.fromTool(NeedleItem.SEWING_NEEDLE, Needles.NETHERITE.getHarvestLevel()))
+                    .addMaterial(Ingredient.fromItems(SewingKitMod.LEATHER_SHEET.get()), 12)
+                    .addMaterial(Ingredient.fromItems(SewingKitMod.LEATHER_STRIP.get()), 6)
+                    .addMaterial(Ingredient.fromItems(Items.STRING), 8)
+                    .addCriterion("has_leather", hasItem(Items.LEATHER))
+                    .build(consumer, SewingKitMod.location("leather_horse_armor_via_sewing"));
         }
     }
 }

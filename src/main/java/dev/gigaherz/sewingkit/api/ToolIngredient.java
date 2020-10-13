@@ -62,6 +62,12 @@ public class ToolIngredient extends Ingredient
         }
     }
 
+    @Override
+    public IIngredientSerializer<? extends Ingredient> getSerializer()
+    {
+        return Serializer.INSTANCE;
+    }
+
     public static class Serializer extends VanillaIngredientSerializer
     {
         public static final IIngredientSerializer<? extends Ingredient> INSTANCE = new Serializer();
