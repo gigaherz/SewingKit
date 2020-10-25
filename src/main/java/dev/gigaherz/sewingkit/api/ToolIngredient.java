@@ -16,6 +16,8 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.minecraft.item.crafting.Ingredient.IItemList;
+
 public class ToolIngredient extends Ingredient
 {
     public static final ResourceLocation NAME = SewingKitMod.location("tool_ingredient");

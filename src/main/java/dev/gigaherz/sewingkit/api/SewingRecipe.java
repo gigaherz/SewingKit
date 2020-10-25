@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class SewingRecipe implements IRecipe<IInventory>
 {
@@ -54,7 +55,7 @@ public class SewingRecipe implements IRecipe<IInventory>
 
     public static Collection<SewingRecipe> getAllRecipes(World world)
     {
-        return world.getRecipeManager().getRecipesForType(SEWING);
+        return world.getRecipeManager().getRecipes().stream().filter(rcp ->rcp.getType() == SEWING).map(rcp -> (SewingRecipe)rcp).collect(Collectors.toSet());
     }
 
     @Override

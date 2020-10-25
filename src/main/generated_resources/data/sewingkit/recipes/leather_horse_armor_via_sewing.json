@@ -23,7 +23,7 @@
   "tool": {
     "type": "sewingkit:tool_ingredient",
     "tool_type": "sewing_needle",
-    "tool_level": 5
+    "tool_level": 4
   },
   "result": {
     "item": "minecraft:leather_horse_armor"

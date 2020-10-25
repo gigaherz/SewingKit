@@ -7,6 +7,8 @@ import net.minecraftforge.common.ToolType;
 import java.util.Collections;
 import java.util.Set;
 
+import net.minecraft.item.Item.Properties;
+
 public class NeedleItem extends ToolItem
 {
     public static final ToolType SEWING_NEEDLE = ToolType.get("sewing_needle");

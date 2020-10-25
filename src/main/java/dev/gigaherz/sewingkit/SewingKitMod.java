@@ -7,7 +7,6 @@ import dev.gigaherz.sewingkit.needle.Needles;
 import dev.gigaherz.sewingkit.table.SewingTableBlock;
 import dev.gigaherz.sewingkit.table.SewingTableContainer;
 import dev.gigaherz.sewingkit.table.SewingTableScreen;
-import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.gui.ScreenManager;
@@ -15,6 +14,8 @@ import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.*;
 import net.minecraft.item.crafting.IRecipeSerializer;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.Tag;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ModelRegistryEvent;
@@ -88,12 +89,8 @@ public class SewingKitMod
             () -> new NeedleItem(0, 1, Needles.DIAMOND, new Item.Properties().group(SEWING_KIT))
     );
 
-    public static final RegistryObject<Item> NETHERITE_SEWING_NEEDLE = ITEMS.register("netherite_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.NETHERITE, new Item.Properties().group(SEWING_KIT))
-    );
-
     public static final RegistryObject<Block> SEWING_STATION_BLOCK = BLOCKS.register("sewing_station",
-            () -> new SewingTableBlock(AbstractBlock.Properties.create(Material.WOOD))
+            () -> new SewingTableBlock(Block.Properties.create(Material.WOOD))
     );
 
     public static final RegistryObject<Item> SEWING_STATION_ITEM = ITEMS.register("sewing_station",
@@ -148,6 +145,11 @@ public class SewingKitMod
     public static ResourceLocation location(String path)
     {
         return new ResourceLocation(MODID, path);
+    }
+
+    public static Tag<Item> makeWrapperTag(String id)
+    {
+        return new ItemTags.Wrapper(new ResourceLocation(id));
     }
 
     @Mod.EventBusSubscriber(value= Dist.CLIENT, bus=Mod.EventBusSubscriber.Bus.MOD)

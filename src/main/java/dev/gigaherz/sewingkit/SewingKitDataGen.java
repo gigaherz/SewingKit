@@ -8,14 +8,15 @@ import net.minecraft.data.DataGenerator;
 import net.minecraft.data.IFinishedRecipe;
 import net.minecraft.data.RecipeProvider;
 import net.minecraft.data.ShapedRecipeBuilder;
+import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.item.crafting.ShapedRecipe;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.Tag;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.model.generators.ExistingFileHelper;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.client.model.generators.ModelFile;
-import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.data.LanguageProvider;
 import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 import org.apache.logging.log4j.LogManager;
@@ -115,17 +116,17 @@ public class SewingKitDataGen
                                 .patternLine(" D")
                                 .patternLine("D ")
                                 .key('D', needle.getRepairMaterial())
-                                .addCriterion("has_material", needle.getMaterial().map(RecipeProvider::hasItem, RecipeProvider::hasItem))
+                                .addCriterion("has_material", needle.getMaterial().map(this::hasItem, this::hasItem))
                                 .build(consumer));
 
             ShapedRecipeBuilder.shapedRecipe(SewingKitMod.SEWING_STATION_ITEM.get())
                     .patternLine("xxx")
                     .patternLine("P P")
                     .patternLine("S S")
-                    .key('x', Ingredient.fromTag(ItemTags.makeWrapperTag("minecraft:wooden_slabs")))
-                    .key('P', Ingredient.fromTag(ItemTags.makeWrapperTag("minecraft:planks")))
+                    .key('x', Ingredient.fromTag(SewingKitMod.makeWrapperTag("minecraft:wooden_slabs")))
+                    .key('P', Ingredient.fromTag(SewingKitMod.makeWrapperTag("minecraft:planks")))
                     .key('S', Ingredient.fromItems(Items.STRING))
-                    .addCriterion("has_wood", hasItem(ItemTags.makeWrapperTag("minecraft:planks")))
+                    .addCriterion("has_wood", hasItem(SewingKitMod.makeWrapperTag("minecraft:planks")))
                     .build(consumer);
 
             // Sewing recipes:
@@ -180,7 +181,7 @@ public class SewingKitDataGen
                     .build(consumer, SewingKitMod.location("leather_helmet_via_sewing"));
 
             SewingRecipeBuilder.begin(Items.LEATHER_HORSE_ARMOR)
-                    .withTool(ToolIngredient.fromTool(NeedleItem.SEWING_NEEDLE, Needles.NETHERITE.getHarvestLevel()))
+                    .withTool(ToolIngredient.fromTool(NeedleItem.SEWING_NEEDLE, Needles.DIAMOND.getHarvestLevel()))
                     .addMaterial(Ingredient.fromItems(SewingKitMod.LEATHER_SHEET.get()), 12)
                     .addMaterial(Ingredient.fromItems(SewingKitMod.LEATHER_STRIP.get()), 6)
                     .addMaterial(Ingredient.fromItems(Items.STRING), 8)

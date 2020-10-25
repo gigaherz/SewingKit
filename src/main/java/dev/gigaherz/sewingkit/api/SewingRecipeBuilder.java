@@ -3,7 +3,7 @@ package dev.gigaherz.sewingkit.api;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.mojang.serialization.JsonOps;
+import com.mojang.datafixers.types.JsonOps;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.ICriterionInstance;
@@ -14,6 +14,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
 
@@ -109,7 +111,7 @@ public class SewingRecipeBuilder
         this.validate(id);
         this.advancementBuilder
                 .withParentId(new ResourceLocation("recipes/root"))
-                .withCriterion("has_the_recipe", RecipeUnlockedTrigger.create(id))
+                .withCriterion("has_the_recipe", new RecipeUnlockedTrigger.Instance(id))
                 .withRewards(AdvancementRewards.Builder.recipe(id))
                 .withRequirementsStrategy(IRequirementsStrategy.OR);
         ResourceLocation advancementId = new ResourceLocation(id.getNamespace(), "recipes/" + this.result.getGroup().getPath() + "/" + id.getPath());
@@ -192,9 +194,7 @@ public class SewingRecipeBuilder
             }
             if (this.tag != null)
             {
-                CompoundNBT.CODEC.encodeStart(JsonOps.INSTANCE, tag).result().ifPresent(
-                        result -> resultJson.add("nbt", result)
-                );
+                resultJson.addProperty("nbt", this.tag.toString());
             }
             recipeJson.add("result", resultJson);
         }

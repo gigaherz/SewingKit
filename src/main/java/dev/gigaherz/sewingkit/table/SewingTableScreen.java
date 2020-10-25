@@ -1,6 +1,5 @@
 package dev.gigaherz.sewingkit.table;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
@@ -8,7 +7,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.crafting.StonecuttingRecipe;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.MathHelper;
@@ -28,64 +26,51 @@ public class SewingTableScreen extends ContainerScreen<SewingTableContainer>
     public SewingTableScreen(SewingTableContainer containerIn, PlayerInventory playerInv, ITextComponent titleIn) {
         super(containerIn, playerInv, titleIn);
         containerIn.setInventoryUpdateListener(this::onInventoryUpdate);
-        --this.titleY;
     }
 
-    public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
-        super.render(matrixStack, mouseX, mouseY, partialTicks);
-        this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
+    @Override
+    public void render(int mouseX, int mouseY, float partialTicks) {
+        super.render(mouseX, mouseY, partialTicks);
+        this.renderHoveredToolTip(mouseX, mouseY);
     }
 
-    protected void drawGuiContainerBackgroundLayer(MatrixStack matrixStack, float partialTicks, int x, int y) {
-        this.renderBackground(matrixStack);
-        RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
-        this.minecraft.getTextureManager().bindTexture(BACKGROUND_TEXTURE);
-        int i = this.guiLeft;
-        int j = this.guiTop;
-        this.blit(matrixStack, i, j, 0, 0, this.xSize, this.ySize);
-        int k = (int)(41.0F * this.sliderProgress);
-        this.blit(matrixStack, i + 119, j + 15 + k, 176 + (this.canScroll() ? 0 : 12), 0, 12, 15);
-        int l = this.guiLeft + 52;
-        int i1 = this.guiTop + 14;
-        int j1 = this.recipeIndexOffset + 12;
-        this.func_238853_b_(matrixStack, x, y, l, i1, j1);
-        this.drawRecipesItems(l, i1, j1);
+    @Override
+    protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+        this.font.drawString(this.title.getFormattedText(), 8.0F, 4.0F, 4210752);
+        this.font.drawString(this.playerInventory.getDisplayName().getFormattedText(), 8.0F, (float)(this.ySize - 94), 4210752);
     }
 
-    protected void renderHoveredTooltip(MatrixStack matrixStack, int x, int y) {
-        super.renderHoveredTooltip(matrixStack, x, y);
-        if (this.hasItemsInInputSlot) {
-            int i = this.guiLeft + 52;
-            int j = this.guiTop + 14;
-            int k = this.recipeIndexOffset + 12;
-            List<SewingRecipe> list = this.container.getRecipeList();
+    @Override
+   protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
+      this.renderBackground();
+      RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+      this.minecraft.getTextureManager().bindTexture(BACKGROUND_TEXTURE);
+      int i = this.guiLeft;
+      int j = this.guiTop;
+      this.blit(i, j, 0, 0, this.xSize, this.ySize);
+      int k = (int)(41.0F * this.sliderProgress);
+      this.blit(i + 119, j + 15 + k, 176 + (this.canScroll() ? 0 : 12), 0, 12, 15);
+      int l = this.guiLeft + 52;
+      int i1 = this.guiTop + 14;
+      int j1 = this.recipeIndexOffset + 12;
+      this.drawRecipesBackground(mouseX, mouseY, l, i1, j1);
+      this.drawRecipesItems(l, i1, j1);
+   }
 
-            for(int l = this.recipeIndexOffset; l < k && l < this.container.getRecipeListSize(); ++l) {
-                int i1 = l - this.recipeIndexOffset;
-                int j1 = i + i1 % 4 * 16;
-                int k1 = j + i1 / 4 * 18 + 2;
-                if (x >= j1 && x < j1 + 16 && y >= k1 && y < k1 + 18) {
-                    this.renderTooltip(matrixStack, list.get(l).getRecipeOutput(), x, y);
-                }
-            }
-        }
-
-    }
-
-    private void func_238853_b_(MatrixStack matrixStack, int x, int y, int p_238853_4_, int p_238853_5_, int p_238853_6_) {
-        for(int i = this.recipeIndexOffset; i < p_238853_6_ && i < this.container.getRecipeListSize(); ++i) {
+    private void drawRecipesBackground(int mouseX, int mouseY, int left, int top, int recipeIndexOffsetMax) {
+        for(int i = this.recipeIndexOffset; i < recipeIndexOffsetMax && i < this.container.getRecipeListSize(); ++i) {
             int j = i - this.recipeIndexOffset;
-            int k = p_238853_4_ + j % 4 * 16;
+            int k = left + j % 4 * 16;
             int l = j / 4;
-            int i1 = p_238853_5_ + l * 18 + 2;
+            int i1 = top + l * 18 + 2;
             int j1 = this.ySize;
             if (i == this.container.getSelectedRecipe()) {
                 j1 += 18;
-            } else if (x >= k && y >= i1 && x < k + 16 && y < i1 + 18) {
+            } else if (mouseX >= k && mouseY >= i1 && mouseX < k + 16 && mouseY < i1 + 18) {
                 j1 += 36;
             }
 
-            this.blit(matrixStack, k, i1 - 1, 0, j1, 16, 18);
+            this.blit(k, i1 - 1, 0, j1, 16, 18);
         }
 
     }
@@ -103,6 +88,7 @@ public class SewingTableScreen extends ContainerScreen<SewingTableContainer>
 
     }
 
+    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         this.clickedOnScroll = false;
         if (this.hasItemsInInputSlot) {
@@ -131,6 +117,7 @@ public class SewingTableScreen extends ContainerScreen<SewingTableContainer>
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
+    @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         if (this.clickedOnScroll && this.canScroll()) {
             int i = this.guiTop + 14;
@@ -144,6 +131,7 @@ public class SewingTableScreen extends ContainerScreen<SewingTableContainer>
         }
     }
 
+    @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         if (this.canScroll()) {
             int i = this.getHiddenRows();
