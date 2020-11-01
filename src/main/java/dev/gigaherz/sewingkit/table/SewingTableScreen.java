@@ -9,14 +9,26 @@ import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.container.Slot;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.item.crafting.StonecuttingRecipe;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderTooltipEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
+@Mod.EventBusSubscriber(value=Dist.CLIENT,modid=SewingKitMod.MODID, bus=Mod.EventBusSubscriber.Bus.FORGE)
 public class SewingTableScreen extends ContainerScreen<SewingTableContainer>
 {
     private static final ResourceLocation BACKGROUND_TEXTURE = SewingKitMod.location("textures/gui/sewing_station.png");
@@ -56,17 +68,44 @@ public class SewingTableScreen extends ContainerScreen<SewingTableContainer>
 
     private void drawRecipeCosts(MatrixStack matrixStack, int mouseX, int mouseY)
     {
-        /*int recipeIdx = container.getSelectedRecipe();
-        if (recipeIdx < 0)
+        int recipeIdx = container.getSelectedRecipe();
+        if (recipeIdx < 0 || recipeIdx >= container.getRecipeListSize())
             return;
         SewingRecipe recipe = container.getRecipeList().get(recipeIdx);
-        for(int i=2;i<6;i++)
-        {
-            Slot slot = container.inventorySlots.get(i);
-            int x = slot.xPos + guiLeft;
-            int y = slot.yPos + guiTop;
+        if (recipe == null)
+            return;
 
-        }*/
+        Map<Ingredient, Integer> remaining = recipe.getMaterials().stream().collect(Collectors.toMap(i -> i.ingredient, i -> i.count));
+
+        matrixStack.push();
+        matrixStack.translate(0,0,300);
+        for (int i = 0; i < 4; i++)
+        {
+            Slot slot = container.inventorySlots.get(i+2);
+            int subtract = 0;
+            for (Map.Entry<Ingredient, Integer> mat : remaining.entrySet())
+            {
+                Ingredient ing = mat.getKey();
+                int value = mat.getValue();
+                ItemStack stack1 = slot.getStack();
+                if (ing.test(stack1))
+                {
+                    int remaining1 = Math.max(0, value - (stack1.getCount()+subtract));
+                    subtract += (value - remaining1);
+                    mat.setValue(remaining1);
+                }
+            }
+
+            if (subtract != 1 && slot.getStack().getCount() > 0)
+            {
+                int x = slot.xPos + guiLeft;
+                int y = slot.yPos + guiTop;
+                String text = String.format("%s", subtract);
+                int w = font.getStringWidth(text);
+                drawString(matrixStack, font, text, x + 17 - w, y, TextFormatting.YELLOW.getColor());
+            }
+        }
+        matrixStack.pop();
     }
 
     protected void renderHoveredTooltip(MatrixStack matrixStack, int x, int y) {
@@ -83,10 +122,85 @@ public class SewingTableScreen extends ContainerScreen<SewingTableContainer>
                 int k1 = j + i1 / 4 * 18 + 2;
                 if (x >= j1 && x < j1 + 16 && y >= k1 && y < k1 + 18) {
                     this.renderTooltip(matrixStack, list.get(l).getRecipeOutput(), x, y);
+                    renderHoveredRecipe(matrixStack, x, y, container.getRecipeList().get(l));
                 }
             }
         }
+    }
 
+    private static int tooltipX = 0;
+    private static int tooltipY = 0;
+    private static int tooltipWidth = 0;
+    private static int tooltipHeight = 0;
+    private int ticks = 0;
+
+    private static final ResourceLocation RECIPE_TEXTURE = SewingKitMod.location("textures/gui/recipetooltip.png");
+    protected void renderHoveredRecipe(MatrixStack matrixStack, int mouseX, int mouseY, SewingRecipe sewingRecipe)
+    {
+        matrixStack.push();
+        matrixStack.translate(0,0,300);
+
+        int x = tooltipX;
+        int y = tooltipY - 35 - 8;
+
+        Objects.requireNonNull(minecraft).getTextureManager().bindTexture(RECIPE_TEXTURE);
+        blit(matrixStack, x, y, 0, 0, 35, 35, 64, 64);
+        NonNullList<SewingRecipe.Material> materials = sewingRecipe.getMaterials();
+        for(int i=0;i<materials.size();i++)
+        {
+            int xx = x + (i%2)*17 + 1;
+            int yy = y + (i/2)*17 + 1;
+            SewingRecipe.Material material = materials.get(i);
+            ItemStack[] stacks = material.ingredient.getMatchingStacks();
+            if (stacks.length > 0)
+            {
+                float zz = itemRenderer.zLevel;
+                itemRenderer.zLevel = 0;
+                RenderSystem.pushMatrix();
+                RenderSystem.multMatrix(matrixStack.getLast().getMatrix());
+
+                ItemStack stack = stacks[(ticks/32)%stacks.length].copy();
+                stack.setCount(material.count);
+                itemRenderer.renderItemAndEffectIntoGUI(stack, xx, yy);
+
+                RenderSystem.popMatrix();
+                itemRenderer.zLevel = zz;
+            }
+            else
+            {
+                Objects.requireNonNull(minecraft).getTextureManager().bindTexture(RECIPE_TEXTURE);
+                blit(matrixStack, xx, yy, 36, 0, 16, 16, 64, 64);
+            }
+            if (material.count != 1)
+            {
+                matrixStack.push();
+                matrixStack.translate(0,0,300);
+
+                String text = String.format("%d", material.count);
+                int w = font.getStringWidth(text);
+                font.drawStringWithShadow(matrixStack,text,xx+17-w,yy+9, 0xFFFFFF);
+
+                matrixStack.pop();
+            }
+        }
+
+        matrixStack.pop();
+    }
+
+    @Override
+    public void tick()
+    {
+        super.tick();
+        ticks++;
+    }
+
+    @SubscribeEvent
+    public static void tooltipEvent(RenderTooltipEvent.PostText event)
+    {
+        tooltipX = event.getX();
+        tooltipY = event.getY();
+        tooltipWidth = event.getWidth();
+        tooltipHeight = event.getHeight();
     }
 
     private void func_238853_b_(MatrixStack matrixStack, int x, int y, int p_238853_4_, int p_238853_5_, int p_238853_6_) {
