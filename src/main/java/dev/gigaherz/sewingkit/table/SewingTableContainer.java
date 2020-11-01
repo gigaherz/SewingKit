@@ -115,13 +115,14 @@ public class SewingTableContainer extends Container
                 boolean needsUpdate = false;
                 for (int i = 0; i < 6; i++)
                 {
+                    Slot slot = inventorySlots.get(i);
                     ItemStack itemstack;
                     if (i == 0)
                     {
-                        inventorySlots.get(0).getStack().damageItem(1, thePlayer, player -> {
-                            inventorySlots.get(0).decrStackSize(1);
+                        slot.getStack().damageItem(1, thePlayer, player -> {
+                            slot.decrStackSize(1);
                         });
-                        itemstack = inventorySlots.get(0).getStack();
+                        itemstack = slot.getStack();
                     }
                     else if (i == 1)
                     {
@@ -134,7 +135,7 @@ public class SewingTableContainer extends Container
                         {
                             Ingredient ing = mat.getKey();
                             int value = mat.getValue();
-                            ItemStack stack1 = inventorySlots.get(i).getStack();
+                            ItemStack stack1 = slot.getStack();
                             if (ing.test(stack1))
                             {
                                 int remaining1 = Math.max(0, value - (stack1.getCount()+subtract));
@@ -142,7 +143,7 @@ public class SewingTableContainer extends Container
                                 mat.setValue(remaining1);
                             }
                         }
-                        itemstack = inventorySlots.get(i).decrStackSize(subtract);
+                        itemstack = slot.decrStackSize(subtract);
                     }
                     if (!itemstack.isEmpty())
                     {
