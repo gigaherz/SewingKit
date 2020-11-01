@@ -66,6 +66,26 @@ public class SewingTableScreen extends ContainerScreen<SewingTableContainer>
         this.drawRecipesItems(l, i1, j1);
     }
 
+    protected void renderHoveredTooltip(MatrixStack matrixStack, int x, int y) {
+        super.renderHoveredTooltip(matrixStack, x, y);
+        if (this.hasItemsInInputSlot) {
+            int i = this.guiLeft + 52;
+            int j = this.guiTop + 14;
+            int k = this.recipeIndexOffset + 12;
+            List<SewingRecipe> list = this.container.getRecipeList();
+
+            for(int l = this.recipeIndexOffset; l < k && l < this.container.getRecipeListSize(); ++l) {
+                int i1 = l - this.recipeIndexOffset;
+                int j1 = i + i1 % 4 * 16;
+                int k1 = j + i1 / 4 * 18 + 2;
+                if (x >= j1 && x < j1 + 16 && y >= k1 && y < k1 + 18) {
+                    this.renderTooltip(matrixStack, list.get(l).getRecipeOutput(), x, y);
+                    renderHoveredRecipe(matrixStack, x, y, container.getRecipeList().get(l));
+                }
+            }
+        }
+    }
+
     private void drawRecipeCosts(MatrixStack matrixStack, int mouseX, int mouseY)
     {
         int recipeIdx = container.getSelectedRecipe();
@@ -106,26 +126,6 @@ public class SewingTableScreen extends ContainerScreen<SewingTableContainer>
             }
         }
         matrixStack.pop();
-    }
-
-    protected void renderHoveredTooltip(MatrixStack matrixStack, int x, int y) {
-        super.renderHoveredTooltip(matrixStack, x, y);
-        if (this.hasItemsInInputSlot) {
-            int i = this.guiLeft + 52;
-            int j = this.guiTop + 14;
-            int k = this.recipeIndexOffset + 12;
-            List<SewingRecipe> list = this.container.getRecipeList();
-
-            for(int l = this.recipeIndexOffset; l < k && l < this.container.getRecipeListSize(); ++l) {
-                int i1 = l - this.recipeIndexOffset;
-                int j1 = i + i1 % 4 * 16;
-                int k1 = j + i1 / 4 * 18 + 2;
-                if (x >= j1 && x < j1 + 16 && y >= k1 && y < k1 + 18) {
-                    this.renderTooltip(matrixStack, list.get(l).getRecipeOutput(), x, y);
-                    renderHoveredRecipe(matrixStack, x, y, container.getRecipeList().get(l));
-                }
-            }
-        }
     }
 
     private static int tooltipX = 0;
