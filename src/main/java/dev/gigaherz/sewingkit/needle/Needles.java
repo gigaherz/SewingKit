@@ -13,7 +13,7 @@ import net.minecraftforge.fml.RegistryObject;
 public enum Needles implements INeedleTier
 {
     WOOD("wood", 1, 10, 2, 0, 15, SewingKitMod.WOOD_SEWING_NEEDLE, SewingKitMod.makeWrapperTag("minecraft:planks")),
-    STONE("stone", 2, 15, 4, 1, 5, SewingKitMod.STONE_SEWING_NEEDLE, SewingKitMod.makeWrapperTag("minecraft:stone_crafting_materials")),
+    STONE("stone", 2, 15, 4, 1, 5, SewingKitMod.STONE_SEWING_NEEDLE, Items.COBBLESTONE),
     IRON("iron", 3, 150, 6, 2, 4, SewingKitMod.IRON_SEWING_NEEDLE, Items.IRON_INGOT),
     DIAMOND("diamond", 4, 250, 8, 3, 10, SewingKitMod.DIAMOND_SEWING_NEEDLE, Items.DIAMOND),
     GOLD("gold", 1, 25, 12, 0, 22, SewingKitMod.GOLD_SEWING_NEEDLE, Items.GOLD_INGOT),
