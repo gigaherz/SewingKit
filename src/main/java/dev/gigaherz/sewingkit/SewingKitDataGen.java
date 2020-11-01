@@ -124,6 +124,11 @@ public class SewingKitDataGen
             basicIcon(SewingKitMod.WOOL_PANTS.getId());
             basicIcon(SewingKitMod.WOOL_SHOES.getId());
 
+            basicIcon(SewingKitMod.COMMON_PATTERN.getId());
+            basicIcon(SewingKitMod.UNCOMMON_PATTERN.getId());
+            basicIcon(SewingKitMod.RARE_PATTERN.getId());
+            basicIcon(SewingKitMod.LEGENDARY_PATTERN.getId());
+
             getBuilder(SewingKitMod.SEWING_STATION_ITEM.getId().getPath())
                     .parent(getExistingFile(ModelsResourceUtil
                             .func_240221_a_(SewingKitMod.SEWING_STATION_BLOCK.get())));
@@ -164,7 +169,7 @@ public class SewingKitDataGen
                     .addCriterion("has_wood", hasItem(ItemTags.makeWrapperTag("minecraft:planks")))
                     .build(consumer);
 
-            // Sewing recipes:
+            // Sewing recipes: leather
             SewingRecipeBuilder.begin(SewingKitMod.LEATHER_SHEET.get(), 4)
                     .withTool(Ingredient.fromItems(Items.SHEARS))
                     .addMaterial(Ingredient.fromItems(Items.LEATHER))
@@ -222,6 +227,64 @@ public class SewingKitDataGen
                     .addMaterial(Ingredient.fromItems(Items.STRING), 8)
                     .addCriterion("has_leather", hasItem(Items.LEATHER))
                     .build(consumer, SewingKitMod.location("leather_horse_armor_via_sewing"));
+
+            // Sewing recipes: wool
+            SewingRecipeBuilder.begin(SewingKitMod.WOOL_ROLL.get(), 4)
+                    .withTool(Ingredient.fromItems(Items.SHEARS))
+                    .addMaterial(Ingredient.fromTag(ItemTags.WOOL))
+                    .addCriterion("has_wool", hasItem(ItemTags.WOOL))
+                    .build(consumer, SewingKitMod.location("wool_roll_from_wool"));
+
+            SewingRecipeBuilder.begin(SewingKitMod.WOOL_ROLL.get(), 1)
+                    .withTool(Ingredient.fromItems(Items.SHEARS))
+                    .addMaterial(Ingredient.fromTag(ItemTags.CARPETS))
+                    .addCriterion("has_wool", hasItem(ItemTags.CARPETS))
+                    .build(consumer, SewingKitMod.location("wool_roll_from_carpet"));
+
+            SewingRecipeBuilder.begin(SewingKitMod.WOOL_TRIM.get(), 8)
+                    .withTool(Ingredient.fromItems(Items.SHEARS))
+                    .addMaterial(Ingredient.fromTag(ItemTags.WOOL))
+                    .addCriterion("has_wool", hasItem(ItemTags.WOOL))
+                    .build(consumer, SewingKitMod.location("wool_trim_from_wool"));
+
+            SewingRecipeBuilder.begin(SewingKitMod.WOOL_TRIM.get(), 3)
+                    .withTool(Ingredient.fromItems(Items.SHEARS))
+                    .addMaterial(Ingredient.fromTag(ItemTags.WOOL))
+                    .addCriterion("has_wool", hasItem(ItemTags.WOOL))
+                    .build(consumer, SewingKitMod.location("wool_trim_from_carpet"));
+
+            SewingRecipeBuilder.begin(SewingKitMod.WOOL_SHOES.get())
+                    .withTool(ToolIngredient.fromTool(NeedleItem.SEWING_NEEDLE, 1))
+                    .addMaterial(Ingredient.fromItems(SewingKitMod.WOOL_ROLL.get()), 1)
+                    .addMaterial(Ingredient.fromItems(SewingKitMod.WOOL_TRIM.get()), 2)
+                    .addMaterial(Ingredient.fromItems(Items.STRING))
+                    .addCriterion("has_wool", hasItem(ItemTags.WOOL))
+                    .build(consumer, SewingKitMod.location("wool_shoes_via_sewing"));
+
+            SewingRecipeBuilder.begin(SewingKitMod.WOOL_PANTS.get())
+                    .withTool(ToolIngredient.fromTool(NeedleItem.SEWING_NEEDLE, 1))
+                    .addMaterial(Ingredient.fromItems(SewingKitMod.WOOL_ROLL.get()), 2)
+                    .addMaterial(Ingredient.fromItems(SewingKitMod.WOOL_TRIM.get()), 4)
+                    .addMaterial(Ingredient.fromItems(Items.STRING))
+                    .addCriterion("has_wool", hasItem(ItemTags.WOOL))
+                    .build(consumer, SewingKitMod.location("wool_pants_via_sewing"));
+
+            SewingRecipeBuilder.begin(SewingKitMod.WOOL_SHIRT.get())
+                    .withTool(ToolIngredient.fromTool(NeedleItem.SEWING_NEEDLE, 1))
+                    .addMaterial(Ingredient.fromItems(SewingKitMod.WOOL_ROLL.get()), 3)
+                    .addMaterial(Ingredient.fromItems(SewingKitMod.WOOL_TRIM.get()), 3)
+                    .addMaterial(Ingredient.fromItems(Items.STRING))
+                    .addCriterion("has_wool", hasItem(ItemTags.WOOL))
+                    .build(consumer, SewingKitMod.location("wool_shirt_via_sewing"));
+
+            SewingRecipeBuilder.begin(SewingKitMod.WOOL_HAT.get())
+                    .withTool(ToolIngredient.fromTool(NeedleItem.SEWING_NEEDLE, 1))
+                    .addMaterial(Ingredient.fromItems(SewingKitMod.WOOL_ROLL.get()), 1)
+                    .addMaterial(Ingredient.fromItems(SewingKitMod.WOOL_TRIM.get()), 1)
+                    .addMaterial(Ingredient.fromItems(Items.STRING))
+                    .addCriterion("has_wool", hasItem(ItemTags.WOOL))
+                    .build(consumer, SewingKitMod.location("wool_hat_via_sewing"));
+
         }
     }
 

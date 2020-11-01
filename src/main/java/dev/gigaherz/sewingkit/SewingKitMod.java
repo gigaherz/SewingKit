@@ -7,6 +7,7 @@ import dev.gigaherz.sewingkit.clothing.ClothArmorItem;
 import dev.gigaherz.sewingkit.clothing.ClothArmorMaterial;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
 import dev.gigaherz.sewingkit.needle.Needles;
+import dev.gigaherz.sewingkit.patterns.PatternItem;
 import dev.gigaherz.sewingkit.table.SewingTableBlock;
 import dev.gigaherz.sewingkit.table.SewingTableContainer;
 import dev.gigaherz.sewingkit.table.SewingTableScreen;
@@ -25,6 +26,7 @@ import net.minecraft.item.*;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.tags.ITag;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.util.IItemProvider;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.village.PointOfInterestType;
 import net.minecraftforge.api.distmarker.Dist;
@@ -38,6 +40,7 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.DeferredWorkQueue;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -82,6 +85,14 @@ public class SewingKitMod
     );
 
     public static final RegistryObject<Item> LEATHER_SHEET = ITEMS.register("leather_sheet",
+            () -> new Item(new Item.Properties().maxStackSize(64).group(SEWING_KIT))
+    );
+
+    public static final RegistryObject<Item> WOOL_ROLL = ITEMS.register("wool_roll",
+            () -> new Item(new Item.Properties().maxStackSize(64).group(SEWING_KIT))
+    );
+
+    public static final RegistryObject<Item> WOOL_TRIM = ITEMS.register("wool_trim",
             () -> new Item(new Item.Properties().maxStackSize(64).group(SEWING_KIT))
     );
 
@@ -141,6 +152,22 @@ public class SewingKitMod
             () -> new PointOfInterestType("tailor", PointOfInterestType.getAllStates(SEWING_STATION_BLOCK.get()), 1, 1)
     );
 
+    public static final RegistryObject<Item> COMMON_PATTERN = ITEMS.register("common_pattern",
+            () -> new PatternItem(new Item.Properties().group(SEWING_KIT).rarity(Rarity.COMMON))
+    );
+
+    public static final RegistryObject<Item> UNCOMMON_PATTERN = ITEMS.register("uncommon_pattern",
+            () -> new PatternItem(new Item.Properties().group(SEWING_KIT).rarity(Rarity.UNCOMMON))
+    );
+
+    public static final RegistryObject<Item> RARE_PATTERN = ITEMS.register("rare_pattern",
+            () -> new PatternItem(new Item.Properties().group(SEWING_KIT).rarity(Rarity.RARE))
+    );
+
+    public static final RegistryObject<Item> LEGENDARY_PATTERN = ITEMS.register("legendary_pattern",
+            () -> new PatternItem(new Item.Properties().group(SEWING_KIT).rarity(Rarity.EPIC))
+    );
+
     @SuppressWarnings("UnstableApiUsage")
     public static final RegistryObject<VillagerProfession> TAILOR = PROFESSIONS.register("tailor",
             () -> new VillagerProfession("tailor", TABLE_POI.get(),
@@ -182,8 +209,10 @@ public class SewingKitMod
 
     private void setup(final FMLCommonSetupEvent event)
     {
-        PointOfInterestType.registerBlockStates(TABLE_POI.get());
-        PointOfInterestType.BLOCKS_OF_INTEREST.addAll(TABLE_POI.get().blockStates);
+        event.enqueueWork(() -> {
+            PointOfInterestType.registerBlockStates(TABLE_POI.get());
+            PointOfInterestType.BLOCKS_OF_INTEREST.addAll(TABLE_POI.get().blockStates);
+        });
     }
 
     private void processIMC(final InterModProcessEvent event)
@@ -212,23 +241,24 @@ public class SewingKitMod
 
         trademap.get(2).addAll(Arrays.asList(
                 new SellRandomFromTag(ItemTags.CARPETS, 8, 7, 8, 1, 2),
+                sellItem(COMMON_PATTERN.get(), 15, 1, 10, 4),
 
                 buyItem(new ItemStack(LEATHER_STRIP.get(), 2), 1, 12, 1, 0.5F),
                 buyItem(new ItemStack(Items.STRING, 16), 1, 12, 1, 2)
         ));
 
         trademap.get(3).addAll(Arrays.asList(
-                // Sell basic patterns
+                sellItem(UNCOMMON_PATTERN.get(), 15, 1, 10, 4)
 
                 // Buy something
         ));
 
         trademap.get(4).addAll(Arrays.asList(
-                // Sell fancy patterns
+                sellItem(RARE_PATTERN.get(), 15, 1, 10, 4)
         ));
 
         trademap.get(5).addAll(Arrays.asList(
-                // Sell extra fancy patterns
+                sellItem(LEGENDARY_PATTERN.get(), 15, 1, 10, 4)
         ));
 
             /*
@@ -252,6 +282,11 @@ public class SewingKitMod
 
              */
 
+    }
+
+    private VillagerTrades.ITrade sellItem(IItemProvider thing, int price, int maxTrades, int xp, float priceMultiplier)
+    {
+        return sellItem(new ItemStack(thing), price, maxTrades, xp, priceMultiplier);
     }
 
     private VillagerTrades.ITrade sellItem(ItemStack thing, int price, int maxTrades, int xp, float priceMultiplier)

@@ -13,7 +13,7 @@ import java.util.function.Supplier;
 public enum ClothArmorMaterial implements IArmorMaterial
 {
     WOOL("sewingkit:wool", 1, new int[]{0, 0, 0, 0}, 25, SoundEvents.ITEM_ARMOR_EQUIP_GENERIC, 0.0F, 0.01F, () -> {
-        return Ingredient.fromTag(ItemTags.makeWrapperTag("minecraft:wool"));
+        return Ingredient.fromTag(ItemTags.WOOL);
     });
 
     private static final int[] MAX_DAMAGE_ARRAY = new int[]{13, 15, 16, 11};
