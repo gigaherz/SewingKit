@@ -8,6 +8,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.crafting.StonecuttingRecipe;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
@@ -33,6 +34,7 @@ public class SewingTableScreen extends ContainerScreen<SewingTableContainer>
 
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         super.render(matrixStack, mouseX, mouseY, partialTicks);
+        drawRecipeCosts(matrixStack, mouseX, mouseY);
         this.renderHoveredTooltip(matrixStack, mouseX, mouseY);
     }
 
@@ -50,6 +52,21 @@ public class SewingTableScreen extends ContainerScreen<SewingTableContainer>
         int j1 = this.recipeIndexOffset + 12;
         this.func_238853_b_(matrixStack, x, y, l, i1, j1);
         this.drawRecipesItems(l, i1, j1);
+    }
+
+    private void drawRecipeCosts(MatrixStack matrixStack, int mouseX, int mouseY)
+    {
+        /*int recipeIdx = container.getSelectedRecipe();
+        if (recipeIdx < 0)
+            return;
+        SewingRecipe recipe = container.getRecipeList().get(recipeIdx);
+        for(int i=2;i<6;i++)
+        {
+            Slot slot = container.inventorySlots.get(i);
+            int x = slot.xPos + guiLeft;
+            int y = slot.yPos + guiTop;
+
+        }*/
     }
 
     protected void renderHoveredTooltip(MatrixStack matrixStack, int x, int y) {

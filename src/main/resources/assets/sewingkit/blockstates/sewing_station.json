@@ -1,8 +1,0 @@
-{
-  "variants": {
-    "facing=north": { "model": "sewingkit:block/sewing_station" },
-    "facing=east": { "model": "sewingkit:block/sewing_station", "y": 90 },
-    "facing=south": { "model": "sewingkit:block/sewing_station", "y": 180 },
-    "facing=west": { "model": "sewingkit:block/sewing_station", "y": 270 }
-  }
-}

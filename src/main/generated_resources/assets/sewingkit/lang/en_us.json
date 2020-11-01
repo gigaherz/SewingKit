@@ -1,6 +1,7 @@
 {
   "block.sewingkit.sewing_station": "Sewing Table",
   "container.sewingkit.sewing_station": "Sewing Station",
+  "entity.minecraft.villager.sewingkit.tailor": "Tailor",
   "item.sewingkit.bone_sewing_needle": "Bone Sewing Needle",
   "item.sewingkit.diamond_sewing_needle": "Diamond Sewing Needle",
   "item.sewingkit.gold_sewing_needle": "Gold Sewing Needle",
@@ -10,6 +11,10 @@
   "item.sewingkit.netherite_sewing_needle": "Netherite Sewing Needle",
   "item.sewingkit.stone_sewing_needle": "Stone Sewing Needle",
   "item.sewingkit.wood_sewing_needle": "Wood Sewing Needle",
+  "item.sewingkit.wool_hat": "Wool Hat",
+  "item.sewingkit.wool_pants": "Wool Pants",
+  "item.sewingkit.wool_shirt": "Wool Shirt",
+  "item.sewingkit.wool_shoes": "Wool Shoes",
   "itemGroup.sewing_kit": "Sewing Kit",
   "jei.category.sewingkit.sewing": "Sewing"
 }
