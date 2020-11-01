@@ -25,6 +25,7 @@ public class PatternItem extends Item
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn)
     {
         super.addInformation(stack, worldIn, tooltip, flagIn);
-        tooltip.add(new TranslationTextComponent("This feature is not implemented yet. This item may be removed in the future.").applyTextStyles(TextFormatting.RED, TextFormatting.BOLD));
+        tooltip.add(new TranslationTextComponent("This feature is not implemented yet.").applyTextStyles(TextFormatting.YELLOW, TextFormatting.BOLD));
+        tooltip.add(new TranslationTextComponent("This item may be removed in the future.").applyTextStyles(TextFormatting.RED, TextFormatting.BOLD));
     }
 }

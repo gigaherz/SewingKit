@@ -86,6 +86,14 @@ public class SewingKitDataGen
             add(SewingKitMod.WOOL_PANTS.get(), "Wool Pants");
             add(SewingKitMod.WOOL_SHOES.get(), "Wool Shoes");
 
+            add(SewingKitMod.WOOL_ROLL.get(), "Wool Roll");
+            add(SewingKitMod.WOOL_TRIM.get(), "Wool Trim");
+
+            add(SewingKitMod.COMMON_PATTERN.get(), "Common Pattern");
+            add(SewingKitMod.UNCOMMON_PATTERN.get(), "Uncommon Pattern");
+            add(SewingKitMod.RARE_PATTERN.get(), "Rare Pattern");
+            add(SewingKitMod.LEGENDARY_PATTERN.get(), "Legendary Pattern");
+
             add("entity.minecraft.villager.sewingkit.tailor", "Tailor");
         }
     }
@@ -124,6 +132,9 @@ public class SewingKitDataGen
             basicIcon(SewingKitMod.WOOL_SHIRT.getId());
             basicIcon(SewingKitMod.WOOL_PANTS.getId());
             basicIcon(SewingKitMod.WOOL_SHOES.getId());
+
+            basicIcon(SewingKitMod.WOOL_ROLL.getId());
+            basicIcon(SewingKitMod.WOOL_TRIM.getId());
 
             basicIcon(SewingKitMod.COMMON_PATTERN.getId());
             basicIcon(SewingKitMod.UNCOMMON_PATTERN.getId());
@@ -255,8 +266,8 @@ public class SewingKitDataGen
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_TRIM.get(), 3)
                     .withTool(Ingredient.fromItems(Items.SHEARS))
-                    .addMaterial(Ingredient.fromTag(ItemTags.WOOL))
-                    .addCriterion("has_wool", hasItem(ItemTags.WOOL))
+                    .addMaterial(Ingredient.fromTag(ItemTags.CARPETS))
+                    .addCriterion("has_wool", hasItem(ItemTags.CARPETS))
                     .build(consumer, SewingKitMod.location("wool_trim_from_carpet"));
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_SHOES.get())
