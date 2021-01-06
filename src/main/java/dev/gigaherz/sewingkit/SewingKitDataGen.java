@@ -6,6 +6,7 @@ import dev.gigaherz.sewingkit.api.SewingRecipeBuilder;
 import dev.gigaherz.sewingkit.api.ToolIngredient;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
 import dev.gigaherz.sewingkit.needle.Needles;
+import dev.gigaherz.sewingkit.table.SewingTableBlock;
 import net.minecraft.block.Block;
 import net.minecraft.data.*;
 import net.minecraft.data.loot.BlockLootTables;
@@ -13,8 +14,10 @@ import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.loot.*;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
+import net.minecraftforge.client.model.generators.ConfiguredModel;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.common.data.ExistingFileHelper;
@@ -22,6 +25,7 @@ import net.minecraftforge.common.data.LanguageProvider;
 import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +83,7 @@ public class SewingKitDataGen
                 String name = type.substring(0, 1).toUpperCase() + type.substring(1);
                 add(needle.getNeedle(), name + " Sewing Needle");
             });
+            add("text.sewingkit.needle.lore_text", "\"Ow! Prickl...zz..z...\"");
 
             add(SewingKitMod.WOOL_HAT.get(), "Wool Hat");
             add(SewingKitMod.WOOL_SHIRT.get(), "Wool Shirt");

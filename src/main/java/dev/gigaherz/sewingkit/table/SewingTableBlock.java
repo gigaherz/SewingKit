@@ -23,7 +23,9 @@ import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.EnumMap;
 
 public class SewingTableBlock extends Block
 {
@@ -53,10 +55,9 @@ public class SewingTableBlock extends Block
         return makeCuboidShape(x1, y1, z1, x2, y2, z2);
     }
 
-    @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+    @Nonnull
+    private VoxelShape makeTableShape(Direction facing)
     {
-        Direction facing = state.get(FACING);
         return VoxelShapes.or(
                 cuboidWithRotation(facing, 0, 14, 0, 16, 16, 16),
                 cuboidWithRotation(facing, 11, 6, 1, 15, 14, 15),
@@ -64,6 +65,15 @@ public class SewingTableBlock extends Block
                 cuboidWithRotation(facing, 1, 6, 1, 5, 14, 15),
                 cuboidWithRotation(facing, 2, 0, 2, 4, 6, 14)
         );
+    }
+
+    private final EnumMap<Direction, VoxelShape> cache = new EnumMap<>(Direction.class);
+
+    @Override
+    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+    {
+        Direction facing = state.get(FACING);
+        return cache.computeIfAbsent(facing, this::makeTableShape);
     }
 
     @Nullable
