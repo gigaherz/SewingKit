@@ -5,6 +5,7 @@ import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.Tag;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.Lazy;
@@ -14,10 +15,10 @@ public enum Needles implements INeedleTier
 {
     WOOD("wood", 1, 10, 2, 0, 15, SewingKitMod.WOOD_SEWING_NEEDLE, SewingKitMod.makeWrapperTag("minecraft:planks")),
     STONE("stone", 2, 15, 4, 1, 5, SewingKitMod.STONE_SEWING_NEEDLE, Items.COBBLESTONE),
-    IRON("iron", 3, 150, 6, 2, 4, SewingKitMod.IRON_SEWING_NEEDLE, Items.IRON_INGOT),
-    DIAMOND("diamond", 4, 250, 8, 3, 10, SewingKitMod.DIAMOND_SEWING_NEEDLE, Items.DIAMOND),
-    GOLD("gold", 1, 25, 12, 0, 22, SewingKitMod.GOLD_SEWING_NEEDLE, Items.GOLD_INGOT),
-    BONE("bone", 2, 50, 4, 1, 12, SewingKitMod.BONE_SEWING_NEEDLE, Items.BONE);
+    IRON("iron", 3, 150, 6, 2, 4, SewingKitMod.IRON_SEWING_NEEDLE, SewingKitMod.makeWrapperTag("forge:ingots/iron")),
+    DIAMOND("diamond", 4, 250, 8, 3, 10, SewingKitMod.DIAMOND_SEWING_NEEDLE, SewingKitMod.makeWrapperTag("forge:gems/diamond")),
+    GOLD("gold", 1, 25, 12, 0, 22, SewingKitMod.GOLD_SEWING_NEEDLE, SewingKitMod.makeWrapperTag("forge:ingots/gold")),
+    BONE("bone", 2, 50, 4, 1, 12, SewingKitMod.BONE_SEWING_NEEDLE, SewingKitMod.makeWrapperTag("forge:bones"));
 
     private final String type;
     private final int toolLevel;

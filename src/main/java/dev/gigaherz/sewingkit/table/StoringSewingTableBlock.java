@@ -8,6 +8,7 @@ import net.minecraft.item.BlockItemUseContext;
 import net.minecraft.state.DirectionProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.state.properties.BlockStateProperties;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
@@ -27,13 +28,13 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.EnumMap;
 
-public class SewingTableBlock extends Block
+public class StoringSewingTableBlock extends Block
 {
     private static final Logger LOGGER = LogManager.getLogger();
 
     public static DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
-    public SewingTableBlock(Properties properties)
+    public StoringSewingTableBlock(Properties properties)
     {
         super(properties);
     }
@@ -92,14 +93,31 @@ public class SewingTableBlock extends Block
     @Override
     public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
     {
+        TileEntity te = worldIn.getTileEntity(pos);
+        if (!(te instanceof StoringSewingTableTileEntity))
+            return ActionResultType.FAIL;
+
         if (worldIn.isRemote)
             return ActionResultType.SUCCESS;
 
         player.openContainer(new SimpleNamedContainerProvider(
-                (id,playerInv,p) -> new SewingTableContainer(id,playerInv, IWorldPosCallable.of(worldIn, pos)),
+                (id,playerInv,p) -> new SewingTableContainer(id,playerInv, IWorldPosCallable.of(worldIn, pos), (StoringSewingTableTileEntity)te),
                 new TranslationTextComponent("container.sewingkit.sewing_station")
         ));
 
         return ActionResultType.SUCCESS;
+    }
+
+    @Override
+    public boolean hasTileEntity(BlockState state)
+    {
+        return true;
+    }
+
+    @Nullable
+    @Override
+    public TileEntity createTileEntity(BlockState state, IBlockReader world)
+    {
+        return new StoringSewingTableTileEntity();
     }
 }

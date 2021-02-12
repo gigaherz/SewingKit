@@ -2,16 +2,16 @@
   "parent": "minecraft:recipes/root",
   "rewards": {
     "recipes": [
-      "sewingkit:gold_sewing_needle"
+      "sewingkit:file"
     ]
   },
   "criteria": {
-    "has_material": {
+    "has_iron": {
       "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
           {
-            "tag": "forge:ingots/gold"
+            "tag": "forge:ingots/iron"
           }
         ]
       }
@@ -19,13 +19,13 @@
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "sewingkit:gold_sewing_needle"
+        "recipe": "sewingkit:file"
       }
     }
   },
   "requirements": [
     [
-      "has_material",
+      "has_iron",
       "has_the_recipe"
     ]
   ]

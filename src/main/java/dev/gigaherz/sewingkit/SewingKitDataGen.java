@@ -6,22 +6,25 @@ import dev.gigaherz.sewingkit.api.SewingRecipeBuilder;
 import dev.gigaherz.sewingkit.api.ToolIngredient;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
 import dev.gigaherz.sewingkit.needle.Needles;
+import dev.gigaherz.sewingkit.table.SewingTableBlock;
 import net.minecraft.block.Block;
 import net.minecraft.data.*;
 import net.minecraft.data.loot.BlockLootTables;
 import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.util.Direction;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.model.generators.*;
 import net.minecraft.world.storage.loot.*;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ExistingFileHelper;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
-import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.common.data.LanguageProvider;
 import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -74,12 +77,14 @@ public class SewingKitDataGen
             add(SewingKitMod.LEATHER_SHEET.get(), "Leather Sheet");
 
             add(SewingKitMod.SEWING_STATION_BLOCK.get(), "Sewing Table");
+            add(SewingKitMod.STORING_SEWING_STATION_BLOCK.get(), "Sewing Table with Drawers");
 
             Arrays.stream(Needles.values()).forEach(needle -> {
                 String type = needle.getType();
                 String name = type.substring(0, 1).toUpperCase() + type.substring(1);
                 add(needle.getNeedle(), name + " Sewing Needle");
             });
+            add("text.sewingkit.needle.lore_text", "\"Ow! Prickl...zz..z...\"");
 
             add(SewingKitMod.WOOL_HAT.get(), "Wool Hat");
             add(SewingKitMod.WOOL_SHIRT.get(), "Wool Shirt");
@@ -93,6 +98,8 @@ public class SewingKitDataGen
             add(SewingKitMod.UNCOMMON_PATTERN.get(), "Uncommon Pattern");
             add(SewingKitMod.RARE_PATTERN.get(), "Rare Pattern");
             add(SewingKitMod.LEGENDARY_PATTERN.get(), "Legendary Pattern");
+
+            add(SewingKitMod.FILE.get(), "Raspy File");
 
             add("entity.minecraft.villager.sewingkit.tailor", "Tailor");
         }
@@ -109,8 +116,14 @@ public class SewingKitDataGen
         @Override
         protected void registerStatesAndModels()
         {
-            Block block = SewingKitMod.SEWING_STATION_BLOCK.get();
-            horizontalBlock(block, models().getExistingFile(blockTexture(block)));
+            {
+                Block block = SewingKitMod.SEWING_STATION_BLOCK.get();
+                horizontalBlock(block, models().getExistingFile(blockTexture(block)));
+            }
+            {
+                Block block = SewingKitMod.STORING_SEWING_STATION_BLOCK.get();
+                horizontalBlock(block, models().getExistingFile(blockTexture(block)));
+            }
         }
     }
 
@@ -141,8 +154,44 @@ public class SewingKitDataGen
             basicIcon(SewingKitMod.RARE_PATTERN.getId());
             basicIcon(SewingKitMod.LEGENDARY_PATTERN.getId());
 
+            basicIcon(SewingKitMod.FILE.getId())
+                .transforms()
+                    .transform(ModelBuilder.Perspective.THIRDPERSON_RIGHT)
+                        .rotation(62, 180 - 33, 40)
+                        .translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
+                    .end()
+                    .transform(ModelBuilder.Perspective.THIRDPERSON_LEFT)
+                        .rotation(45, -33, -55)
+                        .translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
+                    .end()
+                    .transform(ModelBuilder.Perspective.FIRSTPERSON_RIGHT)
+                        .rotation(-54, 99, 136)
+                        .translation(1.13f, 5f, 1.13f)
+                        .scale(0.68f)
+                    .end()
+                    .transform(ModelBuilder.Perspective.FIRSTPERSON_LEFT)
+                        .rotation(136, -99, 54)
+                        .translation(1.13f, 5f, 1.13f)
+                        .scale(0.68f)
+                    .end()
+                    .transform(ModelBuilder.Perspective.GROUND)
+                        .translation(0, 2, 0)
+                        .scale(0.5f)
+                    .end()
+                    .transform(ModelBuilder.Perspective.HEAD)
+                        .rotation(-4, 44, 4)
+                        .translation(-7.25f, 6.75f, 0.75f)
+                    .end()
+                    .transform(ModelBuilder.Perspective.FIXED)
+                        .rotation(0, 180, 0)
+                    .end()
+                .end();
+
             getBuilder(SewingKitMod.SEWING_STATION_ITEM.getId().getPath())
                     .parent(getExistingFile(modelLocation(SewingKitMod.SEWING_STATION_BLOCK.get())));
+
+            getBuilder(SewingKitMod.STORING_SEWING_STATION_ITEM.getId().getPath())
+                    .parent(getExistingFile(modelLocation(SewingKitMod.STORING_SEWING_STATION_BLOCK.get())));
         }
 
         private static ResourceLocation modelLocation(Block block)
@@ -151,9 +200,9 @@ public class SewingKitDataGen
             return new ResourceLocation(id.getNamespace(), "block/" + id.getPath());
         }
 
-        private void basicIcon(ResourceLocation item)
+        private ItemModelBuilder basicIcon(ResourceLocation item)
         {
-            getBuilder(item.getPath())
+            return getBuilder(item.getPath())
                     .parent(new ModelFile.UncheckedModelFile("item/generated"))
                     .texture("layer0", SewingKitMod.location("item/" + item.getPath()));
         }
@@ -169,10 +218,9 @@ public class SewingKitDataGen
         @Override
         protected void registerRecipes(Consumer<IFinishedRecipe> consumer)
         {
-            Arrays.stream(Needles.values()).forEach(needle -> ShapedRecipeBuilder.shapedRecipe(needle.getNeedle())
-                                .patternLine(" D")
-                                .patternLine("D ")
-                                .key('D', needle.getRepairMaterial())
+            Arrays.stream(Needles.values()).forEach(needle -> ShapelessRecipeBuilder.shapelessRecipe(needle.getNeedle())
+                                .addIngredient(SewingKitMod.FILE.get())
+                                .addIngredient(needle.getRepairMaterial())
                                 .addCriterion("has_material", needle.getMaterial().map(this::hasItem, this::hasItem))
                                 .build(consumer));
 
@@ -184,6 +232,12 @@ public class SewingKitDataGen
                     .key('P', Ingredient.fromTag(SewingKitMod.makeWrapperTag("minecraft:planks")))
                     .key('S', Ingredient.fromItems(Items.STICK))
                     .addCriterion("has_wood", hasItem(SewingKitMod.makeWrapperTag("minecraft:planks")))
+                    .build(consumer);
+
+            ShapelessRecipeBuilder.shapelessRecipe(SewingKitMod.STORING_SEWING_STATION_ITEM.get())
+                    .addIngredient(SewingKitMod.SEWING_STATION_ITEM.get())
+                    .addIngredient(Items.CHEST)
+                    .addCriterion("has_station", hasItem(SewingKitMod.SEWING_STATION_ITEM.get()))
                     .build(consumer);
 
             // Sewing recipes: leather
@@ -302,6 +356,15 @@ public class SewingKitDataGen
                     .addCriterion("has_wool", hasItem(ItemTags.WOOL))
                     .build(consumer, SewingKitMod.location("wool_hat_via_sewing"));
 
+            ShapedRecipeBuilder.shapedRecipe(SewingKitMod.FILE.get())
+                    .patternLine("  I")
+                    .patternLine(" I ")
+                    .patternLine("P  ")
+                    .key('I', Ingredient.fromTag(SewingKitMod.makeWrapperTag("forge:ingots/iron")))
+                    .key('P', Ingredient.fromTag(SewingKitMod.makeWrapperTag("minecraft:planks")))
+                    .addCriterion("has_iron", hasItem(SewingKitMod.makeWrapperTag("forge:ingots/iron")))
+                    .build(consumer);
+
         }
     }
 
@@ -340,6 +403,7 @@ public class SewingKitDataGen
             protected void addTables()
             {
                 this.registerDropSelfLootTable(SewingKitMod.SEWING_STATION_BLOCK.get());
+                this.registerDropSelfLootTable(SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
             }
 
             @Override

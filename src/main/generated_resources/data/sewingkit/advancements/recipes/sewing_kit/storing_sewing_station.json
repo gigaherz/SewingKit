@@ -2,16 +2,16 @@
   "parent": "minecraft:recipes/root",
   "rewards": {
     "recipes": [
-      "sewingkit:gold_sewing_needle"
+      "sewingkit:storing_sewing_station"
     ]
   },
   "criteria": {
-    "has_material": {
+    "has_station": {
       "trigger": "minecraft:inventory_changed",
       "conditions": {
         "items": [
           {
-            "tag": "forge:ingots/gold"
+            "item": "sewingkit:sewing_station"
           }
         ]
       }
@@ -19,13 +19,13 @@
     "has_the_recipe": {
       "trigger": "minecraft:recipe_unlocked",
       "conditions": {
-        "recipe": "sewingkit:gold_sewing_needle"
+        "recipe": "sewingkit:storing_sewing_station"
       }
     }
   },
   "requirements": [
     [
-      "has_material",
+      "has_station",
       "has_the_recipe"
     ]
   ]

@@ -1,10 +1,12 @@
 {
   "block.sewingkit.sewing_station": "Sewing Table",
+  "block.sewingkit.storing_sewing_station": "Sewing Table with Drawers",
   "container.sewingkit.sewing_station": "Sewing Station",
   "entity.minecraft.villager.sewingkit.tailor": "Tailor",
   "item.sewingkit.bone_sewing_needle": "Bone Sewing Needle",
   "item.sewingkit.common_pattern": "Common Pattern",
   "item.sewingkit.diamond_sewing_needle": "Diamond Sewing Needle",
+  "item.sewingkit.file": "Raspy File",
   "item.sewingkit.gold_sewing_needle": "Gold Sewing Needle",
   "item.sewingkit.iron_sewing_needle": "Iron Sewing Needle",
   "item.sewingkit.leather_sheet": "Leather Sheet",
@@ -21,5 +23,6 @@
   "item.sewingkit.wool_shoes": "Wool Shoes",
   "item.sewingkit.wool_trim": "Wool Trim",
   "itemGroup.sewing_kit": "Sewing Kit",
-  "jei.category.sewingkit.sewing": "Sewing"
+  "jei.category.sewingkit.sewing": "Sewing",
+  "text.sewingkit.needle.lore_text": "\"Ow! Prickl...zz..z...\""
 }
