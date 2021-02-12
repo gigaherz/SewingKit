@@ -5,12 +5,15 @@ import dev.gigaherz.sewingkit.api.SewingRecipe;
 import dev.gigaherz.sewingkit.api.ToolIngredient;
 import dev.gigaherz.sewingkit.clothing.ClothArmorItem;
 import dev.gigaherz.sewingkit.clothing.ClothArmorMaterial;
+import dev.gigaherz.sewingkit.file.FileItem;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
 import dev.gigaherz.sewingkit.needle.Needles;
 import dev.gigaherz.sewingkit.patterns.PatternItem;
 import dev.gigaherz.sewingkit.table.SewingTableBlock;
 import dev.gigaherz.sewingkit.table.SewingTableContainer;
 import dev.gigaherz.sewingkit.table.SewingTableScreen;
+import dev.gigaherz.sewingkit.table.StoringSewingTableBlock;
+import dev.gigaherz.sewingkit.table.StoringSewingTableTileEntity;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -18,14 +21,18 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
 import net.minecraft.entity.merchant.villager.VillagerTrades;
+import net.minecraft.entity.monster.AbstractSkeletonEntity;
+import net.minecraft.entity.monster.SkeletonEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.*;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.tags.ITag;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.IItemProvider;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.village.PointOfInterestType;
@@ -57,6 +64,7 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Mod(SewingKitMod.MODID)
@@ -77,6 +85,7 @@ public class SewingKitMod
 
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
+    private static final DeferredRegister<TileEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, MODID);
     private static final DeferredRegister<PointOfInterestType> POI_TYPES = DeferredRegister.create(ForgeRegistries.POI_TYPES, MODID);
     private static final DeferredRegister<VillagerProfession> PROFESSIONS = DeferredRegister.create(ForgeRegistries.PROFESSIONS, MODID);
 
@@ -132,6 +141,18 @@ public class SewingKitMod
             () -> new BlockItem(SEWING_STATION_BLOCK.get(), new Item.Properties().group(SEWING_KIT))
     );
 
+    public static final RegistryObject<Block> STORING_SEWING_STATION_BLOCK = BLOCKS.register("storing_sewing_station",
+            () -> new StoringSewingTableBlock(AbstractBlock.Properties.create(Material.WOOD).hardnessAndResistance(2.5F))
+    );
+
+    public static final RegistryObject<Item> STORING_SEWING_STATION_ITEM = ITEMS.register("storing_sewing_station",
+            () -> new BlockItem(STORING_SEWING_STATION_BLOCK.get(), new Item.Properties().group(SEWING_KIT))
+    );
+
+    public static final RegistryObject<TileEntityType<?>> STORING_SEWING_STATION_TILE_ENTITY = TILE_ENTITIES.register("storing_sewing_station",
+            () -> TileEntityType.Builder.create(StoringSewingTableTileEntity::new, STORING_SEWING_STATION_BLOCK.get()).build(null)
+    );
+
     public static final RegistryObject<Item> WOOL_HAT = ITEMS.register("wool_hat",
             () -> new ClothArmorItem(ClothArmorMaterial.WOOL, EquipmentSlotType.HEAD, new Item.Properties().group(SEWING_KIT))
     );
@@ -148,10 +169,6 @@ public class SewingKitMod
             () -> new ClothArmorItem(ClothArmorMaterial.WOOL, EquipmentSlotType.FEET, new Item.Properties().group(SEWING_KIT))
     );
 
-    public static final RegistryObject<PointOfInterestType> TABLE_POI = POI_TYPES.register("tailor",
-            () -> new PointOfInterestType("tailor", PointOfInterestType.getAllStates(SEWING_STATION_BLOCK.get()), 1, 1)
-    );
-
     public static final RegistryObject<Item> COMMON_PATTERN = ITEMS.register("common_pattern",
             () -> new PatternItem(new Item.Properties().group(SEWING_KIT).rarity(Rarity.COMMON))
     );
@@ -166,6 +183,14 @@ public class SewingKitMod
 
     public static final RegistryObject<Item> LEGENDARY_PATTERN = ITEMS.register("legendary_pattern",
             () -> new PatternItem(new Item.Properties().group(SEWING_KIT).rarity(Rarity.EPIC))
+    );
+
+    public static final RegistryObject<Item> FILE = ITEMS.register("file",
+            () -> new FileItem(new Item.Properties().group(SEWING_KIT).maxDamage(354))
+    );
+
+    public static final RegistryObject<PointOfInterestType> TABLE_POI = POI_TYPES.register("tailor",
+            () -> new PointOfInterestType("tailor", PointOfInterestType.getAllStates(SEWING_STATION_BLOCK.get()), 1, 1)
     );
 
     @SuppressWarnings("UnstableApiUsage")
@@ -187,6 +212,7 @@ public class SewingKitMod
         BLOCKS.register(modBus);
         POI_TYPES.register(modBus);
         PROFESSIONS.register(modBus);
+        TILE_ENTITIES.register(modBus);
 
         MinecraftForge.EVENT_BUS.addListener(this::villagerTrades);
     }

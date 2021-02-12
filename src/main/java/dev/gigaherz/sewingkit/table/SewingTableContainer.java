@@ -1,9 +1,11 @@
 package dev.gigaherz.sewingkit.table;
 
 import com.google.common.collect.Lists;
+import dev.gigaherz.sewingkit.SewingKitDataGen;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
-import net.minecraft.client.renderer.texture.AtlasTexture;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.CraftResultInventory;
@@ -20,8 +22,14 @@ import net.minecraft.util.*;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.items.SlotItemHandler;
+import net.minecraftforge.items.wrapper.RecipeWrapper;
 import net.minecraftforge.registries.ObjectHolder;
 
+import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -47,25 +55,15 @@ public class SewingTableContainer extends Container
             ItemStack.EMPTY,ItemStack.EMPTY,ItemStack.EMPTY,
             ItemStack.EMPTY,ItemStack.EMPTY,ItemStack.EMPTY
     };
+    @Nullable
+    private final StoringSewingTableTileEntity te;
     private List<SewingRecipe> recipes = Lists.newArrayList();
     private long lastTimeSoundPlayed;
 
     private Runnable inventoryUpdateListener = () -> {
     };
 
-    public final IInventory inputInventory = new Inventory(6)
-    {
-        /**
-         * For tile entities, ensures the chunk containing the tile entity is saved to disk later - the game won't think
-         * it hasn't changed and skip it.
-         */
-        public void markDirty()
-        {
-            super.markDirty();
-            onCraftMatrixChanged(this);
-            inventoryUpdateListener.run();
-        }
-    };
+    public final IItemHandlerModifiable inputInventory;
     /**
      * The inventory that stores the output of the crafting recipe.
      */
@@ -78,24 +76,47 @@ public class SewingTableContainer extends Container
 
     public SewingTableContainer(int windowIdIn, PlayerInventory playerInventoryIn, final IWorldPosCallable worldPosCallableIn)
     {
+        this(windowIdIn, playerInventoryIn, worldPosCallableIn, null);
+    }
+
+    public SewingTableContainer(int windowIdIn, PlayerInventory playerInventoryIn, final IWorldPosCallable worldPosCallableIn, StoringSewingTableTileEntity te)
+    {
         super(TYPE, windowIdIn);
         this.openedFrom = worldPosCallableIn;
         this.world = playerInventoryIn.player.world;
+        this.te = te;
+        if (te != null)
+        {
+            this.inputInventory = te.getInventory();
+            te.addWeakListener(this);
+        }
+        else
+        {
+            this.inputInventory = new ItemStackHandler(6)
+            {
+                @Override
+                protected void onContentsChanged(int slot)
+                {
+                    super.onContentsChanged(slot);
+                    onInventoryChanged();
+                }
+            };
+        }
 
-        this.addSlot(new Slot(this.inputInventory, 0, 8, 15){
+        this.addSlot(new SlotItemHandler(this.inputInventory, 0, 8, 15){
             {
                 this.setBackground(PlayerContainer.LOCATION_BLOCKS_TEXTURE, SewingKitMod.location("gui/needle_slot_background"));
             }
         });
-        this.addSlot(new Slot(this.inputInventory, 1, 30, 15){
+        this.addSlot(new SlotItemHandler(this.inputInventory, 1, 30, 15){
             {
                 this.setBackground(PlayerContainer.LOCATION_BLOCKS_TEXTURE, SewingKitMod.location("gui/pattern_slot_background"));
             }
         });
-        this.addSlot(new Slot(this.inputInventory, 2, 10, 35));
-        this.addSlot(new Slot(this.inputInventory, 3, 28, 35));
-        this.addSlot(new Slot(this.inputInventory, 4, 10, 53));
-        this.addSlot(new Slot(this.inputInventory, 5, 28, 53));
+        this.addSlot(new SlotItemHandler(this.inputInventory, 2, 10, 35));
+        this.addSlot(new SlotItemHandler(this.inputInventory, 3, 28, 35));
+        this.addSlot(new SlotItemHandler(this.inputInventory, 4, 10, 53));
+        this.addSlot(new SlotItemHandler(this.inputInventory, 5, 28, 53));
         this.addSlot(new Slot(this.inventory, 1, 143, 33)
         {
             /**
@@ -188,6 +209,12 @@ public class SewingTableContainer extends Container
         }
     }
 
+    public void onInventoryChanged()
+    {
+        onCraftMatrixChanged(new RecipeWrapper(inputInventory));
+        inventoryUpdateListener.run();
+    }
+
     public int getSelectedRecipe()
     {
         return this.selectedRecipe.get();
@@ -218,7 +245,17 @@ public class SewingTableContainer extends Container
      */
     public boolean canInteractWith(PlayerEntity playerIn)
     {
-        return isWithinUsableDistance(this.openedFrom, playerIn, SewingKitMod.SEWING_STATION_BLOCK.get());
+        return isWithinUsableDistance(this.openedFrom, playerIn, SewingKitMod.SEWING_STATION_BLOCK.get(), SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
+    }
+
+    protected static boolean isWithinUsableDistance(IWorldPosCallable worldPos, PlayerEntity playerIn, Block... targetBlocks) {
+        return worldPos.applyOrElse((world, pos) -> {
+            BlockState blockState = world.getBlockState(pos);
+            if (Arrays.stream(targetBlocks).noneMatch(blockState::isIn)) return false;
+
+            return playerIn.getDistanceSq(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <= 64.0D;
+
+        }, true);
     }
 
     /**
@@ -246,7 +283,7 @@ public class SewingTableContainer extends Container
         for (int i = 0; i < 6; i++)
         {
             ItemStack itemstack = inventorySlots.get(i).getStack();
-            if (itemstack.getItem() != this.inputStacksCache[i].getItem())
+            if (!ItemStack.areItemStacksEqual(itemstack, this.inputStacksCache[i]))
             {
                 this.inputStacksCache[i] = itemstack.copy();
                 anyChanged = true;
@@ -283,7 +320,7 @@ public class SewingTableContainer extends Container
         {
             SewingRecipe stonecuttingrecipe = this.recipes.get(this.selectedRecipe.get());
             this.inventory.setRecipeUsed(stonecuttingrecipe);
-            this.inventorySlots.get(OUTPUTS_START).putStack(stonecuttingrecipe.getCraftingResult(this.inputInventory));
+            this.inventorySlots.get(OUTPUTS_START).putStack(stonecuttingrecipe.getCraftingResult(new RecipeWrapper(this.inputInventory)));
         }
         else
         {
@@ -383,6 +420,9 @@ public class SewingTableContainer extends Container
     {
         super.onContainerClosed(playerIn);
         this.inventory.removeStackFromSlot(0);
-        this.openedFrom.consume((world, pos) -> this.clearContainer(playerIn, playerIn.world, this.inputInventory));
+        if(te == null)
+        {
+            this.openedFrom.consume((world, pos) -> this.clearContainer(playerIn, playerIn.world, new RecipeWrapper(this.inputInventory)));
+        }
     }
 }

@@ -19,7 +19,7 @@ repositories {
     }
 }
 
-version = '1.2.1'
+version = '1.3.0'
 group = 'dev.gigaherz.sewingkit' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'SewingKit-UNKNOWN'
 
@@ -85,7 +85,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.4-35.0.7'
+    minecraft 'net.minecraftforge:forge:1.16.5-36.0.15'
 
     compileOnly fg.deobf("mezz.jei:jei-1.16.3:7.6.0.49:api")
     runtimeOnly fg.deobf("mezz.jei:jei-1.16.3:7.6.0.49")
@@ -99,11 +99,11 @@ jar {
     manifest {
         attributes([
             "Specification-Title": "sewingkit",
-            "Specification-Vendor": "gigahrez",
+            "Specification-Vendor": "gigaherz",
             "Specification-Version": "1", // We are version 1 of ourselves
             "Implementation-Title": project.name,
             "Implementation-Version": "${version}",
-            "Implementation-Vendor" :"gigahrez",
+            "Implementation-Vendor" :"gigaherz",
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
