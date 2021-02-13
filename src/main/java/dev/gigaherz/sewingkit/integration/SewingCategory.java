@@ -1,6 +1,5 @@
 package dev.gigaherz.sewingkit.integration;
 
-import com.google.common.collect.Lists;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
@@ -11,7 +10,6 @@ import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.Ingredient;
@@ -20,7 +18,6 @@ import net.minecraft.util.ResourceLocation;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -74,7 +71,8 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
         return icon;
     }
 
-    public void setInputMaterials(IIngredients iIngredients, Ingredient tool, Ingredient pattern, List<SewingRecipe.Material> inputs) {
+    public void setInputMaterials(IIngredients iIngredients, Ingredient tool, Ingredient pattern, List<SewingRecipe.Material> inputs)
+    {
         List<List<ItemStack>> inputLists = new ArrayList<>();
 
         inputLists.add(Arrays.asList(tool.getMatchingStacks()));
@@ -102,23 +100,23 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     }
 
     private static final int[] slotX = {
-         8 - 7,
-        30 - 7,
-        10 - 7,
-        28 - 7,
-        10 - 7,
-        28 - 7,
-       143 - 7
+            8 - 7,
+            30 - 7,
+            10 - 7,
+            28 - 7,
+            10 - 7,
+            28 - 7,
+            143 - 7
     };
 
     private static final int[] slotY = {
-        15 - 13,
-        15 - 13,
-        35 - 13,
-        35 - 13,
-        53 - 13,
-        53 - 13,
-        33 - 13
+            15 - 13,
+            15 - 13,
+            35 - 13,
+            35 - 13,
+            53 - 13,
+            53 - 13,
+            33 - 13
     };
 
     @Override
@@ -126,9 +124,9 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     {
         IGuiItemStackGroup itemStacks = recipeLayout.getItemStacks();
 
-        for (int i=0;i<=6;i++)
+        for (int i = 0; i <= 6; i++)
         {
-            itemStacks.init(i, i<6, slotX[i], slotY[i]);
+            itemStacks.init(i, i < 6, slotX[i], slotY[i]);
         }
 
         itemStacks.set(ingredients);

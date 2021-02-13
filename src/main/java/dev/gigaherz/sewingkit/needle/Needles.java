@@ -2,19 +2,13 @@ package dev.gigaherz.sewingkit.needle;
 
 import com.mojang.datafixers.util.Either;
 import dev.gigaherz.sewingkit.SewingKitMod;
-import dev.gigaherz.sewingkit.needle.INeedleTier;
 import net.minecraft.item.Item;
-import net.minecraft.item.Items;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.tags.ITag;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.util.Lazy;
 import net.minecraftforge.fml.RegistryObject;
-
-import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.function.Supplier;
 
 public enum Needles implements INeedleTier
 {
@@ -35,7 +29,7 @@ public enum Needles implements INeedleTier
     private final RegistryObject<Item> needleSupplier;
     private final Lazy<Ingredient> repairMaterial;
 
-    private final Either<ITag<Item>,Item> material;
+    private final Either<ITag<Item>, Item> material;
 
     Needles(String type, int toolLevel, int uses, float efficiency, float attackDamage, int enchantability, RegistryObject<Item> needleSupplier, ITag<Item> materialTag)
     {
@@ -47,7 +41,7 @@ public enum Needles implements INeedleTier
         this(type, toolLevel, uses, efficiency, attackDamage, enchantability, needleSupplier, Either.right(materialItem));
     }
 
-    Needles(String type, int toolLevel, int uses, float efficiency, float attackDamage, int enchantability, RegistryObject<Item> needleSupplier, Either<ITag<Item>,Item> material)
+    Needles(String type, int toolLevel, int uses, float efficiency, float attackDamage, int enchantability, RegistryObject<Item> needleSupplier, Either<ITag<Item>, Item> material)
     {
         this.type = type;
         this.toolLevel = toolLevel;

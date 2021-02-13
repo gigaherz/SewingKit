@@ -9,11 +9,7 @@ import dev.gigaherz.sewingkit.file.FileItem;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
 import dev.gigaherz.sewingkit.needle.Needles;
 import dev.gigaherz.sewingkit.patterns.PatternItem;
-import dev.gigaherz.sewingkit.table.SewingTableBlock;
-import dev.gigaherz.sewingkit.table.SewingTableContainer;
-import dev.gigaherz.sewingkit.table.SewingTableScreen;
-import dev.gigaherz.sewingkit.table.StoringSewingTableBlock;
-import dev.gigaherz.sewingkit.table.StoringSewingTableTileEntity;
+import dev.gigaherz.sewingkit.table.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -21,11 +17,8 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.gui.ScreenManager;
 import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
 import net.minecraft.entity.merchant.villager.VillagerTrades;
-import net.minecraft.entity.monster.AbstractSkeletonEntity;
-import net.minecraft.entity.monster.SkeletonEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.*;
@@ -34,9 +27,7 @@ import net.minecraft.tags.ITag;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.IItemProvider;
-import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.village.PointOfInterestType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ColorHandlerEvent;
@@ -49,7 +40,6 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.DeferredWorkQueue;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -66,7 +56,6 @@ import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @Mod(SewingKitMod.MODID)
@@ -202,7 +191,8 @@ public class SewingKitMod
                     ImmutableSet.of(), null)
     );
 
-    public SewingKitMod() {
+    public SewingKitMod()
+    {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(this::setup);
         modBus.addListener(this::processIMC);
@@ -247,7 +237,7 @@ public class SewingKitMod
     {
         // some example code to receive and process InterModComms from other mods
         LOGGER.info("Got IMC {}", event.getIMCStream().
-                map(m->m.getMessageSupplier().get()).
+                map(m -> m.getMessageSupplier().get()).
                 collect(Collectors.toList()));
     }
 
@@ -365,8 +355,9 @@ public class SewingKitMod
         return new ResourceLocation(MODID, path);
     }
 
-    @Mod.EventBusSubscriber(value= Dist.CLIENT, bus=Mod.EventBusSubscriber.Bus.MOD)
-    public static class ClientModBus {
+    @Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+    public static class ClientModBus
+    {
         @SubscribeEvent
         public static void clientSetup(final FMLClientSetupEvent event)
         {
@@ -383,15 +374,17 @@ public class SewingKitMod
                 event.addSprite(location("gui/pattern_slot_background"));
             }
         }
+
         @SubscribeEvent
         public static void modelRegistry(final ModelRegistryEvent event)
         {
         }
+
         @SubscribeEvent
         public static void itemColors(final ColorHandlerEvent.Item event)
         {
             event.getItemColors().register(
-                    (stack, color) -> color > 0 ? -1 : ((IDyeableArmorItem)stack.getItem()).getColor(stack),
+                    (stack, color) -> color > 0 ? -1 : ((IDyeableArmorItem) stack.getItem()).getColor(stack),
                     WOOL_HAT.get(), WOOL_SHIRT.get(), WOOL_PANTS.get(), WOOL_SHOES.get());
         }
     }

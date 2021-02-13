@@ -20,7 +20,8 @@ public class StoringSewingTableTileEntity extends TileEntity
     @ObjectHolder("sewingkit:storing_sewing_station")
     public static TileEntityType<?> TYPE;
 
-    private final ItemStackHandler inventory = new ItemStackHandler(6) {
+    private final ItemStackHandler inventory = new ItemStackHandler(6)
+    {
         @Override
         protected void onContentsChanged(int slot)
         {
@@ -90,5 +91,4 @@ public class StoringSewingTableTileEntity extends TileEntity
                 listener.onInventoryChanged();
         }
     }
-
 }

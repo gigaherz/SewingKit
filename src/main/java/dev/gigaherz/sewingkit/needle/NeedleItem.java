@@ -27,7 +27,8 @@ public class NeedleItem extends ToolItem
         );
     }
 
-    @OnlyIn(Dist.CLIENT) // This is one of the only cases where OnlyIn is necessary, don't use it anywhre else unless told to do so by someone who knows what they are talking about
+    @OnlyIn(Dist.CLIENT)
+    // This is one of the only cases where OnlyIn is necessary, don't use it anywhre else unless told to do so by someone who knows what they are talking about
     @Override
     public void addInformation(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn)
     {
