@@ -15,8 +15,11 @@ import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.JsonToNBT;
+import net.minecraft.tags.Tag;
+import net.minecraft.util.IItemProvider;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
+import net.minecraftforge.common.ToolType;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -60,6 +63,21 @@ public class SewingRecipeBuilder
         this.tag = tag;
     }
 
+    public SewingRecipeBuilder withTool(IItemProvider... tool)
+    {
+        return withTool(Ingredient.fromItems(tool));
+    }
+
+    public SewingRecipeBuilder withTool(Tag<Item> tool)
+    {
+        return withTool(Ingredient.fromTag(tool));
+    }
+
+    public SewingRecipeBuilder withTool(ToolType tool, int level)
+    {
+        return withTool(ToolIngredient.fromTool(tool, level));
+    }
+
     public SewingRecipeBuilder withTool(Ingredient tool)
     {
         this.tool = tool;
@@ -70,6 +88,31 @@ public class SewingRecipeBuilder
     {
         this.pattern = pattern;
         return this;
+    }
+
+    public SewingRecipeBuilder addMaterial(int count, IItemProvider... x)
+    {
+        return addMaterial(Ingredient.fromItems(x), count);
+    }
+
+    public SewingRecipeBuilder addMaterial(IItemProvider x, int count)
+    {
+        return addMaterial(Ingredient.fromItems(x), count);
+    }
+
+    public SewingRecipeBuilder addMaterial(Tag<Item> x, int count)
+    {
+        return addMaterial(Ingredient.fromTag(x), 1);
+    }
+
+    public SewingRecipeBuilder addMaterial(IItemProvider... x)
+    {
+        return addMaterial(Ingredient.fromItems(x), 1);
+    }
+
+    public SewingRecipeBuilder addMaterial(Tag<Item> x)
+    {
+        return addMaterial(Ingredient.fromTag(x), 1);
     }
 
     public SewingRecipeBuilder addMaterial(Ingredient x)
