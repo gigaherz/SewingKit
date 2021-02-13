@@ -70,7 +70,8 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
         return icon;
     }
 
-    public void setInputMaterials(IIngredients iIngredients, Ingredient tool, Ingredient pattern, List<SewingRecipe.Material> inputs) {
+    public void setInputMaterials(IIngredients iIngredients, Ingredient tool, Ingredient pattern, List<SewingRecipe.Material> inputs)
+    {
         List<List<ItemStack>> inputLists = new ArrayList<>();
 
         inputLists.add(Arrays.asList(tool.getMatchingStacks()));
@@ -98,23 +99,23 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     }
 
     private static final int[] slotX = {
-         8 - 7,
-        30 - 7,
-        10 - 7,
-        28 - 7,
-        10 - 7,
-        28 - 7,
-       143 - 7
+            8 - 7,
+            30 - 7,
+            10 - 7,
+            28 - 7,
+            10 - 7,
+            28 - 7,
+            143 - 7
     };
 
     private static final int[] slotY = {
-        15 - 13,
-        15 - 13,
-        35 - 13,
-        35 - 13,
-        53 - 13,
-        53 - 13,
-        33 - 13
+            15 - 13,
+            15 - 13,
+            35 - 13,
+            35 - 13,
+            53 - 13,
+            53 - 13,
+            33 - 13
     };
 
     @Override
@@ -122,9 +123,9 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     {
         IGuiItemStackGroup itemStacks = recipeLayout.getItemStacks();
 
-        for (int i=0;i<=6;i++)
+        for (int i = 0; i <= 6; i++)
         {
-            itemStacks.init(i, i<6, slotX[i], slotY[i]);
+            itemStacks.init(i, i < 6, slotX[i], slotY[i]);
         }
 
         itemStacks.set(ingredients);

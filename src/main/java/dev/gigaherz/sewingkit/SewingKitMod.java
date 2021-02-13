@@ -187,7 +187,8 @@ public class SewingKitMod
                     ImmutableSet.of(), null)
     );
 
-    public SewingKitMod() {
+    public SewingKitMod()
+    {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(this::setup);
         modBus.addListener(this::processIMC);
@@ -232,7 +233,7 @@ public class SewingKitMod
     {
         // some example code to receive and process InterModComms from other mods
         LOGGER.info("Got IMC {}", event.getIMCStream().
-                map(m->m.getMessageSupplier().get()).
+                map(m -> m.getMessageSupplier().get()).
                 collect(Collectors.toList()));
     }
 
@@ -355,8 +356,9 @@ public class SewingKitMod
         return new ItemTags.Wrapper(new ResourceLocation(id));
     }
 
-    @Mod.EventBusSubscriber(value= Dist.CLIENT, bus=Mod.EventBusSubscriber.Bus.MOD)
-    public static class ClientModBus {
+    @Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+    public static class ClientModBus
+    {
         @SubscribeEvent
         public static void clientSetup(final FMLClientSetupEvent event)
         {
@@ -373,15 +375,17 @@ public class SewingKitMod
                 event.addSprite(location("gui/pattern_slot_background"));
             }
         }
+
         @SubscribeEvent
         public static void modelRegistry(final ModelRegistryEvent event)
         {
         }
+
         @SubscribeEvent
         public static void itemColors(final ColorHandlerEvent.Item event)
         {
             event.getItemColors().register(
-                    (stack, color) -> color > 0 ? -1 : ((IDyeableArmorItem)stack.getItem()).getColor(stack),
+                    (stack, color) -> color > 0 ? -1 : ((IDyeableArmorItem) stack.getItem()).getColor(stack),
                     WOOL_HAT.get(), WOOL_SHIRT.get(), WOOL_PANTS.get(), WOOL_SHOES.get());
         }
     }

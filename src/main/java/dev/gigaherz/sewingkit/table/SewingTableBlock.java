@@ -96,7 +96,7 @@ public class SewingTableBlock extends Block
             return ActionResultType.SUCCESS;
 
         player.openContainer(new SimpleNamedContainerProvider(
-                (id,playerInv,p) -> new SewingTableContainer(id,playerInv, IWorldPosCallable.of(worldIn, pos)),
+                (id, playerInv, p) -> new SewingTableContainer(id, playerInv, IWorldPosCallable.of(worldIn, pos)),
                 new TranslationTextComponent("container.sewingkit.sewing_station")
         ));
 

@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.JSONUtils;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ToolType;
@@ -15,8 +14,6 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import net.minecraft.item.crafting.Ingredient.IItemList;
 
 public class ToolIngredient extends Ingredient
 {

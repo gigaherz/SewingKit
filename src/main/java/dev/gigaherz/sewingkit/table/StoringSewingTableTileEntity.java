@@ -1,7 +1,6 @@
 package dev.gigaherz.sewingkit.table;
 
 import com.google.common.collect.Lists;
-import net.minecraft.block.BlockState;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityType;
@@ -20,7 +19,8 @@ public class StoringSewingTableTileEntity extends TileEntity
     @ObjectHolder("sewingkit:storing_sewing_station")
     public static TileEntityType<?> TYPE;
 
-    private final ItemStackHandler inventory = new ItemStackHandler(6) {
+    private final ItemStackHandler inventory = new ItemStackHandler(6)
+    {
         @Override
         protected void onContentsChanged(int slot)
         {
@@ -90,5 +90,4 @@ public class StoringSewingTableTileEntity extends TileEntity
                 listener.onInventoryChanged();
         }
     }
-
 }

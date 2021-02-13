@@ -148,37 +148,37 @@ public class SewingKitDataGen
             basicIcon(SewingKitMod.LEGENDARY_PATTERN.getId());
 
             basicIcon(SewingKitMod.FILE.getId())
-                .transforms()
+                    .transforms()
                     .transform(ModelBuilder.Perspective.THIRDPERSON_RIGHT)
-                        .rotation(62, 180 - 33, 40)
-                        .translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
+                    .rotation(62, 180 - 33, 40)
+                    .translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
                     .end()
                     .transform(ModelBuilder.Perspective.THIRDPERSON_LEFT)
-                        .rotation(45, -33, -55)
-                        .translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
+                    .rotation(45, -33, -55)
+                    .translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
                     .end()
                     .transform(ModelBuilder.Perspective.FIRSTPERSON_RIGHT)
-                        .rotation(-54, 99, 136)
-                        .translation(1.13f, 5f, 1.13f)
-                        .scale(0.68f)
+                    .rotation(-54, 99, 136)
+                    .translation(1.13f, 5f, 1.13f)
+                    .scale(0.68f)
                     .end()
                     .transform(ModelBuilder.Perspective.FIRSTPERSON_LEFT)
-                        .rotation(136, -99, 54)
-                        .translation(1.13f, 5f, 1.13f)
-                        .scale(0.68f)
+                    .rotation(136, -99, 54)
+                    .translation(1.13f, 5f, 1.13f)
+                    .scale(0.68f)
                     .end()
                     .transform(ModelBuilder.Perspective.GROUND)
-                        .translation(0, 2, 0)
-                        .scale(0.5f)
+                    .translation(0, 2, 0)
+                    .scale(0.5f)
                     .end()
                     .transform(ModelBuilder.Perspective.HEAD)
-                        .rotation(-4, 44, 4)
-                        .translation(-7.25f, 6.75f, 0.75f)
+                    .rotation(-4, 44, 4)
+                    .translation(-7.25f, 6.75f, 0.75f)
                     .end()
                     .transform(ModelBuilder.Perspective.FIXED)
-                        .rotation(0, 180, 0)
+                    .rotation(0, 180, 0)
                     .end()
-                .end();
+                    .end();
 
             getBuilder(SewingKitMod.SEWING_STATION_ITEM.getId().getPath())
                     .parent(getExistingFile(modelLocation(SewingKitMod.SEWING_STATION_BLOCK.get())));
@@ -212,10 +212,10 @@ public class SewingKitDataGen
         protected void registerRecipes(Consumer<IFinishedRecipe> consumer)
         {
             Arrays.stream(Needles.values()).forEach(needle -> ShapelessRecipeBuilder.shapelessRecipe(needle.getNeedle())
-                                .addIngredient(SewingKitMod.FILE.get())
-                                .addIngredient(needle.getRepairMaterial())
-                                .addCriterion("has_material", needle.getMaterial().map(this::hasItem, this::hasItem))
-                                .build(consumer));
+                    .addIngredient(SewingKitMod.FILE.get())
+                    .addIngredient(needle.getRepairMaterial())
+                    .addCriterion("has_material", needle.getMaterial().map(this::hasItem, this::hasItem))
+                    .build(consumer));
 
             ShapedRecipeBuilder.shapedRecipe(SewingKitMod.SEWING_STATION_ITEM.get())
                     .patternLine("xxx")
@@ -357,7 +357,6 @@ public class SewingKitDataGen
                     .key('P', ItemTags.PLANKS)
                     .addCriterion("has_iron", hasItem(Tags.Items.INGOTS_IRON))
                     .build(consumer);
-
         }
     }
 

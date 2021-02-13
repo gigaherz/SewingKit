@@ -3,7 +3,6 @@ package dev.gigaherz.sewingkit.api;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.gigaherz.sewingkit.SewingKitMod;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
@@ -24,7 +23,6 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class SewingRecipe implements IRecipe<IInventory>
 {
@@ -55,7 +53,7 @@ public class SewingRecipe implements IRecipe<IInventory>
 
     public static Collection<SewingRecipe> getAllRecipes(World world)
     {
-        return world.getRecipeManager().getRecipes().stream().filter(rcp ->rcp.getType() == SEWING).map(rcp -> (SewingRecipe)rcp).collect(Collectors.toSet());
+        return world.getRecipeManager().getRecipes().stream().filter(rcp -> rcp.getType() == SEWING).map(rcp -> (SewingRecipe) rcp).collect(Collectors.toSet());
     }
 
     @Override
@@ -87,7 +85,7 @@ public class SewingRecipe implements IRecipe<IInventory>
         ItemStack patternStack = inv.getStackInSlot(1);
 
         Map<Ingredient, Integer> missing = materials.stream().collect(Collectors.toMap(i -> i.ingredient, i -> i.count));
-        for(int i=0;i<4;i++)
+        for (int i = 0; i < 4; i++)
         {
             for (Map.Entry<Ingredient, Integer> mat : missing.entrySet())
             {
@@ -172,7 +170,7 @@ public class SewingRecipe implements IRecipe<IInventory>
             String group = JSONUtils.getString(json, "group", "");
             JsonArray materialsJson = JSONUtils.getJsonArray(json, "materials");
             NonNullList<Material> materials = NonNullList.create();
-            for(int i=0;i<materialsJson.size();i++)
+            for (int i = 0; i < materialsJson.size(); i++)
             {
                 materials.add(Material.deserialize(materialsJson.get(i).getAsJsonObject()));
             }
@@ -188,7 +186,7 @@ public class SewingRecipe implements IRecipe<IInventory>
             String group = buffer.readString(32767);
             int numMaterials = buffer.readVarInt();
             NonNullList<Material> materials = NonNullList.create();
-            for(int i=0;i<numMaterials;i++)
+            for (int i = 0; i < numMaterials; i++)
             {
                 materials.add(Material.read(buffer));
             }
@@ -205,7 +203,7 @@ public class SewingRecipe implements IRecipe<IInventory>
         {
             buffer.writeString(recipe.group);
             buffer.writeVarInt(recipe.materials.size());
-            for(Material input : recipe.materials)
+            for (Material input : recipe.materials)
             {
                 input.write(buffer);
             }

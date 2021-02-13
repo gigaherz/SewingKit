@@ -13,9 +13,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.JsonToNBT;
-import net.minecraft.tags.Tag;
 import net.minecraft.util.IItemProvider;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.registry.Registry;
@@ -130,26 +127,30 @@ public class SewingRecipeBuilder
         {
             throw new IllegalArgumentException("Count must be a positive integer!");
         }
-        materials.add(SewingRecipe.Material.of(x,count));
+        materials.add(SewingRecipe.Material.of(x, count));
         return this;
     }
 
-    public SewingRecipeBuilder addCriterion(String name, ICriterionInstance criterionIn) {
+    public SewingRecipeBuilder addCriterion(String name, ICriterionInstance criterionIn)
+    {
         this.advancementBuilder.withCriterion(name, criterionIn);
         return this;
     }
 
-    public SewingRecipeBuilder setGroup(String groupIn) {
+    public SewingRecipeBuilder setGroup(String groupIn)
+    {
         this.group = groupIn;
         return this;
     }
 
-    public void build(Consumer<IFinishedRecipe> consumerIn) {
+    public void build(Consumer<IFinishedRecipe> consumerIn)
+    {
         //noinspection deprecation
         this.build(consumerIn, Registry.ITEM.getKey(this.result));
     }
 
-    public void build(Consumer<IFinishedRecipe> consumerIn, ResourceLocation id) {
+    public void build(Consumer<IFinishedRecipe> consumerIn, ResourceLocation id)
+    {
         this.validate(id);
         this.advancementBuilder
                 .withParentId(new ResourceLocation("recipes/root"))
@@ -165,11 +166,14 @@ public class SewingRecipeBuilder
         return new SewingRecipeBuilder.Result(id, group, result, count, tag, tool, pattern, materials, advancementBuilder, advancementId);
     }
 
-    private void validate(ResourceLocation id) {
-        if (this.advancementBuilder.getCriteria().isEmpty()) {
+    private void validate(ResourceLocation id)
+    {
+        if (this.advancementBuilder.getCriteria().isEmpty())
+        {
             throw new IllegalStateException("No way of obtaining sewing recipe " + id);
         }
-        if (this.materials.isEmpty()) {
+        if (this.materials.isEmpty())
+        {
             throw new IllegalStateException("No ingredients for sewing recipe " + id);
         }
     }
@@ -209,29 +213,32 @@ public class SewingRecipeBuilder
         @Override
         public void serialize(JsonObject recipeJson)
         {
-            if (!this.group.isEmpty()) {
+            if (!this.group.isEmpty())
+            {
                 recipeJson.addProperty("group", this.group);
             }
 
             JsonArray jsonarray = new JsonArray();
-            for(SewingRecipe.Material material : this.materials) {
+            for (SewingRecipe.Material material : this.materials)
+            {
                 jsonarray.add(material.serialize());
             }
             recipeJson.add("materials", jsonarray);
 
-            if(tool != null)
+            if (tool != null)
             {
                 recipeJson.add("tool", tool.serialize());
             }
 
-            if(pattern != null)
+            if (pattern != null)
             {
                 recipeJson.add("tool", pattern.serialize());
             }
 
             JsonObject resultJson = new JsonObject();
             resultJson.addProperty("item", Registry.ITEM.getKey(this.result).toString());
-            if (this.count > 1) {
+            if (this.count > 1)
+            {
                 resultJson.addProperty("count", this.count);
             }
             if (this.tag != null)

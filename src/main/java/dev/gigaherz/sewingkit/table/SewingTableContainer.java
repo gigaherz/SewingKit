@@ -1,7 +1,6 @@
 package dev.gigaherz.sewingkit.table;
 
 import com.google.common.collect.Lists;
-import dev.gigaherz.sewingkit.SewingKitDataGen;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import net.minecraft.block.Block;
@@ -18,7 +17,10 @@ import net.minecraft.inventory.container.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.util.*;
+import net.minecraft.util.IWorldPosCallable;
+import net.minecraft.util.IntReferenceHolder;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.world.World;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -51,9 +53,9 @@ public class SewingTableContainer extends Container
     private final World world;
     private final IWorldPosCallable openedFrom;
     private final IntReferenceHolder selectedRecipe = IntReferenceHolder.single();
-    private final ItemStack[] inputStacksCache = new ItemStack[] {
-            ItemStack.EMPTY,ItemStack.EMPTY,ItemStack.EMPTY,
-            ItemStack.EMPTY,ItemStack.EMPTY,ItemStack.EMPTY
+    private final ItemStack[] inputStacksCache = new ItemStack[]{
+            ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY,
+            ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY
     };
     @Nullable
     private final StoringSewingTableTileEntity te;
@@ -103,12 +105,14 @@ public class SewingTableContainer extends Container
             };
         }
 
-        this.addSlot(new SlotItemHandler(this.inputInventory, 0, 8, 15){
+        this.addSlot(new SlotItemHandler(this.inputInventory, 0, 8, 15)
+        {
             {
                 this.setBackground(PlayerContainer.LOCATION_BLOCKS_TEXTURE, SewingKitMod.location("gui/needle_slot_background"));
             }
         });
-        this.addSlot(new SlotItemHandler(this.inputInventory, 1, 30, 15){
+        this.addSlot(new SlotItemHandler(this.inputInventory, 1, 30, 15)
+        {
             {
                 this.setBackground(PlayerContainer.LOCATION_BLOCKS_TEXTURE, SewingKitMod.location("gui/pattern_slot_background"));
             }
@@ -159,7 +163,7 @@ public class SewingTableContainer extends Container
                             ItemStack stack1 = slot.getStack();
                             if (ing.test(stack1))
                             {
-                                int remaining1 = Math.max(0, value - (stack1.getCount()+subtract));
+                                int remaining1 = Math.max(0, value - (stack1.getCount() + subtract));
                                 subtract += (value - remaining1);
                                 mat.setValue(remaining1);
                             }
@@ -248,13 +252,13 @@ public class SewingTableContainer extends Container
         return isWithinUsableDistance(this.openedFrom, playerIn, SewingKitMod.SEWING_STATION_BLOCK.get(), SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
     }
 
-    protected static boolean isWithinUsableDistance(IWorldPosCallable worldPos, PlayerEntity playerIn, Block... targetBlocks) {
+    protected static boolean isWithinUsableDistance(IWorldPosCallable worldPos, PlayerEntity playerIn, Block... targetBlocks)
+    {
         return worldPos.applyOrElse((world, pos) -> {
             BlockState blockState = world.getBlockState(pos);
             if (Arrays.stream(targetBlocks).noneMatch(block -> blockState.getBlock() == block)) return false;
 
             return playerIn.getDistanceSq(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) <= 64.0D;
-
         }, true);
     }
 
@@ -350,7 +354,7 @@ public class SewingTableContainer extends Container
         Slot slot = this.inventorySlots.get(index);
         if (slot == null || !slot.getHasStack())
             return ItemStack.EMPTY;
-        
+
         ItemStack stackInSlot = slot.getStack();
         Item item = stackInSlot.getItem();
         ItemStack stackCopy = stackInSlot.copy();
@@ -365,7 +369,7 @@ public class SewingTableContainer extends Container
             reverse = true;
             notify = true;
         }
-        else if (index >= OUTPUTS_START) 
+        else if (index >= OUTPUTS_START)
         {
             if (stackInSlot.getMaxStackSize() == 1 && inventorySlots.get(0).getStack().getCount() == 0)
             {
@@ -420,7 +424,7 @@ public class SewingTableContainer extends Container
     {
         super.onContainerClosed(playerIn);
         this.inventory.removeStackFromSlot(0);
-        if(te == null)
+        if (te == null)
         {
             this.openedFrom.consume((world, pos) -> this.clearContainer(playerIn, playerIn.world, new RecipeWrapper(this.inputInventory)));
         }

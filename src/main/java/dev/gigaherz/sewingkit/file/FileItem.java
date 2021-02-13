@@ -28,7 +28,7 @@ public class FileItem extends Item
         if (itemStack.getDamage() < itemStack.getMaxDamage())
         {
             ItemStack stack = itemStack.copy();
-            stack.setDamage(itemStack.getDamage()+1);
+            stack.setDamage(itemStack.getDamage() + 1);
             return stack;
         }
         return ItemStack.EMPTY;
