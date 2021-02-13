@@ -9,7 +9,7 @@
     }
   ],
   "tool": {
-    "item": "minecraft:shears"
+    "tag": "forge:shears"
   },
   "result": {
     "item": "sewingkit:leather_sheet"

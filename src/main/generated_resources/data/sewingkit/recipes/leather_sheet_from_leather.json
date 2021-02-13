@@ -3,13 +3,13 @@
   "materials": [
     {
       "ingredient": {
-        "item": "minecraft:leather"
+        "tag": "forge:leather"
       },
       "count": 1
     }
   ],
   "tool": {
-    "item": "minecraft:shears"
+    "tag": "forge:shears"
   },
   "result": {
     "item": "sewingkit:leather_sheet",
