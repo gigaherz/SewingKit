@@ -1,7 +1,6 @@
 package dev.gigaherz.sewingkit;
 
 import com.google.common.collect.ImmutableSet;
-import com.mojang.serialization.Lifecycle;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import dev.gigaherz.sewingkit.api.ToolIngredient;
 import dev.gigaherz.sewingkit.clothing.ClothArmorItem;
@@ -12,27 +11,23 @@ import dev.gigaherz.sewingkit.needle.Needles;
 import dev.gigaherz.sewingkit.patterns.PatternItem;
 import dev.gigaherz.sewingkit.table.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import net.minecraft.block.AbstractBlock;
-import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
-import net.minecraft.client.gui.ScreenManager;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.renderer.texture.AtlasTexture;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.merchant.villager.VillagerProfession;
-import net.minecraft.entity.merchant.villager.VillagerTrades;
-import net.minecraft.inventory.EquipmentSlotType;
-import net.minecraft.inventory.container.ContainerType;
-import net.minecraft.item.*;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.tags.ITag;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.material.Material;
+import net.minecraft.client.gui.screens.MenuScreens;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.tags.Tag;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.tileentity.TileEntityType;
-import net.minecraft.util.IItemProvider;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.SimpleRegistry;
-import net.minecraft.village.PointOfInterestType;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
@@ -44,18 +39,14 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ExtensionPoint;
-import net.minecraftforge.fml.ModLoadingContext;
-import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fmllegacy.RegistryObject;
+import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.GameData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -65,6 +56,15 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.DyeableLeatherItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.trading.MerchantOffer;
+
 @Mod(SewingKitMod.MODID)
 public class SewingKitMod
 {
@@ -72,10 +72,10 @@ public class SewingKitMod
 
     public static final String MODID = "sewingkit";
 
-    public static final ItemGroup SEWING_KIT = new ItemGroup("sewing_kit")
+    public static final CreativeModeTab SEWING_KIT = new CreativeModeTab("sewing_kit")
     {
         @Override
-        public ItemStack createIcon()
+        public ItemStack makeIcon()
         {
             return new ItemStack(SewingKitMod.WOOD_SEWING_NEEDLE.get());
         }
@@ -83,112 +83,112 @@ public class SewingKitMod
 
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
-    private static final DeferredRegister<TileEntityType<?>> TILE_ENTITIES = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, MODID);
-    private static final DeferredRegister<PointOfInterestType> POI_TYPES = DeferredRegister.create(ForgeRegistries.POI_TYPES, MODID);
+    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, MODID);
+    private static final DeferredRegister<PoiType> POI_TYPES = DeferredRegister.create(ForgeRegistries.POI_TYPES, MODID);
     private static final DeferredRegister<VillagerProfession> PROFESSIONS = DeferredRegister.create(ForgeRegistries.PROFESSIONS, MODID);
 
     public static final RegistryObject<Item> LEATHER_STRIP = ITEMS.register("leather_strip",
-            () -> new Item(new Item.Properties().maxStackSize(64).group(SEWING_KIT))
+            () -> new Item(new Item.Properties().stacksTo(64).tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Item> LEATHER_SHEET = ITEMS.register("leather_sheet",
-            () -> new Item(new Item.Properties().maxStackSize(64).group(SEWING_KIT))
+            () -> new Item(new Item.Properties().stacksTo(64).tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Item> WOOL_ROLL = ITEMS.register("wool_roll",
-            () -> new Item(new Item.Properties().maxStackSize(64).group(SEWING_KIT))
+            () -> new Item(new Item.Properties().stacksTo(64).tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Item> WOOL_TRIM = ITEMS.register("wool_trim",
-            () -> new Item(new Item.Properties().maxStackSize(64).group(SEWING_KIT))
+            () -> new Item(new Item.Properties().stacksTo(64).tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Item> WOOD_SEWING_NEEDLE = ITEMS.register("wood_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.WOOD, new Item.Properties().group(SEWING_KIT))
+            () -> new NeedleItem(0, 1, Needles.WOOD, new Item.Properties().tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Item> STONE_SEWING_NEEDLE = ITEMS.register("stone_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.STONE, new Item.Properties().group(SEWING_KIT))
+            () -> new NeedleItem(0, 1, Needles.STONE, new Item.Properties().tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Item> BONE_SEWING_NEEDLE = ITEMS.register("bone_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.BONE, new Item.Properties().group(SEWING_KIT))
+            () -> new NeedleItem(0, 1, Needles.BONE, new Item.Properties().tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Item> GOLD_SEWING_NEEDLE = ITEMS.register("gold_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.GOLD, new Item.Properties().group(SEWING_KIT))
+            () -> new NeedleItem(0, 1, Needles.GOLD, new Item.Properties().tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Item> IRON_SEWING_NEEDLE = ITEMS.register("iron_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.IRON, new Item.Properties().group(SEWING_KIT))
+            () -> new NeedleItem(0, 1, Needles.IRON, new Item.Properties().tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Item> DIAMOND_SEWING_NEEDLE = ITEMS.register("diamond_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.DIAMOND, new Item.Properties().group(SEWING_KIT))
+            () -> new NeedleItem(0, 1, Needles.DIAMOND, new Item.Properties().tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Item> NETHERITE_SEWING_NEEDLE = ITEMS.register("netherite_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.NETHERITE, new Item.Properties().group(SEWING_KIT))
+            () -> new NeedleItem(0, 1, Needles.NETHERITE, new Item.Properties().tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Block> SEWING_STATION_BLOCK = BLOCKS.register("sewing_station",
-            () -> new SewingTableBlock(AbstractBlock.Properties.create(Material.WOOD).hardnessAndResistance(2.5F))
+            () -> new SewingTableBlock(BlockBehaviour.Properties.of(Material.WOOD).strength(2.5F))
     );
 
     public static final RegistryObject<Item> SEWING_STATION_ITEM = ITEMS.register("sewing_station",
-            () -> new BlockItem(SEWING_STATION_BLOCK.get(), new Item.Properties().group(SEWING_KIT))
+            () -> new BlockItem(SEWING_STATION_BLOCK.get(), new Item.Properties().tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Block> STORING_SEWING_STATION_BLOCK = BLOCKS.register("storing_sewing_station",
-            () -> new StoringSewingTableBlock(AbstractBlock.Properties.create(Material.WOOD).hardnessAndResistance(2.5F))
+            () -> new StoringSewingTableBlock(BlockBehaviour.Properties.of(Material.WOOD).strength(2.5F))
     );
 
     public static final RegistryObject<Item> STORING_SEWING_STATION_ITEM = ITEMS.register("storing_sewing_station",
-            () -> new BlockItem(STORING_SEWING_STATION_BLOCK.get(), new Item.Properties().group(SEWING_KIT))
+            () -> new BlockItem(STORING_SEWING_STATION_BLOCK.get(), new Item.Properties().tab(SEWING_KIT))
     );
 
-    public static final RegistryObject<TileEntityType<?>> STORING_SEWING_STATION_TILE_ENTITY = TILE_ENTITIES.register("storing_sewing_station",
-            () -> TileEntityType.Builder.create(StoringSewingTableTileEntity::new, STORING_SEWING_STATION_BLOCK.get()).build(null)
+    public static final RegistryObject<BlockEntityType<?>> STORING_SEWING_STATION_TILE_ENTITY = BLOCK_ENTITIES.register("storing_sewing_station",
+            () -> BlockEntityType.Builder.of(StoringSewingTableTileEntity::new, STORING_SEWING_STATION_BLOCK.get()).build(null)
     );
 
     public static final RegistryObject<Item> WOOL_HAT = ITEMS.register("wool_hat",
-            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, EquipmentSlotType.HEAD, new Item.Properties().group(SEWING_KIT))
+            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, EquipmentSlot.HEAD, new Item.Properties().tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Item> WOOL_SHIRT = ITEMS.register("wool_shirt",
-            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, EquipmentSlotType.CHEST, new Item.Properties().group(SEWING_KIT))
+            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, EquipmentSlot.CHEST, new Item.Properties().tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Item> WOOL_PANTS = ITEMS.register("wool_pants",
-            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, EquipmentSlotType.LEGS, new Item.Properties().group(SEWING_KIT))
+            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, EquipmentSlot.LEGS, new Item.Properties().tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Item> WOOL_SHOES = ITEMS.register("wool_shoes",
-            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, EquipmentSlotType.FEET, new Item.Properties().group(SEWING_KIT))
+            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, EquipmentSlot.FEET, new Item.Properties().tab(SEWING_KIT))
     );
 
     public static final RegistryObject<Item> COMMON_PATTERN = ITEMS.register("common_pattern",
-            () -> new PatternItem(new Item.Properties().group(SEWING_KIT).rarity(Rarity.COMMON))
+            () -> new PatternItem(new Item.Properties().tab(SEWING_KIT).rarity(Rarity.COMMON))
     );
 
     public static final RegistryObject<Item> UNCOMMON_PATTERN = ITEMS.register("uncommon_pattern",
-            () -> new PatternItem(new Item.Properties().group(SEWING_KIT).rarity(Rarity.UNCOMMON))
+            () -> new PatternItem(new Item.Properties().tab(SEWING_KIT).rarity(Rarity.UNCOMMON))
     );
 
     public static final RegistryObject<Item> RARE_PATTERN = ITEMS.register("rare_pattern",
-            () -> new PatternItem(new Item.Properties().group(SEWING_KIT).rarity(Rarity.RARE))
+            () -> new PatternItem(new Item.Properties().tab(SEWING_KIT).rarity(Rarity.RARE))
     );
 
     public static final RegistryObject<Item> LEGENDARY_PATTERN = ITEMS.register("legendary_pattern",
-            () -> new PatternItem(new Item.Properties().group(SEWING_KIT).rarity(Rarity.EPIC))
+            () -> new PatternItem(new Item.Properties().tab(SEWING_KIT).rarity(Rarity.EPIC))
     );
 
     public static final RegistryObject<Item> FILE = ITEMS.register("file",
-            () -> new FileItem(new Item.Properties().group(SEWING_KIT).maxDamage(354))
+            () -> new FileItem(new Item.Properties().tab(SEWING_KIT).durability(354))
     );
 
-    public static final RegistryObject<PointOfInterestType> TABLE_POI = POI_TYPES.register("tailor",
-            () -> new PointOfInterestType("tailor", PointOfInterestType.getAllStates(SEWING_STATION_BLOCK.get()), 1, 1)
+    public static final RegistryObject<PoiType> TABLE_POI = POI_TYPES.register("tailor",
+            () -> new PoiType("tailor", PoiType.getBlockStates(SEWING_STATION_BLOCK.get()), 1, 1)
     );
 
     @SuppressWarnings("UnstableApiUsage")
@@ -203,19 +203,19 @@ public class SewingKitMod
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(this::processIMC);
         modBus.addListener(this::gatherData);
-        modBus.addGenericListener(IRecipeSerializer.class, this::registerRecipes);
-        modBus.addGenericListener(ContainerType.class, this::registerContainers);
+        modBus.addGenericListener(RecipeSerializer.class, this::registerRecipes);
+        modBus.addGenericListener(MenuType.class, this::registerContainers);
 
         ITEMS.register(modBus);
         BLOCKS.register(modBus);
         POI_TYPES.register(modBus);
         PROFESSIONS.register(modBus);
-        TILE_ENTITIES.register(modBus);
+        BLOCK_ENTITIES.register(modBus);
 
         MinecraftForge.EVENT_BUS.addListener(this::villagerTrades);
     }
 
-    private void registerRecipes(RegistryEvent.Register<IRecipeSerializer<?>> event)
+    private void registerRecipes(RegistryEvent.Register<RecipeSerializer<?>> event)
     {
         CraftingHelper.register(ToolIngredient.NAME, ToolIngredient.Serializer.INSTANCE);
 
@@ -224,10 +224,10 @@ public class SewingKitMod
         );
     }
 
-    private void registerContainers(RegistryEvent.Register<ContainerType<?>> event)
+    private void registerContainers(RegistryEvent.Register<MenuType<?>> event)
     {
         event.getRegistry().registerAll(
-                new ContainerType<>(SewingTableContainer::new).setRegistryName("sewing_station")
+                new MenuType<>(SewingTableContainer::new).setRegistryName("sewing_station")
         );
     }
 
@@ -244,13 +244,13 @@ public class SewingKitMod
         if (event.getType() != TAILOR.get())
             return;
 
-        Int2ObjectMap<List<VillagerTrades.ITrade>> trademap = event.getTrades();
+        Int2ObjectMap<List<VillagerTrades.ItemListing>> trademap = event.getTrades();
 
         trademap.get(1).addAll(Arrays.asList(
-                new VillagerTrades.DyedArmorForEmeraldsTrade(WOOL_PANTS.get(), 3, 12, 1),
-                new VillagerTrades.DyedArmorForEmeraldsTrade(WOOL_SHOES.get(), 3, 12, 1),
-                new VillagerTrades.DyedArmorForEmeraldsTrade(WOOL_HAT.get(), 3, 12, 1),
-                new VillagerTrades.DyedArmorForEmeraldsTrade(WOOL_SHIRT.get(), 3, 12, 1),
+                new VillagerTrades.DyedArmorForEmeralds(WOOL_PANTS.get(), 3, 12, 1),
+                new VillagerTrades.DyedArmorForEmeralds(WOOL_SHOES.get(), 3, 12, 1),
+                new VillagerTrades.DyedArmorForEmeralds(WOOL_HAT.get(), 3, 12, 1),
+                new VillagerTrades.DyedArmorForEmeralds(WOOL_SHIRT.get(), 3, 12, 1),
 
                 buyItem(new ItemStack(Items.STRING, 16), 1, 12, 1, 2)
         ));
@@ -300,31 +300,31 @@ public class SewingKitMod
 
     }
 
-    private VillagerTrades.ITrade sellItem(IItemProvider thing, int price, int maxTrades, int xp, float priceMultiplier)
+    private VillagerTrades.ItemListing sellItem(ItemLike thing, int price, int maxTrades, int xp, float priceMultiplier)
     {
         return sellItem(new ItemStack(thing), price, maxTrades, xp, priceMultiplier);
     }
 
-    private VillagerTrades.ITrade sellItem(ItemStack thing, int price, int maxTrades, int xp, float priceMultiplier)
+    private VillagerTrades.ItemListing sellItem(ItemStack thing, int price, int maxTrades, int xp, float priceMultiplier)
     {
         return new BasicTrade(new ItemStack(Items.EMERALD, price), thing, maxTrades, xp, priceMultiplier);
     }
 
-    private VillagerTrades.ITrade buyItem(ItemStack thing, int reward, int maxTrades, int xp, float priceMultiplier)
+    private VillagerTrades.ItemListing buyItem(ItemStack thing, int reward, int maxTrades, int xp, float priceMultiplier)
     {
         return new BasicTrade(thing, new ItemStack(Items.EMERALD, reward), maxTrades, xp, priceMultiplier);
     }
 
-    private static class SellRandomFromTag implements VillagerTrades.ITrade
+    private static class SellRandomFromTag implements VillagerTrades.ItemListing
     {
-        private final ITag<Item> tagSource;
+        private final Tag<Item> tagSource;
         private final int quantity;
         private final int price;
         private final int maxUses;
         private final int xp;
         private final float priceMultiplier;
 
-        private SellRandomFromTag(ITag<Item> tagSource, int quantity, int price, int maxUses, int xp, float priceMultiplier)
+        private SellRandomFromTag(Tag<Item> tagSource, int quantity, int price, int maxUses, int xp, float priceMultiplier)
         {
             this.tagSource = tagSource;
             this.quantity = quantity;
@@ -359,14 +359,14 @@ public class SewingKitMod
         @SubscribeEvent
         public static void clientSetup(final FMLClientSetupEvent event)
         {
-            ScreenManager.registerFactory(SewingTableContainer.TYPE, SewingTableScreen::new);
+            MenuScreens.register(SewingTableContainer.TYPE, SewingTableScreen::new);
         }
 
         @SubscribeEvent
         public static void textureStitch(final TextureStitchEvent.Pre event)
         {
             //noinspection deprecation
-            if (event.getMap().getTextureLocation().equals(AtlasTexture.LOCATION_BLOCKS_TEXTURE))
+            if (event.getMap().location().equals(TextureAtlas.LOCATION_BLOCKS))
             {
                 event.addSprite(location("gui/needle_slot_background"));
                 event.addSprite(location("gui/pattern_slot_background"));
@@ -382,7 +382,7 @@ public class SewingKitMod
         public static void itemColors(final ColorHandlerEvent.Item event)
         {
             event.getItemColors().register(
-                    (stack, color) -> color > 0 ? -1 : ((IDyeableArmorItem) stack.getItem()).getColor(stack),
+                    (stack, color) -> color > 0 ? -1 : ((DyeableLeatherItem) stack.getItem()).getColor(stack),
                     WOOL_HAT.get(), WOOL_SHIRT.get(), WOOL_PANTS.get(), WOOL_SHOES.get());
         }
     }

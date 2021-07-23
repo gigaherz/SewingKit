@@ -1,10 +1,10 @@
 package dev.gigaherz.sewingkit.needle;
 
-import net.minecraft.item.IItemTier;
-import net.minecraft.item.Item;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.Item;
+import net.minecraft.resources.ResourceLocation;
 
-public interface INeedleTier extends IItemTier
+public interface INeedleTier extends Tier
 {
     String getType();
 

@@ -1,10 +1,11 @@
 package dev.gigaherz.sewingkit.table;
 
 import com.google.common.collect.Lists;
-import net.minecraft.block.BlockState;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.ObjectHolder;
@@ -15,10 +16,10 @@ import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.List;
 
-public class StoringSewingTableTileEntity extends TileEntity
+public class StoringSewingTableTileEntity extends BlockEntity implements Listenable
 {
     @ObjectHolder("sewingkit:storing_sewing_station")
-    public static TileEntityType<?> TYPE;
+    public static BlockEntityType<?> TYPE;
 
     private final ItemStackHandler inventory = new ItemStackHandler(6)
     {
@@ -26,18 +27,19 @@ public class StoringSewingTableTileEntity extends TileEntity
         protected void onContentsChanged(int slot)
         {
             super.onContentsChanged(slot);
-            markDirty();
+            setChanged();
+            listenable.doCallbacks();
         }
     };
 
-    protected StoringSewingTableTileEntity(TileEntityType<?> tileEntityTypeIn)
+    protected StoringSewingTableTileEntity(BlockEntityType<?> tileEntityTypeIn, BlockPos pos, BlockState state)
     {
-        super(tileEntityTypeIn);
+        super(tileEntityTypeIn, pos, state);
     }
 
-    public StoringSewingTableTileEntity()
+    public StoringSewingTableTileEntity(BlockPos pos, BlockState state)
     {
-        super(TYPE);
+        super(TYPE, pos, state);
     }
 
     public IItemHandlerModifiable getInventory()
@@ -46,49 +48,31 @@ public class StoringSewingTableTileEntity extends TileEntity
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound)
+    public CompoundTag save(CompoundTag compound)
     {
-        compound = super.write(compound);
+        compound = super.save(compound);
         compound.put("Items", inventory.serializeNBT());
         return compound;
     }
 
     @Override
-    public void read(BlockState state, CompoundNBT nbt)
+    public void load(CompoundTag nbt)
     {
-        super.read(state, nbt);
+        super.load(nbt);
         inventory.deserializeNBT(nbt.getCompound("Items"));
     }
 
-    private final List<Reference<? extends SewingTableContainer>> listeners = Lists.newArrayList();
-    private final ReferenceQueue<SewingTableContainer> pendingRemovals = new ReferenceQueue<>();
+    private final ListenableHolder listenable = new ListenableHolder();
 
-    public void addWeakListener(SewingTableContainer e)
+    @Override
+    public void setChanged()
     {
-        listeners.add(new WeakReference<>(e, pendingRemovals));
+        super.setChanged();
     }
 
     @Override
-    public void markDirty()
+    public void addWeakListener(SewingTableContainer e)
     {
-        super.markDirty();
-
-        for (Reference<? extends SewingTableContainer>
-             ref = pendingRemovals.poll();
-             ref != null;
-             ref = pendingRemovals.poll())
-        {
-            listeners.remove(ref);
-        }
-
-        for (Iterator<Reference<? extends SewingTableContainer>> iterator = listeners.iterator(); iterator.hasNext(); )
-        {
-            Reference<? extends SewingTableContainer> reference = iterator.next();
-            SewingTableContainer listener = reference.get();
-            if (listener == null)
-                iterator.remove();
-            else
-                listener.onInventoryChanged();
-        }
+        listenable.addWeakListener(e);
     }
 }

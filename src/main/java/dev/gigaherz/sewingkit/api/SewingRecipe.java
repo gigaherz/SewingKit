@@ -3,17 +3,17 @@ package dev.gigaherz.sewingkit.api;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.gigaherz.sewingkit.SewingKitMod;
-import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.item.crafting.IRecipeType;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.util.JSONUtils;
-import net.minecraft.util.NonNullList;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.World;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.core.NonNullList;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 import net.minecraftforge.registries.ObjectHolder;
@@ -24,12 +24,12 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class SewingRecipe implements IRecipe<IInventory>
+public class SewingRecipe implements Recipe<Container>
 {
     @ObjectHolder("sewingkit:sewing")
-    public static IRecipeSerializer<?> SERIALIZER = null;
+    public static RecipeSerializer<?> SERIALIZER = null;
 
-    public static IRecipeType<SewingRecipe> SEWING = IRecipeType.register(SewingKitMod.location("sewing").toString());
+    public static RecipeType<SewingRecipe> SEWING = RecipeType.register(SewingKitMod.location("sewing").toString());
 
     private final String group;
     private final ResourceLocation id;
@@ -51,9 +51,9 @@ public class SewingRecipe implements IRecipe<IInventory>
         this.output = output;
     }
 
-    public static Collection<SewingRecipe> getAllRecipes(World world)
+    public static Collection<SewingRecipe> getAllRecipes(Level world)
     {
-        return world.getRecipeManager().getRecipesForType(SEWING);
+        return world.getRecipeManager().getAllRecipesFor(SEWING);
     }
 
     @Override
@@ -63,7 +63,7 @@ public class SewingRecipe implements IRecipe<IInventory>
     }
 
     @Override
-    public boolean canFit(int width, int height)
+    public boolean canCraftInDimensions(int width, int height)
     {
         return width * height >= 4;
     }
@@ -79,10 +79,10 @@ public class SewingRecipe implements IRecipe<IInventory>
     }
 
     @Override
-    public boolean matches(IInventory inv, World worldIn)
+    public boolean matches(Container inv, Level worldIn)
     {
-        ItemStack toolStack = inv.getStackInSlot(0);
-        ItemStack patternStack = inv.getStackInSlot(1);
+        ItemStack toolStack = inv.getItem(0);
+        ItemStack patternStack = inv.getItem(1);
 
         Map<Ingredient, Integer> missing = materials.stream().collect(Collectors.toMap(i -> i.ingredient, i -> i.count));
         for (int i = 0; i < 4; i++)
@@ -91,7 +91,7 @@ public class SewingRecipe implements IRecipe<IInventory>
             {
                 Ingredient ing = mat.getKey();
                 int value = mat.getValue();
-                ItemStack stack = inv.getStackInSlot(i + 2);
+                ItemStack stack = inv.getItem(i + 2);
                 if (ing.test(stack))
                 {
                     int remaining = Math.max(0, value - stack.getCount());
@@ -106,13 +106,13 @@ public class SewingRecipe implements IRecipe<IInventory>
     }
 
     @Override
-    public ItemStack getCraftingResult(IInventory inv)
+    public ItemStack assemble(Container inv)
     {
-        return getRecipeOutput().copy();
+        return getResultItem().copy();
     }
 
     @Override
-    public ItemStack getRecipeOutput()
+    public ItemStack getResultItem()
     {
         return output;
     }
@@ -129,19 +129,19 @@ public class SewingRecipe implements IRecipe<IInventory>
     }
 
     @Override
-    public IRecipeSerializer<?> getSerializer()
+    public RecipeSerializer<?> getSerializer()
     {
         return SERIALIZER;
     }
 
     @Override
-    public IRecipeType<?> getType()
+    public RecipeType<?> getType()
     {
         return SEWING;
     }
 
     @Override
-    public ItemStack getIcon()
+    public ItemStack getToastSymbol()
     {
         return new ItemStack(SewingKitMod.WOOD_SEWING_NEEDLE.get());
     }
@@ -156,8 +156,8 @@ public class SewingRecipe implements IRecipe<IInventory>
         return pattern != null ? pattern : Ingredient.EMPTY;
     }
 
-    public static class Serializer extends ForgeRegistryEntry<IRecipeSerializer<?>>
-            implements IRecipeSerializer<SewingRecipe>
+    public static class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>>
+            implements RecipeSerializer<SewingRecipe>
     {
         protected SewingRecipe createRecipe(ResourceLocation recipeId, String group, NonNullList<Material> materials, Ingredient pattern, Ingredient tool, ItemStack result)
         {
@@ -165,10 +165,10 @@ public class SewingRecipe implements IRecipe<IInventory>
         }
 
         @Override
-        public SewingRecipe read(ResourceLocation recipeId, JsonObject json)
+        public SewingRecipe fromJson(ResourceLocation recipeId, JsonObject json)
         {
-            String group = JSONUtils.getString(json, "group", "");
-            JsonArray materialsJson = JSONUtils.getJsonArray(json, "materials");
+            String group = GsonHelper.getAsString(json, "group", "");
+            JsonArray materialsJson = GsonHelper.getAsJsonArray(json, "materials");
             NonNullList<Material> materials = NonNullList.create();
             for (int i = 0; i < materialsJson.size(); i++)
             {
@@ -176,14 +176,14 @@ public class SewingRecipe implements IRecipe<IInventory>
             }
             Ingredient pattern = json.has("pattern") ? CraftingHelper.getIngredient(json.get("ingredient")) : null;
             Ingredient tool = json.has("tool") ? CraftingHelper.getIngredient(json.get("tool")) : null;
-            ItemStack result = CraftingHelper.getItemStack(JSONUtils.getJsonObject(json, "result"), true);
+            ItemStack result = CraftingHelper.getItemStack(GsonHelper.getAsJsonObject(json, "result"), true);
             return createRecipe(recipeId, group, materials, pattern, tool, result);
         }
 
         @Override
-        public SewingRecipe read(ResourceLocation recipeId, PacketBuffer buffer)
+        public SewingRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer)
         {
-            String group = buffer.readString(32767);
+            String group = buffer.readUtf(32767);
             int numMaterials = buffer.readVarInt();
             NonNullList<Material> materials = NonNullList.create();
             for (int i = 0; i < numMaterials; i++)
@@ -191,17 +191,17 @@ public class SewingRecipe implements IRecipe<IInventory>
                 materials.add(Material.read(buffer));
             }
             boolean hasPattern = buffer.readBoolean();
-            Ingredient pattern = hasPattern ? Ingredient.read(buffer) : null;
+            Ingredient pattern = hasPattern ? Ingredient.fromNetwork(buffer) : null;
             boolean hasTool = buffer.readBoolean();
-            Ingredient tool = hasTool ? Ingredient.read(buffer) : null;
-            ItemStack result = buffer.readItemStack();
+            Ingredient tool = hasTool ? Ingredient.fromNetwork(buffer) : null;
+            ItemStack result = buffer.readItem();
             return createRecipe(recipeId, group, materials, pattern, tool, result);
         }
 
         @Override
-        public void write(PacketBuffer buffer, SewingRecipe recipe)
+        public void toNetwork(FriendlyByteBuf buffer, SewingRecipe recipe)
         {
-            buffer.writeString(recipe.group);
+            buffer.writeUtf(recipe.group);
             buffer.writeVarInt(recipe.materials.size());
             for (Material input : recipe.materials)
             {
@@ -210,12 +210,12 @@ public class SewingRecipe implements IRecipe<IInventory>
             boolean hasPattern = recipe.pattern != null;
             buffer.writeBoolean(hasPattern);
             if (hasPattern)
-                recipe.pattern.write(buffer);
+                recipe.pattern.toNetwork(buffer);
             boolean hasTool = recipe.tool != null;
             buffer.writeBoolean(hasTool);
             if (hasTool)
-                recipe.tool.write(buffer);
-            buffer.writeItemStack(recipe.output);
+                recipe.tool.toNetwork(buffer);
+            buffer.writeItem(recipe.output);
         }
     }
 
@@ -244,7 +244,7 @@ public class SewingRecipe implements IRecipe<IInventory>
         public JsonObject serialize()
         {
             JsonObject material = new JsonObject();
-            material.add("ingredient", ingredient.serialize());
+            material.add("ingredient", ingredient.toJson());
             material.addProperty("count", count);
             return material;
         }
@@ -252,7 +252,7 @@ public class SewingRecipe implements IRecipe<IInventory>
         public static Material deserialize(JsonObject object)
         {
             Ingredient ingredient = CraftingHelper.getIngredient(object.get("ingredient"));
-            int count = JSONUtils.getInt(object, "count", 1);
+            int count = GsonHelper.getAsInt(object, "count", 1);
             if (count <= 0)
             {
                 throw new IllegalArgumentException("Material count must be a positive integer.");
@@ -260,16 +260,16 @@ public class SewingRecipe implements IRecipe<IInventory>
             return new Material(ingredient, count);
         }
 
-        public void write(PacketBuffer packet)
+        public void write(FriendlyByteBuf packet)
         {
             packet.writeVarInt(count);
-            ingredient.write(packet);
+            ingredient.toNetwork(packet);
         }
 
-        public static Material read(PacketBuffer packet)
+        public static Material read(FriendlyByteBuf packet)
         {
             int count = packet.readVarInt();
-            Ingredient ingredient = Ingredient.read(packet);
+            Ingredient ingredient = Ingredient.fromNetwork(packet);
             return new Material(ingredient, count);
         }
     }

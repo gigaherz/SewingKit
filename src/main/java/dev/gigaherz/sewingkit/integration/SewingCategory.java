@@ -1,6 +1,6 @@
 package dev.gigaherz.sewingkit.integration;
-
-import com.mojang.blaze3d.matrix.MatrixStack;
+/*
+import com.mojang.blaze3d.vertex.PoseStack;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import mezz.jei.api.constants.VanillaTypes;
@@ -10,10 +10,10 @@ import mezz.jei.api.gui.ingredient.IGuiItemStackGroup;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     @Override
     public String getTitle()
     {
-        return I18n.format("jei.category.sewingkit.sewing");
+        return I18n.get("jei.category.sewingkit.sewing");
     }
 
     @Nonnull
@@ -75,12 +75,12 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     {
         List<List<ItemStack>> inputLists = new ArrayList<>();
 
-        inputLists.add(Arrays.asList(tool.getMatchingStacks()));
-        inputLists.add(Arrays.asList(pattern.getMatchingStacks()));
+        inputLists.add(Arrays.asList(tool.getItems()));
+        inputLists.add(Arrays.asList(pattern.getItems()));
 
         for (SewingRecipe.Material material : inputs)
         {
-            ItemStack[] stacks = material.ingredient.getMatchingStacks();
+            ItemStack[] stacks = material.ingredient.getItems();
             List<ItemStack> expandedInput = Arrays.stream(stacks).map(stack -> {
                 ItemStack copy = stack.copy();
                 copy.setCount(material.count);
@@ -96,7 +96,7 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     public void setIngredients(SewingRecipe dryingRecipe, IIngredients iIngredients)
     {
         setInputMaterials(iIngredients, dryingRecipe.getTool(), dryingRecipe.getPattern(), dryingRecipe.getMaterials());
-        iIngredients.setOutput(VanillaTypes.ITEM, dryingRecipe.getRecipeOutput());
+        iIngredients.setOutput(VanillaTypes.ITEM, dryingRecipe.getResultItem());
     }
 
     private static final int[] slotX = {
@@ -133,7 +133,7 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     }
 
     @Override
-    public void draw(SewingRecipe recipe, MatrixStack matrixStack, double mouseX, double mouseY)
+    public void draw(SewingRecipe recipe, PoseStack matrixStack, double mouseX, double mouseY)
     {
     }
-}
+}*/

@@ -1,26 +1,27 @@
 package dev.gigaherz.sewingkit.table;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.container.SimpleNamedContainerProvider;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.state.DirectionProperty;
-import net.minecraft.state.StateContainer;
-import net.minecraft.state.properties.BlockStateProperties;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
-import net.minecraft.util.Hand;
-import net.minecraft.util.IWorldPosCallable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
-import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.IBlockReader;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -28,7 +29,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.EnumMap;
 
-public class StoringSewingTableBlock extends Block
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
+
+public class StoringSewingTableBlock extends Block implements EntityBlock
 {
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -44,22 +47,22 @@ public class StoringSewingTableBlock extends Block
         switch (facing)
         {
             case NORTH:
-                return makeCuboidShape(x1, y1, z1, x2, y2, z2);
+                return box(x1, y1, z1, x2, y2, z2);
             case EAST:
-                return makeCuboidShape(16 - z2, y1, x1, 16 - z1, y2, x2);
+                return box(16 - z2, y1, x1, 16 - z1, y2, x2);
             case SOUTH:
-                return makeCuboidShape(16 - x2, y1, 16 - z2, 16 - x1, y2, 16 - z1);
+                return box(16 - x2, y1, 16 - z2, 16 - x1, y2, 16 - z1);
             case WEST:
-                return makeCuboidShape(z1, y1, 16 - x2, z2, y2, 16 - x1);
+                return box(z1, y1, 16 - x2, z2, y2, 16 - x1);
         }
         LOGGER.warn("Sewing Table voxel shape requested for an invalid rotation " + facing + ". This can't happen. The selection/collision shape will be wrong.");
-        return makeCuboidShape(x1, y1, z1, x2, y2, z2);
+        return box(x1, y1, z1, x2, y2, z2);
     }
 
     @Nonnull
     private VoxelShape makeTableShape(Direction facing)
     {
-        return VoxelShapes.or(
+        return Shapes.or(
                 cuboidWithRotation(facing, 0, 14, 0, 16, 16, 16),
                 cuboidWithRotation(facing, 11, 6, 1, 15, 14, 15),
                 cuboidWithRotation(facing, 12, 0, 2, 14, 6, 14),
@@ -71,53 +74,47 @@ public class StoringSewingTableBlock extends Block
     private final EnumMap<Direction, VoxelShape> cache = new EnumMap<>(Direction.class);
 
     @Override
-    public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
+    public VoxelShape getShape(BlockState state, BlockGetter worldIn, BlockPos pos, CollisionContext context)
     {
-        Direction facing = state.get(FACING);
+        Direction facing = state.getValue(FACING);
         return cache.computeIfAbsent(facing, this::makeTableShape);
     }
 
     @Nullable
     @Override
-    public BlockState getStateForPlacement(BlockItemUseContext context)
+    public BlockState getStateForPlacement(BlockPlaceContext context)
     {
-        return getDefaultState().with(FACING, context.getPlacementHorizontalFacing().getOpposite());
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder)
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder)
     {
         builder.add(FACING);
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
     {
-        TileEntity te = worldIn.getTileEntity(pos);
-        if (!(te instanceof StoringSewingTableTileEntity))
-            return ActionResultType.FAIL;
+        BlockEntity te = worldIn.getBlockEntity(pos);
+        if (!(te instanceof StoringSewingTableTileEntity table))
+            return InteractionResult.FAIL;
 
-        if (worldIn.isRemote)
-            return ActionResultType.SUCCESS;
+        if (worldIn.isClientSide)
+            return InteractionResult.SUCCESS;
 
-        player.openContainer(new SimpleNamedContainerProvider(
-                (id, playerInv, p) -> new SewingTableContainer(id, playerInv, IWorldPosCallable.of(worldIn, pos), (StoringSewingTableTileEntity) te),
-                new TranslationTextComponent("container.sewingkit.sewing_station")
+        player.openMenu(new SimpleMenuProvider(
+                (id, playerInv, p) -> new SewingTableContainer(id, playerInv, ContainerLevelAccess.create(worldIn, pos), table),
+                new TranslatableComponent("container.sewingkit.sewing_station")
         ));
 
-        return ActionResultType.SUCCESS;
-    }
-
-    @Override
-    public boolean hasTileEntity(BlockState state)
-    {
-        return true;
+        return InteractionResult.SUCCESS;
     }
 
     @Nullable
     @Override
-    public TileEntity createTileEntity(BlockState state, IBlockReader world)
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
     {
-        return new StoringSewingTableTileEntity();
+        return new StoringSewingTableTileEntity(pos, state);
     }
 }

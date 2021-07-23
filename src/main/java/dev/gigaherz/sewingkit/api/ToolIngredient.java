@@ -2,10 +2,10 @@ package dev.gigaherz.sewingkit.api;
 
 import com.google.gson.JsonObject;
 import dev.gigaherz.sewingkit.SewingKitMod;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.Ingredient;
-import net.minecraft.util.JSONUtils;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.util.GsonHelper;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.ToolType;
 import net.minecraftforge.common.crafting.IIngredientSerializer;
 import net.minecraftforge.common.crafting.VanillaIngredientSerializer;
@@ -14,6 +14,8 @@ import net.minecraftforge.registries.ForgeRegistries;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import net.minecraft.world.item.crafting.Ingredient.Value;
 
 public class ToolIngredient extends Ingredient
 {
@@ -29,7 +31,7 @@ public class ToolIngredient extends Ingredient
         super(Stream.of(new ItemList(toolType, toolLevel)));
     }
 
-    private static class ItemList implements IItemList
+    private static class ItemList implements Value
     {
         private final ToolType toolType;
         private final int toolLevel;
@@ -41,7 +43,7 @@ public class ToolIngredient extends Ingredient
         }
 
         @Override
-        public Collection<ItemStack> getStacks()
+        public Collection<ItemStack> getItems()
         {
             return ForgeRegistries.ITEMS.getValues()
                     .stream()
@@ -75,8 +77,8 @@ public class ToolIngredient extends Ingredient
         public Ingredient parse(JsonObject json)
         {
             return new ToolIngredient(
-                    ToolType.get(JSONUtils.getString(json, "tool_type")),
-                    JSONUtils.getInt(json, "tool_level")
+                    ToolType.get(GsonHelper.getAsString(json, "tool_type")),
+                    GsonHelper.getAsInt(json, "tool_level")
             );
         }
     }
