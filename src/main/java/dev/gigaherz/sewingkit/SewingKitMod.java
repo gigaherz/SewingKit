@@ -1,6 +1,7 @@
 package dev.gigaherz.sewingkit;
 
 import com.google.common.collect.ImmutableSet;
+import com.mojang.serialization.Lifecycle;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import dev.gigaherz.sewingkit.api.ToolIngredient;
 import dev.gigaherz.sewingkit.clothing.ClothArmorItem;
@@ -15,6 +16,7 @@ import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.gui.ScreenManager;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.merchant.villager.VillagerProfession;
@@ -27,7 +29,9 @@ import net.minecraft.tags.ITag;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.IItemProvider;
+import net.minecraft.util.RegistryKey;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.registry.SimpleRegistry;
 import net.minecraft.village.PointOfInterestType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ColorHandlerEvent;
@@ -40,6 +44,8 @@ import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ExtensionPoint;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.RegistryObject;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -49,6 +55,7 @@ import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.GameData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -194,7 +201,6 @@ public class SewingKitMod
     public SewingKitMod()
     {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
-        modBus.addListener(this::setup);
         modBus.addListener(this::processIMC);
         modBus.addListener(this::gatherData);
         modBus.addGenericListener(IRecipeSerializer.class, this::registerRecipes);
@@ -223,14 +229,6 @@ public class SewingKitMod
         event.getRegistry().registerAll(
                 new ContainerType<>(SewingTableContainer::new).setRegistryName("sewing_station")
         );
-    }
-
-    private void setup(final FMLCommonSetupEvent event)
-    {
-        event.enqueueWork(() -> {
-            PointOfInterestType.registerBlockStates(TABLE_POI.get());
-            PointOfInterestType.BLOCKS_OF_INTEREST.addAll(TABLE_POI.get().blockStates);
-        });
     }
 
     private void processIMC(final InterModProcessEvent event)
