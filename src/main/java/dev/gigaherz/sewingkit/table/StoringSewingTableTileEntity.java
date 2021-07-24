@@ -15,7 +15,7 @@ import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.List;
 
-public class StoringSewingTableTileEntity extends TileEntity
+public class StoringSewingTableTileEntity extends TileEntity implements InventoryProvider
 {
     @ObjectHolder("sewingkit:storing_sewing_station")
     public static TileEntityType<?> TYPE;
@@ -27,6 +27,7 @@ public class StoringSewingTableTileEntity extends TileEntity
         {
             super.onContentsChanged(slot);
             markDirty();
+            listenable.doCallbacks();
         }
     };
 
@@ -60,35 +61,10 @@ public class StoringSewingTableTileEntity extends TileEntity
         inventory.deserializeNBT(nbt.getCompound("Items"));
     }
 
-    private final List<Reference<? extends SewingTableContainer>> listeners = Lists.newArrayList();
-    private final ReferenceQueue<SewingTableContainer> pendingRemovals = new ReferenceQueue<>();
+    private final ListenableHolder listenable = new ListenableHolder();
 
     public void addWeakListener(SewingTableContainer e)
     {
-        listeners.add(new WeakReference<>(e, pendingRemovals));
-    }
-
-    @Override
-    public void markDirty()
-    {
-        super.markDirty();
-
-        for (Reference<? extends SewingTableContainer>
-             ref = pendingRemovals.poll();
-             ref != null;
-             ref = pendingRemovals.poll())
-        {
-            listeners.remove(ref);
-        }
-
-        for (Iterator<Reference<? extends SewingTableContainer>> iterator = listeners.iterator(); iterator.hasNext(); )
-        {
-            Reference<? extends SewingTableContainer> reference = iterator.next();
-            SewingTableContainer listener = reference.get();
-            if (listener == null)
-                iterator.remove();
-            else
-                listener.onInventoryChanged();
-        }
+        listenable.addWeakListener(e);
     }
 }
