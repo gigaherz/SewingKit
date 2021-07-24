@@ -19,13 +19,9 @@ repositories {
     }
 }
 
-version = '1.4.0'
+version = '1.4.1.3'
 group = 'dev.gigaherz.sewingkit' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'SewingKit-UNKNOWN'
-
-project.afterEvaluate {
-    archivesBaseName = "SewingKit-${project.MC_VERSION}"
-}
+archivesBaseName = 'SewingKit-mc1171'
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '16' // Need this here so eclipse task generates correctly.
 
@@ -101,12 +97,17 @@ jar {
             "Specification-Title": "sewingkit",
             "Specification-Vendor": "gigaherz",
             "Specification-Version": "1", // We are version 1 of ourselves
-            "Implementation-Title": project.name,
+            "Implementation-Title": "sewingkit",
             "Implementation-Version": "${version}",
             "Implementation-Vendor" :"gigaherz",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            "Automatic-Module-Name": "dev.gigaherz.sewingkit"
         ])
     }
+}
+
+tasks.withType(GenerateModuleMetadata) {
+    enabled = false
 }
 
 publish.dependsOn('reobfJar')
@@ -115,8 +116,6 @@ publishing {
         mavenJava(MavenPublication) {
             artifactId project.archivesBaseName
             from components.java
-
-            //artifact sourceJar
 
             pom.withXml {
                 asNode().dependencies.dependency.each { dep ->

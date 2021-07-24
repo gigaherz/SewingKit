@@ -2,7 +2,7 @@ package dev.gigaherz.sewingkit.table;
 
 import net.minecraftforge.items.IItemHandlerModifiable;
 
-public interface Listenable
+public interface InventoryProvider
 {
     void addWeakListener(SewingTableContainer e);
 

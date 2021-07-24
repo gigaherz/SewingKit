@@ -19,12 +19,10 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.RecipeWrapper;
 import net.minecraftforge.registries.ObjectHolder;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +50,7 @@ public class SewingTableContainer extends AbstractContainerMenu
             ItemStack.EMPTY, ItemStack.EMPTY, ItemStack.EMPTY
     };
 
-    private final Listenable te;
+    private final InventoryProvider inventoryProvider;
     private List<SewingRecipe> recipes = Lists.newArrayList();
     private long lastTimeSoundPlayed;
 
@@ -72,17 +70,17 @@ public class SewingTableContainer extends AbstractContainerMenu
 
     public SewingTableContainer(int windowIdIn, Inventory playerInventoryIn, final ContainerLevelAccess worldPosCallableIn)
     {
-        this(windowIdIn, playerInventoryIn, worldPosCallableIn, new SimpleInventory());
+        this(windowIdIn, playerInventoryIn, worldPosCallableIn, new SewingTableInventory());
     }
 
-    public SewingTableContainer(int windowIdIn, Inventory playerInventoryIn, final ContainerLevelAccess worldPosCallableIn, Listenable listenable)
+    public SewingTableContainer(int windowIdIn, Inventory playerInventoryIn, final ContainerLevelAccess worldPosCallableIn, InventoryProvider inventoryProvider)
     {
         super(TYPE, windowIdIn);
         this.openedFrom = worldPosCallableIn;
         this.world = playerInventoryIn.player.level;
-        this.inputInventory = listenable.getInventory();
-        listenable.addWeakListener(this);
-        this.te = listenable;
+        this.inputInventory = inventoryProvider.getInventory();
+        this.inventoryProvider = inventoryProvider;
+        inventoryProvider.addWeakListener(this);
 
         this.addSlot(new SlotItemHandler(this.inputInventory, 0, 8, 15)
         {
@@ -412,44 +410,9 @@ public class SewingTableContainer extends AbstractContainerMenu
     {
         super.removed(playerIn);
         this.inventory.removeItemNoUpdate(0);
-        if (te.isDummy())
+        if (inventoryProvider.isDummy())
         {
             this.openedFrom.execute((world, pos) -> this.clearContainer(playerIn, new RecipeWrapper(this.inputInventory)));
-        }
-    }
-
-    private static class SimpleInventory extends ItemStackHandler implements Listenable
-    {
-        private final ListenableHolder listenable = new ListenableHolder();
-
-        public SimpleInventory()
-        {
-            super(6);
-        }
-
-        @Override
-        protected void onContentsChanged(int slot)
-        {
-            super.onContentsChanged(slot);
-            listenable.doCallbacks();
-        }
-
-        @Override
-        public void addWeakListener(SewingTableContainer e)
-        {
-            listenable.addWeakListener(e);
-        }
-
-        @Override
-        public IItemHandlerModifiable getInventory()
-        {
-            return this;
-        }
-
-        @Override
-        public boolean isDummy()
-        {
-            return true;
         }
     }
 }

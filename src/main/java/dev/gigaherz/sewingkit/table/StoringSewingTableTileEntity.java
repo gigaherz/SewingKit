@@ -1,6 +1,5 @@
 package dev.gigaherz.sewingkit.table;
 
-import com.google.common.collect.Lists;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -10,13 +9,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.registries.ObjectHolder;
 
-import java.lang.ref.Reference;
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
-import java.util.Iterator;
-import java.util.List;
-
-public class StoringSewingTableTileEntity extends BlockEntity implements Listenable
+public class StoringSewingTableTileEntity extends BlockEntity implements InventoryProvider
 {
     @ObjectHolder("sewingkit:storing_sewing_station")
     public static BlockEntityType<?> TYPE;
