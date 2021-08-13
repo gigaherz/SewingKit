@@ -2,7 +2,7 @@ package dev.gigaherz.sewingkit;
 
 import com.google.common.collect.ImmutableSet;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
-import dev.gigaherz.sewingkit.api.ToolIngredient;
+import dev.gigaherz.sewingkit.api.ToolActionIngredient;
 import dev.gigaherz.sewingkit.clothing.ClothArmorItem;
 import dev.gigaherz.sewingkit.clothing.ClothArmorMaterial;
 import dev.gigaherz.sewingkit.file.FileItem;
@@ -11,6 +11,9 @@ import dev.gigaherz.sewingkit.needle.Needles;
 import dev.gigaherz.sewingkit.patterns.PatternItem;
 import dev.gigaherz.sewingkit.table.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Material;
@@ -32,8 +35,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
-import net.minecraftforge.common.BasicTrade;
-import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.*;
 import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
@@ -56,13 +58,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.DyeableLeatherItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.trading.MerchantOffer;
 
 @Mod(SewingKitMod.MODID)
@@ -80,6 +75,11 @@ public class SewingKitMod
             return new ItemStack(SewingKitMod.WOOD_SEWING_NEEDLE.get());
         }
     };
+
+    public static final Tag.Named<Block> BONE_TAG = BlockTags.createOptional(new ResourceLocation("sewingkit:needs_bone_tool"));
+    public static final Tier BONE_TIER = TierSortingRegistry.registerTier(
+            new ForgeTier(Tiers.STONE.getLevel(), 100, 1.0f, 0.0f, 0, BONE_TAG, () -> Ingredient.of(Tags.Items.BONES) ),
+            new ResourceLocation("sewingkit:bone"), List.of(Tiers.WOOD), List.of(Tiers.IRON));
 
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
@@ -213,11 +213,12 @@ public class SewingKitMod
         BLOCK_ENTITIES.register(modBus);
 
         MinecraftForge.EVENT_BUS.addListener(this::villagerTrades);
+
     }
 
     private void registerRecipes(RegistryEvent.Register<RecipeSerializer<?>> event)
     {
-        CraftingHelper.register(ToolIngredient.NAME, ToolIngredient.Serializer.INSTANCE);
+        CraftingHelper.register(ToolActionIngredient.NAME, ToolActionIngredient.Serializer.INSTANCE);
 
         event.getRegistry().registerAll(
                 new SewingRecipe.Serializer().setRegistryName("sewing")

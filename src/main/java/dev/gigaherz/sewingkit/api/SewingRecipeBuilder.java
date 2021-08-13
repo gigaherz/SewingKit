@@ -11,6 +11,7 @@ import net.minecraft.advancements.RequirementsStrategy;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import net.minecraft.data.recipes.FinishedRecipe;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.nbt.CompoundTag;
@@ -18,7 +19,7 @@ import net.minecraft.tags.Tag;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.Registry;
-import net.minecraftforge.common.ToolType;
+import net.minecraftforge.common.ToolAction;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -72,9 +73,14 @@ public class SewingRecipeBuilder
         return withTool(Ingredient.of(tool));
     }
 
-    public SewingRecipeBuilder withTool(ToolType tool, int level)
+    public SewingRecipeBuilder withTool(ToolAction tool, Tier level)
     {
-        return withTool(ToolIngredient.fromTool(tool, level));
+        return withTool(ToolActionIngredient.fromTool(tool, level));
+    }
+
+    public SewingRecipeBuilder withTool(ToolAction tool)
+    {
+        return withTool(ToolActionIngredient.fromTool(tool, null));
     }
 
     public SewingRecipeBuilder withTool(Ingredient tool)

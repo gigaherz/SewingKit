@@ -1,57 +1,38 @@
 package dev.gigaherz.sewingkit.needle;
 
-import com.mojang.datafixers.util.Either;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.Tier;
 import net.minecraft.tags.Tag;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.util.Lazy;
+import net.minecraft.world.item.Tiers;
 import net.minecraftforge.fmllegacy.RegistryObject;
 
-public enum Needles implements INeedleTier
+public enum Needles implements NeedleMaterial
 {
-    WOOD("wood", 1, 10, 2, 0, 15, SewingKitMod.WOOD_SEWING_NEEDLE, ItemTags.bind("minecraft:planks")),
-    STONE("stone", 2, 15, 4, 1, 5, SewingKitMod.STONE_SEWING_NEEDLE, ItemTags.bind("minecraft:stone_crafting_materials")),
-    IRON("iron", 3, 150, 6, 2, 4, SewingKitMod.IRON_SEWING_NEEDLE, ItemTags.bind("forge:ingots/iron")),
-    DIAMOND("diamond", 4, 250, 8, 3, 10, SewingKitMod.DIAMOND_SEWING_NEEDLE, ItemTags.bind("forge:gems/diamond")),
-    GOLD("gold", 1, 25, 12, 0, 22, SewingKitMod.GOLD_SEWING_NEEDLE, ItemTags.bind("forge:ingots/gold")),
-    NETHERITE("netherite", 5, 350, 9, 4, 15, SewingKitMod.NETHERITE_SEWING_NEEDLE, ItemTags.bind("forge:ingots/netherite")),
-    BONE("bone", 2, 50, 4, 1, 12, SewingKitMod.BONE_SEWING_NEEDLE, ItemTags.bind("forge:bones"));
+    WOOD("wood", 10, Tiers.WOOD, SewingKitMod.WOOD_SEWING_NEEDLE, ItemTags.bind("minecraft:planks")),
+    STONE("stone", 15, Tiers.STONE, SewingKitMod.STONE_SEWING_NEEDLE, ItemTags.bind("minecraft:stone_crafting_materials")),
+    IRON("iron", 150, Tiers.IRON, SewingKitMod.IRON_SEWING_NEEDLE, ItemTags.bind("forge:ingots/iron")),
+    DIAMOND("diamond", 250, Tiers.DIAMOND, SewingKitMod.DIAMOND_SEWING_NEEDLE, ItemTags.bind("forge:gems/diamond")),
+    GOLD("gold", 25, Tiers.GOLD, SewingKitMod.GOLD_SEWING_NEEDLE, ItemTags.bind("forge:ingots/gold")),
+    NETHERITE("netherite", 350, Tiers.NETHERITE, SewingKitMod.NETHERITE_SEWING_NEEDLE, ItemTags.bind("forge:ingots/netherite")),
+    BONE("bone", 50, SewingKitMod.BONE_TIER, SewingKitMod.BONE_SEWING_NEEDLE, ItemTags.bind("forge:bones"));
 
     private final String type;
-    private final int toolLevel;
     private final int uses;
-    private final float efficiency;
-    private final float attackDamage;
-    private final int enchantability;
+    private final Tier tier;
     private final RegistryObject<Item> needleSupplier;
-    private final Lazy<Ingredient> repairMaterial;
 
-    private final Either<Tag<Item>, Item> material;
+    private final Tag<Item> materialTag;
 
-    Needles(String type, int toolLevel, int uses, float efficiency, float attackDamage, int enchantability, RegistryObject<Item> needleSupplier, Tag<Item> materialTag)
-    {
-        this(type, toolLevel, uses, efficiency, attackDamage, enchantability, needleSupplier, Either.left(materialTag));
-    }
-
-    Needles(String type, int toolLevel, int uses, float efficiency, float attackDamage, int enchantability, RegistryObject<Item> needleSupplier, Item materialItem)
-    {
-        this(type, toolLevel, uses, efficiency, attackDamage, enchantability, needleSupplier, Either.right(materialItem));
-    }
-
-    Needles(String type, int toolLevel, int uses, float efficiency, float attackDamage, int enchantability, RegistryObject<Item> needleSupplier, Either<Tag<Item>, Item> material)
+    Needles(String type, int uses, Tier tier, RegistryObject<Item> needleSupplier, Tag<Item> materialTag)
     {
         this.type = type;
-        this.toolLevel = toolLevel;
         this.uses = uses;
-        this.efficiency = efficiency;
-        this.attackDamage = attackDamage;
-        this.enchantability = enchantability;
+        this.tier = tier;
         this.needleSupplier = needleSupplier;
-        this.material = material;
-        this.repairMaterial = Lazy.of(() -> material.map(Ingredient::of, Ingredient::of));
+        this.materialTag = materialTag;
     }
 
     public String getType()
@@ -70,43 +51,19 @@ public enum Needles implements INeedleTier
     }
 
     @Override
+    public Tier getTier()
+    {
+        return tier;
+    }
+
+    @Override
     public int getUses()
     {
         return uses;
     }
 
-    @Override
-    public float getSpeed()
+    public Tag<Item> getMaterial()
     {
-        return efficiency;
-    }
-
-    @Override
-    public float getAttackDamageBonus()
-    {
-        return attackDamage;
-    }
-
-    @Override
-    public int getLevel()
-    {
-        return toolLevel;
-    }
-
-    @Override
-    public int getEnchantmentValue()
-    {
-        return enchantability;
-    }
-
-    @Override
-    public Ingredient getRepairIngredient()
-    {
-        return repairMaterial.get();
-    }
-
-    public Either<Tag<Item>, Item> getMaterial()
-    {
-        return material;
+        return materialTag;
     }
 }

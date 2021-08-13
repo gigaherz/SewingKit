@@ -3,44 +3,40 @@ package dev.gigaherz.sewingkit.api;
 import com.google.gson.JsonObject;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.TieredItem;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.common.ToolType;
+import net.minecraftforge.common.TierSortingRegistry;
+import net.minecraftforge.common.ToolAction;
 import net.minecraftforge.common.crafting.IIngredientSerializer;
 import net.minecraftforge.common.crafting.VanillaIngredientSerializer;
 import net.minecraftforge.registries.ForgeRegistries;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import net.minecraft.world.item.crafting.Ingredient.Value;
-
-public class ToolIngredient extends Ingredient
+public class ToolActionIngredient extends Ingredient
 {
     public static final ResourceLocation NAME = SewingKitMod.location("tool_ingredient");
 
-    public static ToolIngredient fromTool(ToolType toolType, int level)
+    public static ToolActionIngredient fromTool(ToolAction toolType, @Nullable Tier level)
     {
-        return new ToolIngredient(toolType, level);
+        return new ToolActionIngredient(toolType, level);
     }
 
-    protected ToolIngredient(ToolType toolType, int toolLevel)
+    protected ToolActionIngredient(ToolAction toolType, @Nullable Tier toolLevel)
     {
         super(Stream.of(new ItemList(toolType, toolLevel)));
     }
 
-    private static class ItemList implements Value
+    private record ItemList(ToolAction toolType,
+                            @Nullable Tier toolLevel) implements Value
     {
-        private final ToolType toolType;
-        private final int toolLevel;
-
-        public ItemList(ToolType toolType, int toolLevel)
-        {
-            this.toolType = toolType;
-            this.toolLevel = toolLevel;
-        }
 
         @Override
         public Collection<ItemStack> getItems()
@@ -48,8 +44,13 @@ public class ToolIngredient extends Ingredient
             return ForgeRegistries.ITEMS.getValues()
                     .stream()
                     .map(ItemStack::new)
-                    .filter(stack -> stack.getHarvestLevel(toolType, null, null) >= toolLevel)
+                    .filter(stack -> stack.canPerformAction(toolType) && checkTier(stack))
                     .collect(Collectors.toList());
+        }
+
+        private boolean checkTier(ItemStack stack)
+        {
+            return toolLevel == null || (stack.getItem() instanceof TieredItem tieredItem) && TierSortingRegistry.getTiersLowerThan(tieredItem.getTier()).contains(toolLevel);
         }
 
         @Override
@@ -57,8 +58,8 @@ public class ToolIngredient extends Ingredient
         {
             JsonObject object = new JsonObject();
             object.addProperty("type", NAME.toString());
-            object.addProperty("tool_type", toolType.getName());
-            object.addProperty("tool_level", toolLevel);
+            object.addProperty("tool_type", toolType.name());
+            object.addProperty("tool_level", Objects.requireNonNull(TierSortingRegistry.getName(toolLevel)).toString());
             return object;
         }
     }
@@ -76,10 +77,16 @@ public class ToolIngredient extends Ingredient
         @Override
         public Ingredient parse(JsonObject json)
         {
-            return new ToolIngredient(
-                    ToolType.get(GsonHelper.getAsString(json, "tool_type")),
-                    GsonHelper.getAsInt(json, "tool_level")
+            return new ToolActionIngredient(
+                    ToolAction.get(GsonHelper.getAsString(json, "tool_type")),
+                    getTier(GsonHelper.getAsString(json, "tool_level", null))
             );
+        }
+
+        @Nullable
+        private Tier getTier(@Nullable String str)
+        {
+            return str == null ? null : TierSortingRegistry.byName(new ResourceLocation(str));
         }
     }
 }

@@ -13,32 +13,34 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.common.ToolType;
+import net.minecraftforge.common.ToolAction;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-import net.minecraft.world.item.Item.Properties;
 
 public class NeedleItem extends DiggerItem
 {
-    public static final ToolType SEWING_NEEDLE = ToolType.get("sewing_needle");
+    public static final ToolAction SEW = ToolAction.get("sewingkit_sew");
+
     public static final Tag.Named<Block> BREAKABLE_NEEDLE = BlockTags.createOptional(new ResourceLocation("toolbelt:breakable_needle"));
 
-    public NeedleItem(float attackDamageIn, float attackSpeedIn, INeedleTier tier, Properties builderIn)
+    public NeedleItem(float attackDamageIn, float attackSpeedIn, NeedleMaterial material, Properties builderIn)
     {
-        super(attackDamageIn, attackSpeedIn, tier, BREAKABLE_NEEDLE, builderIn
-                .addToolType(NeedleItem.SEWING_NEEDLE, tier.getLevel())
-                .durability(tier.getUses())
-        );
+        super(attackDamageIn, attackSpeedIn, material.getTier(), BREAKABLE_NEEDLE, builderIn.durability(material.getUses()));
     }
 
-    @OnlyIn(Dist.CLIENT)
-    // This is one of the only cases where OnlyIn is necessary, don't use it anywhre else unless told to do so by someone who knows what they are talking about
     @Override
     public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn)
     {
         tooltip.add(new TranslatableComponent("text.sewingkit.needle.lore_text").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+    }
+
+    private static final Set<ToolAction> actions = Set.of(SEW);
+    @Override
+    public boolean canPerformAction(ItemStack stack, ToolAction toolAction)
+    {
+        return actions.contains(toolAction);
     }
 }

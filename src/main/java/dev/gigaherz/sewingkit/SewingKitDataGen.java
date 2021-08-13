@@ -6,13 +6,13 @@ import dev.gigaherz.sewingkit.api.SewingRecipeBuilder;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
 import dev.gigaherz.sewingkit.needle.Needles;
 import net.minecraft.data.tags.BlockTagsProvider;
+import net.minecraft.world.item.Tiers;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.data.*;
 import net.minecraft.data.loot.BlockLoot;
 import net.minecraft.world.item.Items;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
 import net.minecraftforge.client.model.generators.*;
@@ -29,7 +29,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.data.models.model.ModelLocationUtils;
@@ -225,8 +224,8 @@ public class SewingKitDataGen
         {
             Arrays.stream(Needles.values()).forEach(needle -> ShapelessRecipeBuilder.shapeless(needle.getNeedle())
                     .requires(SewingKitMod.FILE.get())
-                    .requires(needle.getRepairIngredient())
-                    .unlockedBy("has_material", needle.getMaterial().map(RecipeProvider::has, RecipeProvider::has))
+                    .requires(needle.getTier().getRepairIngredient())
+                    .unlockedBy("has_material", has(needle.getMaterial()))
                     .save(consumer));
 
             ShapedRecipeBuilder.shaped(SewingKitMod.SEWING_STATION_ITEM.get())
@@ -265,7 +264,7 @@ public class SewingKitDataGen
                     .build(consumer, SewingKitMod.location("leather_strip_from_leather"));
 
             SewingRecipeBuilder.begin(Items.LEATHER_BOOTS)
-                    .withTool(NeedleItem.SEWING_NEEDLE, 1)
+                    .withTool(NeedleItem.SEW)
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 2)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get())
                     .addMaterial(Tags.Items.STRING)
@@ -273,7 +272,7 @@ public class SewingKitDataGen
                     .build(consumer, SewingKitMod.location("leather_boots_via_sewing"));
 
             SewingRecipeBuilder.begin(Items.LEATHER_LEGGINGS)
-                    .withTool(NeedleItem.SEWING_NEEDLE, 1)
+                    .withTool(NeedleItem.SEW)
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 4)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 3)
                     .addMaterial(Tags.Items.STRING)
@@ -281,7 +280,7 @@ public class SewingKitDataGen
                     .build(consumer, SewingKitMod.location("leather_leggings_via_sewing"));
 
             SewingRecipeBuilder.begin(Items.LEATHER_CHESTPLATE)
-                    .withTool(NeedleItem.SEWING_NEEDLE, 1)
+                    .withTool(NeedleItem.SEW)
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 8)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 2)
                     .addMaterial(Tags.Items.STRING)
@@ -289,7 +288,7 @@ public class SewingKitDataGen
                     .build(consumer, SewingKitMod.location("leather_chestplate_via_sewing"));
 
             SewingRecipeBuilder.begin(Items.LEATHER_HELMET)
-                    .withTool(NeedleItem.SEWING_NEEDLE, 1)
+                    .withTool(NeedleItem.SEW)
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 2)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get())
                     .addMaterial(Tags.Items.STRING)
@@ -297,7 +296,7 @@ public class SewingKitDataGen
                     .build(consumer, SewingKitMod.location("leather_helmet_via_sewing"));
 
             SewingRecipeBuilder.begin(Items.LEATHER_HORSE_ARMOR)
-                    .withTool(NeedleItem.SEWING_NEEDLE, Needles.NETHERITE.getLevel())
+                    .withTool(NeedleItem.SEW, Tiers.NETHERITE)
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 12)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 6)
                     .addMaterial(Tags.Items.STRING, 8)
@@ -330,7 +329,7 @@ public class SewingKitDataGen
                     .build(consumer, SewingKitMod.location("wool_trim_from_carpet"));
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_SHOES.get())
-                    .withTool(NeedleItem.SEWING_NEEDLE, 1)
+                    .withTool(NeedleItem.SEW)
                     .addMaterial(SewingKitMod.WOOL_ROLL.get(), 1)
                     .addMaterial(SewingKitMod.WOOL_TRIM.get(), 2)
                     .addMaterial(Tags.Items.STRING)
@@ -338,7 +337,7 @@ public class SewingKitDataGen
                     .build(consumer, SewingKitMod.location("wool_shoes_via_sewing"));
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_PANTS.get())
-                    .withTool(NeedleItem.SEWING_NEEDLE, 1)
+                    .withTool(NeedleItem.SEW)
                     .addMaterial(SewingKitMod.WOOL_ROLL.get(), 2)
                     .addMaterial(SewingKitMod.WOOL_TRIM.get(), 4)
                     .addMaterial(Tags.Items.STRING)
@@ -346,7 +345,7 @@ public class SewingKitDataGen
                     .build(consumer, SewingKitMod.location("wool_pants_via_sewing"));
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_SHIRT.get())
-                    .withTool(NeedleItem.SEWING_NEEDLE, 1)
+                    .withTool(NeedleItem.SEW)
                     .addMaterial(SewingKitMod.WOOL_ROLL.get(), 3)
                     .addMaterial(SewingKitMod.WOOL_TRIM.get(), 3)
                     .addMaterial(Tags.Items.STRING)
@@ -354,7 +353,7 @@ public class SewingKitDataGen
                     .build(consumer, SewingKitMod.location("wool_shirt_via_sewing"));
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_HAT.get())
-                    .withTool(NeedleItem.SEWING_NEEDLE, 1)
+                    .withTool(NeedleItem.SEW)
                     .addMaterial(SewingKitMod.WOOL_ROLL.get(), 1)
                     .addMaterial(SewingKitMod.WOOL_TRIM.get(), 1)
                     .addMaterial(Tags.Items.STRING)
