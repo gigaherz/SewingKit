@@ -26,7 +26,7 @@ public class StoringSewingTableTileEntity extends TileEntity implements Inventor
         protected void onContentsChanged(int slot)
         {
             super.onContentsChanged(slot);
-            markDirty();
+            setChanged();
             listenable.doCallbacks();
         }
     };
@@ -47,17 +47,17 @@ public class StoringSewingTableTileEntity extends TileEntity implements Inventor
     }
 
     @Override
-    public CompoundNBT write(CompoundNBT compound)
+    public CompoundNBT save(CompoundNBT compound)
     {
-        compound = super.write(compound);
+        compound = super.save(compound);
         compound.put("Items", inventory.serializeNBT());
         return compound;
     }
 
     @Override
-    public void read(BlockState state, CompoundNBT nbt)
+    public void load(BlockState state, CompoundNBT nbt)
     {
-        super.read(state, nbt);
+        super.load(state, nbt);
         inventory.deserializeNBT(nbt.getCompound("Items"));
     }
 

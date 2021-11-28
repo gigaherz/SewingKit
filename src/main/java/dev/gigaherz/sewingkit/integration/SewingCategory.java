@@ -55,7 +55,7 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     @Override
     public String getTitle()
     {
-        return I18n.format("jei.category.sewingkit.sewing");
+        return I18n.get("jei.category.sewingkit.sewing");
     }
 
     @Nonnull
@@ -75,12 +75,12 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     {
         List<List<ItemStack>> inputLists = new ArrayList<>();
 
-        inputLists.add(Arrays.asList(tool.getMatchingStacks()));
-        inputLists.add(Arrays.asList(pattern.getMatchingStacks()));
+        inputLists.add(Arrays.asList(tool.getItems()));
+        inputLists.add(Arrays.asList(pattern.getItems()));
 
         for (SewingRecipe.Material material : inputs)
         {
-            ItemStack[] stacks = material.ingredient.getMatchingStacks();
+            ItemStack[] stacks = material.ingredient.getItems();
             List<ItemStack> expandedInput = Arrays.stream(stacks).map(stack -> {
                 ItemStack copy = stack.copy();
                 copy.setCount(material.count);
@@ -96,7 +96,7 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     public void setIngredients(SewingRecipe dryingRecipe, IIngredients iIngredients)
     {
         setInputMaterials(iIngredients, dryingRecipe.getTool(), dryingRecipe.getPattern(), dryingRecipe.getMaterials());
-        iIngredients.setOutput(VanillaTypes.ITEM, dryingRecipe.getRecipeOutput());
+        iIngredients.setOutput(VanillaTypes.ITEM, dryingRecipe.getResultItem());
     }
 
     private static final int[] slotX = {

@@ -27,6 +27,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.EnumMap;
 
+import net.minecraft.block.AbstractBlock.Properties;
+
 public class SewingTableBlock extends Block
 {
     private static final Logger LOGGER = LogManager.getLogger();
@@ -43,16 +45,16 @@ public class SewingTableBlock extends Block
         switch (facing)
         {
             case NORTH:
-                return makeCuboidShape(x1, y1, z1, x2, y2, z2);
+                return box(x1, y1, z1, x2, y2, z2);
             case EAST:
-                return makeCuboidShape(16 - z2, y1, x1, 16 - z1, y2, x2);
+                return box(16 - z2, y1, x1, 16 - z1, y2, x2);
             case SOUTH:
-                return makeCuboidShape(16 - x2, y1, 16 - z2, 16 - x1, y2, 16 - z1);
+                return box(16 - x2, y1, 16 - z2, 16 - x1, y2, 16 - z1);
             case WEST:
-                return makeCuboidShape(z1, y1, 16 - x2, z2, y2, 16 - x1);
+                return box(z1, y1, 16 - x2, z2, y2, 16 - x1);
         }
         LOGGER.warn("Sewing Table voxel shape requested for an invalid rotation " + facing + ". This can't happen. The selection/collision shape will be wrong.");
-        return makeCuboidShape(x1, y1, z1, x2, y2, z2);
+        return box(x1, y1, z1, x2, y2, z2);
     }
 
     @Nonnull
@@ -72,7 +74,7 @@ public class SewingTableBlock extends Block
     @Override
     public VoxelShape getShape(BlockState state, IBlockReader worldIn, BlockPos pos, ISelectionContext context)
     {
-        Direction facing = state.get(FACING);
+        Direction facing = state.getValue(FACING);
         return cache.computeIfAbsent(facing, this::makeTableShape);
     }
 
@@ -80,23 +82,23 @@ public class SewingTableBlock extends Block
     @Override
     public BlockState getStateForPlacement(BlockItemUseContext context)
     {
-        return getDefaultState().with(FACING, context.getPlacementHorizontalFacing().getOpposite());
+        return defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
     }
 
     @Override
-    protected void fillStateContainer(StateContainer.Builder<Block, BlockState> builder)
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder)
     {
         builder.add(FACING);
     }
 
     @Override
-    public ActionResultType onBlockActivated(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
+    public ActionResultType use(BlockState state, World worldIn, BlockPos pos, PlayerEntity player, Hand handIn, BlockRayTraceResult hit)
     {
-        if (worldIn.isRemote)
+        if (worldIn.isClientSide)
             return ActionResultType.SUCCESS;
 
-        player.openContainer(new SimpleNamedContainerProvider(
-                (id, playerInv, p) -> new SewingTableContainer(id, playerInv, IWorldPosCallable.of(worldIn, pos)),
+        player.openMenu(new SimpleNamedContainerProvider(
+                (id, playerInv, p) -> new SewingTableContainer(id, playerInv, IWorldPosCallable.create(worldIn, pos)),
                 new TranslationTextComponent("container.sewingkit.sewing_station")
         ));
 

@@ -5,6 +5,8 @@ import net.minecraft.item.DyeableArmorItem;
 import net.minecraft.item.IArmorMaterial;
 import net.minecraft.item.ItemStack;
 
+import net.minecraft.item.Item.Properties;
+
 public class ClothArmorItem extends DyeableArmorItem
 {
     public ClothArmorItem(IArmorMaterial material, EquipmentSlotType slot, Properties properties)
@@ -15,7 +17,7 @@ public class ClothArmorItem extends DyeableArmorItem
     @Override
     public int getColor(ItemStack stack)
     {
-        if (!hasColor(stack))
+        if (!hasCustomColor(stack))
             return 0xFFFFFF;
         return super.getColor(stack);
     }

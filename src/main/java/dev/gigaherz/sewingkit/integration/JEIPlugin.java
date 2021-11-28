@@ -40,7 +40,7 @@ public class JEIPlugin implements IModPlugin
     @Override
     public void registerRecipes(IRecipeRegistration registration)
     {
-        ClientWorld world = Objects.requireNonNull(Minecraft.getInstance().world);
+        ClientWorld world = Objects.requireNonNull(Minecraft.getInstance().level);
         registration.addRecipes(SewingRecipe.getAllRecipes(world), SewingCategory.UID);
     }
 }

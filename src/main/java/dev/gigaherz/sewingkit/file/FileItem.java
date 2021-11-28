@@ -11,7 +11,7 @@ public class FileItem extends Item
     }
 
     @Override
-    public boolean hasContainerItem()
+    public boolean hasCraftingRemainingItem()
     {
         return true;
     }
@@ -19,16 +19,16 @@ public class FileItem extends Item
     @Override
     public boolean hasContainerItem(ItemStack stack)
     {
-        return stack.getDamage() < stack.getMaxDamage();
+        return stack.getDamageValue() < stack.getMaxDamage();
     }
 
     @Override
     public ItemStack getContainerItem(ItemStack itemStack)
     {
-        if (itemStack.getDamage() < itemStack.getMaxDamage())
+        if (itemStack.getDamageValue() < itemStack.getMaxDamage())
         {
             ItemStack stack = itemStack.copy();
-            stack.setDamage(itemStack.getDamage() + 1);
+            stack.setDamageValue(itemStack.getDamageValue() + 1);
             return stack;
         }
         return ItemStack.EMPTY;

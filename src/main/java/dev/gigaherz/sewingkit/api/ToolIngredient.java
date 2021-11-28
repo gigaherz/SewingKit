@@ -15,6 +15,8 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.minecraft.item.crafting.Ingredient.IItemList;
+
 public class ToolIngredient extends Ingredient
 {
     public static final ResourceLocation NAME = SewingKitMod.location("tool_ingredient");
@@ -41,7 +43,7 @@ public class ToolIngredient extends Ingredient
         }
 
         @Override
-        public Collection<ItemStack> getStacks()
+        public Collection<ItemStack> getItems()
         {
             return ForgeRegistries.ITEMS.getValues()
                     .stream()
@@ -75,8 +77,8 @@ public class ToolIngredient extends Ingredient
         public Ingredient parse(JsonObject json)
         {
             return new ToolIngredient(
-                    ToolType.get(JSONUtils.getString(json, "tool_type")),
-                    JSONUtils.getInt(json, "tool_level")
+                    ToolType.get(JSONUtils.getAsString(json, "tool_type")),
+                    JSONUtils.getAsInt(json, "tool_level")
             );
         }
     }

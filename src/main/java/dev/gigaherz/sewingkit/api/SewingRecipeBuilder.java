@@ -33,7 +33,7 @@ public class SewingRecipeBuilder
     private final Item result;
     private final int count;
     private CompoundNBT tag;
-    private final Advancement.Builder advancementBuilder = Advancement.Builder.builder();
+    private final Advancement.Builder advancementBuilder = Advancement.Builder.advancement();
 
     public static SewingRecipeBuilder begin(Item result)
     {
@@ -64,12 +64,12 @@ public class SewingRecipeBuilder
 
     public SewingRecipeBuilder withTool(IItemProvider... tool)
     {
-        return withTool(Ingredient.fromItems(tool));
+        return withTool(Ingredient.of(tool));
     }
 
     public SewingRecipeBuilder withTool(ITag<Item> tool)
     {
-        return withTool(Ingredient.fromTag(tool));
+        return withTool(Ingredient.of(tool));
     }
 
     public SewingRecipeBuilder withTool(ToolType tool, int level)
@@ -91,27 +91,27 @@ public class SewingRecipeBuilder
 
     public SewingRecipeBuilder addMaterial(int count, IItemProvider... x)
     {
-        return addMaterial(Ingredient.fromItems(x), count);
+        return addMaterial(Ingredient.of(x), count);
     }
 
     public SewingRecipeBuilder addMaterial(IItemProvider x, int count)
     {
-        return addMaterial(Ingredient.fromItems(x), count);
+        return addMaterial(Ingredient.of(x), count);
     }
 
     public SewingRecipeBuilder addMaterial(ITag<Item> x, int count)
     {
-        return addMaterial(Ingredient.fromTag(x), 1);
+        return addMaterial(Ingredient.of(x), 1);
     }
 
     public SewingRecipeBuilder addMaterial(IItemProvider... x)
     {
-        return addMaterial(Ingredient.fromItems(x), 1);
+        return addMaterial(Ingredient.of(x), 1);
     }
 
     public SewingRecipeBuilder addMaterial(ITag<Item> x)
     {
-        return addMaterial(Ingredient.fromTag(x), 1);
+        return addMaterial(Ingredient.of(x), 1);
     }
 
     public SewingRecipeBuilder addMaterial(Ingredient x)
@@ -135,7 +135,7 @@ public class SewingRecipeBuilder
 
     public SewingRecipeBuilder addCriterion(String name, ICriterionInstance criterionIn)
     {
-        this.advancementBuilder.withCriterion(name, criterionIn);
+        this.advancementBuilder.addCriterion(name, criterionIn);
         return this;
     }
 
@@ -155,11 +155,11 @@ public class SewingRecipeBuilder
     {
         this.validate(id);
         this.advancementBuilder
-                .withParentId(new ResourceLocation("recipes/root"))
-                .withCriterion("has_the_recipe", RecipeUnlockedTrigger.create(id))
-                .withRewards(AdvancementRewards.Builder.recipe(id))
-                .withRequirementsStrategy(IRequirementsStrategy.OR);
-        ResourceLocation advancementId = new ResourceLocation(id.getNamespace(), "recipes/" + this.result.getGroup().getPath() + "/" + id.getPath());
+                .parent(new ResourceLocation("recipes/root"))
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
+                .rewards(AdvancementRewards.Builder.recipe(id))
+                .requirements(IRequirementsStrategy.OR);
+        ResourceLocation advancementId = new ResourceLocation(id.getNamespace(), "recipes/" + this.result.getItemCategory().getRecipeFolderName() + "/" + id.getPath());
         consumerIn.accept(createFinishedRecipe(id, this.group == null ? "" : this.group, this.result, this.count, this.tag, this.tool, this.pattern, this.materials, this.advancementBuilder, advancementId));
     }
 
@@ -213,7 +213,7 @@ public class SewingRecipeBuilder
         }
 
         @Override
-        public void serialize(JsonObject recipeJson)
+        public void serializeRecipeData(JsonObject recipeJson)
         {
             if (!this.group.isEmpty())
             {
@@ -229,12 +229,12 @@ public class SewingRecipeBuilder
 
             if (tool != null)
             {
-                recipeJson.add("tool", tool.serialize());
+                recipeJson.add("tool", tool.toJson());
             }
 
             if (pattern != null)
             {
-                recipeJson.add("tool", pattern.serialize());
+                recipeJson.add("tool", pattern.toJson());
             }
 
             JsonObject resultJson = new JsonObject();
@@ -253,27 +253,27 @@ public class SewingRecipeBuilder
         }
 
         @Override
-        public ResourceLocation getID()
+        public ResourceLocation getId()
         {
             return id;
         }
 
         @Override
-        public IRecipeSerializer<?> getSerializer()
+        public IRecipeSerializer<?> getType()
         {
             return SewingRecipe.SERIALIZER;
         }
 
         @Nullable
         @Override
-        public JsonObject getAdvancementJson()
+        public JsonObject serializeAdvancement()
         {
-            return this.advancementBuilder.serialize();
+            return this.advancementBuilder.serializeToJson();
         }
 
         @Nullable
         @Override
-        public ResourceLocation getAdvancementID()
+        public ResourceLocation getAdvancementId()
         {
             return advancementId;
         }

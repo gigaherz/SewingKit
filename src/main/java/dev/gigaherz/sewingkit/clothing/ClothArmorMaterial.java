@@ -12,8 +12,8 @@ import java.util.function.Supplier;
 
 public enum ClothArmorMaterial implements IArmorMaterial
 {
-    WOOL("sewingkit:wool", 1, new int[]{0, 0, 0, 0}, 25, SoundEvents.ITEM_ARMOR_EQUIP_GENERIC, 0.0F, 0.01F, () -> {
-        return Ingredient.fromTag(ItemTags.WOOL);
+    WOOL("sewingkit:wool", 1, new int[]{0, 0, 0, 0}, 25, SoundEvents.ARMOR_EQUIP_GENERIC, 0.0F, 0.01F, () -> {
+        return Ingredient.of(ItemTags.WOOL);
     });
 
     private static final int[] MAX_DAMAGE_ARRAY = new int[]{13, 15, 16, 11};
@@ -38,29 +38,29 @@ public enum ClothArmorMaterial implements IArmorMaterial
         this.repairMaterial = new LazyValue<>(repairMaterial);
     }
 
-    public int getDurability(EquipmentSlotType slotIn)
+    public int getDurabilityForSlot(EquipmentSlotType slotIn)
     {
         return MAX_DAMAGE_ARRAY[slotIn.getIndex()] * this.maxDamageFactor;
     }
 
-    public int getDamageReductionAmount(EquipmentSlotType slotIn)
+    public int getDefenseForSlot(EquipmentSlotType slotIn)
     {
         return this.damageReductionAmountArray[slotIn.getIndex()];
     }
 
-    public int getEnchantability()
+    public int getEnchantmentValue()
     {
         return this.enchantability;
     }
 
-    public SoundEvent getSoundEvent()
+    public SoundEvent getEquipSound()
     {
         return this.soundEvent;
     }
 
-    public Ingredient getRepairMaterial()
+    public Ingredient getRepairIngredient()
     {
-        return this.repairMaterial.getValue();
+        return this.repairMaterial.get();
     }
 
     public String getName()

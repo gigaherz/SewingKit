@@ -113,11 +113,11 @@ public class SewingKitDataGen
         {
             {
                 Block block = SewingKitMod.SEWING_STATION_BLOCK.get();
-                horizontalBlock(block, models().getExistingFile(ModelsResourceUtil.func_240221_a_(block)));
+                horizontalBlock(block, models().getExistingFile(ModelsResourceUtil.getModelLocation(block)));
             }
             {
                 Block block = SewingKitMod.STORING_SEWING_STATION_BLOCK.get();
-                horizontalBlock(block, models().getExistingFile(ModelsResourceUtil.func_240221_a_(block)));
+                horizontalBlock(block, models().getExistingFile(ModelsResourceUtil.getModelLocation(block)));
             }
         }
     }
@@ -184,11 +184,11 @@ public class SewingKitDataGen
 
             getBuilder(SewingKitMod.SEWING_STATION_ITEM.getId().getPath())
                     .parent(getExistingFile(ModelsResourceUtil
-                            .func_240221_a_(SewingKitMod.SEWING_STATION_BLOCK.get())));
+                            .getModelLocation(SewingKitMod.SEWING_STATION_BLOCK.get())));
 
             getBuilder(SewingKitMod.STORING_SEWING_STATION_ITEM.getId().getPath())
                     .parent(getExistingFile(ModelsResourceUtil
-                            .func_240221_a_(SewingKitMod.STORING_SEWING_STATION_BLOCK.get())));
+                            .getModelLocation(SewingKitMod.STORING_SEWING_STATION_BLOCK.get())));
         }
 
         private ItemModelBuilder basicIcon(ResourceLocation item)
@@ -207,47 +207,47 @@ public class SewingKitDataGen
         }
 
         @Override
-        protected void registerRecipes(Consumer<IFinishedRecipe> consumer)
+        protected void buildShapelessRecipes(Consumer<IFinishedRecipe> consumer)
         {
-            Arrays.stream(Needles.values()).forEach(needle -> ShapelessRecipeBuilder.shapelessRecipe(needle.getNeedle())
-                    .addIngredient(SewingKitMod.FILE.get())
-                    .addIngredient(needle.getRepairMaterial())
-                    .addCriterion("has_material", needle.getMaterial().map(RecipeProvider::hasItem, RecipeProvider::hasItem))
-                    .build(consumer));
+            Arrays.stream(Needles.values()).forEach(needle -> ShapelessRecipeBuilder.shapeless(needle.getNeedle())
+                    .requires(SewingKitMod.FILE.get())
+                    .requires(needle.getRepairIngredient())
+                    .unlockedBy("has_material", needle.getMaterial().map(RecipeProvider::has, RecipeProvider::has))
+                    .save(consumer));
 
-            ShapedRecipeBuilder.shapedRecipe(SewingKitMod.SEWING_STATION_ITEM.get())
-                    .patternLine("xxx")
-                    .patternLine("P P")
-                    .patternLine("S S")
-                    .key('x', ItemTags.WOODEN_SLABS)
-                    .key('P', ItemTags.PLANKS)
-                    .key('S', Items.STICK)
-                    .addCriterion("has_wood", hasItem(ItemTags.PLANKS))
-                    .build(consumer);
+            ShapedRecipeBuilder.shaped(SewingKitMod.SEWING_STATION_ITEM.get())
+                    .pattern("xxx")
+                    .pattern("P P")
+                    .pattern("S S")
+                    .define('x', ItemTags.WOODEN_SLABS)
+                    .define('P', ItemTags.PLANKS)
+                    .define('S', Items.STICK)
+                    .unlockedBy("has_wood", has(ItemTags.PLANKS))
+                    .save(consumer);
 
-            ShapelessRecipeBuilder.shapelessRecipe(SewingKitMod.STORING_SEWING_STATION_ITEM.get())
-                    .addIngredient(SewingKitMod.SEWING_STATION_ITEM.get())
-                    .addIngredient(Tags.Items.CHESTS_WOODEN)
-                    .addCriterion("has_station", hasItem(SewingKitMod.SEWING_STATION_ITEM.get()))
-                    .build(consumer);
+            ShapelessRecipeBuilder.shapeless(SewingKitMod.STORING_SEWING_STATION_ITEM.get())
+                    .requires(SewingKitMod.SEWING_STATION_ITEM.get())
+                    .requires(Tags.Items.CHESTS_WOODEN)
+                    .unlockedBy("has_station", has(SewingKitMod.SEWING_STATION_ITEM.get()))
+                    .save(consumer);
 
             // Sewing recipes: leather
             SewingRecipeBuilder.begin(SewingKitMod.LEATHER_SHEET.get(), 4)
                     .withTool(Tags.Items.SHEARS)
                     .addMaterial(Tags.Items.LEATHER)
-                    .addCriterion("has_leather", hasItem(Tags.Items.LEATHER))
+                    .addCriterion("has_leather", has(Tags.Items.LEATHER))
                     .build(consumer, SewingKitMod.location("leather_sheet_from_leather"));
 
             SewingRecipeBuilder.begin(SewingKitMod.LEATHER_SHEET.get(), 1)
                     .withTool(Tags.Items.SHEARS)
                     .addMaterial(Items.RABBIT_HIDE)
-                    .addCriterion("has_leather", hasItem(Items.RABBIT_HIDE))
+                    .addCriterion("has_leather", has(Items.RABBIT_HIDE))
                     .build(consumer, SewingKitMod.location("leather_sheet_from_rabbit_hide"));
 
             SewingRecipeBuilder.begin(SewingKitMod.LEATHER_STRIP.get(), 3)
                     .withTool(Tags.Items.SHEARS)
                     .addMaterial(Tags.Items.LEATHER)
-                    .addCriterion("has_leather", hasItem(Tags.Items.LEATHER))
+                    .addCriterion("has_leather", has(Tags.Items.LEATHER))
                     .build(consumer, SewingKitMod.location("leather_strip_from_leather"));
 
             SewingRecipeBuilder.begin(Items.LEATHER_BOOTS)
@@ -255,7 +255,7 @@ public class SewingKitDataGen
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 2)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get())
                     .addMaterial(Tags.Items.STRING)
-                    .addCriterion("has_leather", hasItem(Tags.Items.LEATHER))
+                    .addCriterion("has_leather", has(Tags.Items.LEATHER))
                     .build(consumer, SewingKitMod.location("leather_boots_via_sewing"));
 
             SewingRecipeBuilder.begin(Items.LEATHER_LEGGINGS)
@@ -263,7 +263,7 @@ public class SewingKitDataGen
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 4)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 3)
                     .addMaterial(Tags.Items.STRING)
-                    .addCriterion("has_leather", hasItem(Tags.Items.LEATHER))
+                    .addCriterion("has_leather", has(Tags.Items.LEATHER))
                     .build(consumer, SewingKitMod.location("leather_leggings_via_sewing"));
 
             SewingRecipeBuilder.begin(Items.LEATHER_CHESTPLATE)
@@ -271,7 +271,7 @@ public class SewingKitDataGen
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 8)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 2)
                     .addMaterial(Tags.Items.STRING)
-                    .addCriterion("has_leather", hasItem(Tags.Items.LEATHER))
+                    .addCriterion("has_leather", has(Tags.Items.LEATHER))
                     .build(consumer, SewingKitMod.location("leather_chestplate_via_sewing"));
 
             SewingRecipeBuilder.begin(Items.LEATHER_HELMET)
@@ -279,40 +279,40 @@ public class SewingKitDataGen
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 2)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get())
                     .addMaterial(Tags.Items.STRING)
-                    .addCriterion("has_leather", hasItem(Tags.Items.LEATHER))
+                    .addCriterion("has_leather", has(Tags.Items.LEATHER))
                     .build(consumer, SewingKitMod.location("leather_helmet_via_sewing"));
 
             SewingRecipeBuilder.begin(Items.LEATHER_HORSE_ARMOR)
-                    .withTool(NeedleItem.SEWING_NEEDLE, Needles.NETHERITE.getHarvestLevel())
+                    .withTool(NeedleItem.SEWING_NEEDLE, Needles.NETHERITE.getLevel())
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 12)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 6)
                     .addMaterial(Tags.Items.STRING, 8)
-                    .addCriterion("has_leather", hasItem(Tags.Items.LEATHER))
+                    .addCriterion("has_leather", has(Tags.Items.LEATHER))
                     .build(consumer, SewingKitMod.location("leather_horse_armor_via_sewing"));
 
             // Sewing recipes: wool
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_ROLL.get(), 4)
                     .withTool(Tags.Items.SHEARS)
                     .addMaterial(ItemTags.WOOL)
-                    .addCriterion("has_wool", hasItem(ItemTags.WOOL))
+                    .addCriterion("has_wool", has(ItemTags.WOOL))
                     .build(consumer, SewingKitMod.location("wool_roll_from_wool"));
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_ROLL.get(), 1)
                     .withTool(Tags.Items.SHEARS)
                     .addMaterial(ItemTags.CARPETS)
-                    .addCriterion("has_wool", hasItem(ItemTags.CARPETS))
+                    .addCriterion("has_wool", has(ItemTags.CARPETS))
                     .build(consumer, SewingKitMod.location("wool_roll_from_carpet"));
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_TRIM.get(), 8)
                     .withTool(Tags.Items.SHEARS)
                     .addMaterial(ItemTags.WOOL)
-                    .addCriterion("has_wool", hasItem(ItemTags.WOOL))
+                    .addCriterion("has_wool", has(ItemTags.WOOL))
                     .build(consumer, SewingKitMod.location("wool_trim_from_wool"));
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_TRIM.get(), 3)
                     .withTool(Tags.Items.SHEARS)
                     .addMaterial(ItemTags.CARPETS)
-                    .addCriterion("has_wool", hasItem(ItemTags.CARPETS))
+                    .addCriterion("has_wool", has(ItemTags.CARPETS))
                     .build(consumer, SewingKitMod.location("wool_trim_from_carpet"));
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_SHOES.get())
@@ -320,7 +320,7 @@ public class SewingKitDataGen
                     .addMaterial(SewingKitMod.WOOL_ROLL.get(), 1)
                     .addMaterial(SewingKitMod.WOOL_TRIM.get(), 2)
                     .addMaterial(Tags.Items.STRING)
-                    .addCriterion("has_wool", hasItem(ItemTags.WOOL))
+                    .addCriterion("has_wool", has(ItemTags.WOOL))
                     .build(consumer, SewingKitMod.location("wool_shoes_via_sewing"));
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_PANTS.get())
@@ -328,7 +328,7 @@ public class SewingKitDataGen
                     .addMaterial(SewingKitMod.WOOL_ROLL.get(), 2)
                     .addMaterial(SewingKitMod.WOOL_TRIM.get(), 4)
                     .addMaterial(Tags.Items.STRING)
-                    .addCriterion("has_wool", hasItem(ItemTags.WOOL))
+                    .addCriterion("has_wool", has(ItemTags.WOOL))
                     .build(consumer, SewingKitMod.location("wool_pants_via_sewing"));
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_SHIRT.get())
@@ -336,7 +336,7 @@ public class SewingKitDataGen
                     .addMaterial(SewingKitMod.WOOL_ROLL.get(), 3)
                     .addMaterial(SewingKitMod.WOOL_TRIM.get(), 3)
                     .addMaterial(Tags.Items.STRING)
-                    .addCriterion("has_wool", hasItem(ItemTags.WOOL))
+                    .addCriterion("has_wool", has(ItemTags.WOOL))
                     .build(consumer, SewingKitMod.location("wool_shirt_via_sewing"));
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_HAT.get())
@@ -344,17 +344,17 @@ public class SewingKitDataGen
                     .addMaterial(SewingKitMod.WOOL_ROLL.get(), 1)
                     .addMaterial(SewingKitMod.WOOL_TRIM.get(), 1)
                     .addMaterial(Tags.Items.STRING)
-                    .addCriterion("has_wool", hasItem(ItemTags.WOOL))
+                    .addCriterion("has_wool", has(ItemTags.WOOL))
                     .build(consumer, SewingKitMod.location("wool_hat_via_sewing"));
 
-            ShapedRecipeBuilder.shapedRecipe(SewingKitMod.FILE.get())
-                    .patternLine("  I")
-                    .patternLine(" I ")
-                    .patternLine("P  ")
-                    .key('I', Tags.Items.INGOTS_IRON)
-                    .key('P', ItemTags.PLANKS)
-                    .addCriterion("has_iron", hasItem(Tags.Items.INGOTS_IRON))
-                    .build(consumer);
+            ShapedRecipeBuilder.shaped(SewingKitMod.FILE.get())
+                    .pattern("  I")
+                    .pattern(" I ")
+                    .pattern("P  ")
+                    .define('I', Tags.Items.INGOTS_IRON)
+                    .define('P', ItemTags.PLANKS)
+                    .unlockedBy("has_iron", has(Tags.Items.INGOTS_IRON))
+                    .save(consumer);
         }
     }
 
@@ -383,7 +383,7 @@ public class SewingKitDataGen
         protected void validate(Map<ResourceLocation, LootTable> map, ValidationTracker validationtracker)
         {
             map.forEach((p_218436_2_, p_218436_3_) -> {
-                LootTableManager.validateLootTable(validationtracker, p_218436_2_, p_218436_3_);
+                LootTableManager.validate(validationtracker, p_218436_2_, p_218436_3_);
             });
         }
 
@@ -392,8 +392,8 @@ public class SewingKitDataGen
             @Override
             protected void addTables()
             {
-                this.registerDropSelfLootTable(SewingKitMod.SEWING_STATION_BLOCK.get());
-                this.registerDropSelfLootTable(SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
+                this.dropSelf(SewingKitMod.SEWING_STATION_BLOCK.get());
+                this.dropSelf(SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
             }
 
             @Override

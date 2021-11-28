@@ -15,6 +15,8 @@ import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
+import net.minecraft.item.Item.Properties;
+
 public class NeedleItem extends ToolItem
 {
     public static final ToolType SEWING_NEEDLE = ToolType.get("sewing_needle");
@@ -22,16 +24,16 @@ public class NeedleItem extends ToolItem
     public NeedleItem(float attackDamageIn, float attackSpeedIn, INeedleTier tier, Properties builderIn)
     {
         super(attackDamageIn, attackSpeedIn, tier, Collections.emptySet(), builderIn
-                .addToolType(NeedleItem.SEWING_NEEDLE, tier.getHarvestLevel())
-                .maxDamage(tier.getMaxUses())
+                .addToolType(NeedleItem.SEWING_NEEDLE, tier.getLevel())
+                .durability(tier.getUses())
         );
     }
 
     @OnlyIn(Dist.CLIENT)
     // This is one of the only cases where OnlyIn is necessary, don't use it anywhre else unless told to do so by someone who knows what they are talking about
     @Override
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn)
+    public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn)
     {
-        tooltip.add(new TranslationTextComponent("text.sewingkit.needle.lore_text").mergeStyle(TextFormatting.GRAY, TextFormatting.ITALIC));
+        tooltip.add(new TranslationTextComponent("text.sewingkit.needle.lore_text").withStyle(TextFormatting.GRAY, TextFormatting.ITALIC));
     }
 }

@@ -13,6 +13,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import net.minecraft.item.Item.Properties;
+
 public class PatternItem extends Item
 {
     public PatternItem(Properties properties)
@@ -22,10 +24,10 @@ public class PatternItem extends Item
 
     @OnlyIn(Dist.CLIENT)
     @Override
-    public void addInformation(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn)
+    public void appendHoverText(ItemStack stack, @Nullable World worldIn, List<ITextComponent> tooltip, ITooltipFlag flagIn)
     {
-        super.addInformation(stack, worldIn, tooltip, flagIn);
-        tooltip.add(new TranslationTextComponent("This feature is not implemented yet.").mergeStyle(TextFormatting.YELLOW, TextFormatting.BOLD));
-        tooltip.add(new TranslationTextComponent("This item may be removed in the future.").mergeStyle(TextFormatting.RED, TextFormatting.BOLD));
+        super.appendHoverText(stack, worldIn, tooltip, flagIn);
+        tooltip.add(new TranslationTextComponent("This feature is not implemented yet.").withStyle(TextFormatting.YELLOW, TextFormatting.BOLD));
+        tooltip.add(new TranslationTextComponent("This item may be removed in the future.").withStyle(TextFormatting.RED, TextFormatting.BOLD));
     }
 }
