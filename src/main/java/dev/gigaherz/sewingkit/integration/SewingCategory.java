@@ -1,5 +1,5 @@
 package dev.gigaherz.sewingkit.integration;
-/*
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
@@ -11,6 +11,8 @@ import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.ingredients.IIngredients;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.resources.ResourceLocation;
@@ -53,9 +55,9 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
 
     @Nonnull
     @Override
-    public String getTitle()
+    public Component getTitle()
     {
-        return I18n.get("jei.category.sewingkit.sewing");
+        return new TranslatableComponent("jei.category.sewingkit.sewing");
     }
 
     @Nonnull
@@ -136,4 +138,4 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     public void draw(SewingRecipe recipe, PoseStack matrixStack, double mouseX, double mouseY)
     {
     }
-}*/
+}
