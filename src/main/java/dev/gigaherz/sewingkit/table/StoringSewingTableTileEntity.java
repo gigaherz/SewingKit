@@ -41,11 +41,10 @@ public class StoringSewingTableTileEntity extends BlockEntity implements Invento
     }
 
     @Override
-    public CompoundTag save(CompoundTag compound)
+    protected void saveAdditional(CompoundTag compound)
     {
-        compound = super.save(compound);
+        super.saveAdditional(compound);
         compound.put("Items", inventory.serializeNBT());
-        return compound;
     }
 
     @Override

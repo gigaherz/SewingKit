@@ -5,7 +5,7 @@
       "item": "sewingkit:file"
     },
     {
-      "tag": "forge:ingots/gold"
+      "item": "minecraft:gold_ingot"
     }
   ],
   "result": {

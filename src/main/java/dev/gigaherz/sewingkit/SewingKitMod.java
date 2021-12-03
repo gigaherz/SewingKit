@@ -45,7 +45,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fmllegacy.RegistryObject;
+import net.minecraftforge.registries.RegistryObject;
 import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -308,12 +308,12 @@ public class SewingKitMod
 
     private VillagerTrades.ItemListing sellItem(ItemStack thing, int price, int maxTrades, int xp, float priceMultiplier)
     {
-        return new BasicTrade(new ItemStack(Items.EMERALD, price), thing, maxTrades, xp, priceMultiplier);
+        return new BasicItemListing(new ItemStack(Items.EMERALD, price), thing, maxTrades, xp, priceMultiplier);
     }
 
     private VillagerTrades.ItemListing buyItem(ItemStack thing, int reward, int maxTrades, int xp, float priceMultiplier)
     {
-        return new BasicTrade(thing, new ItemStack(Items.EMERALD, reward), maxTrades, xp, priceMultiplier);
+        return new BasicItemListing(thing, new ItemStack(Items.EMERALD, reward), maxTrades, xp, priceMultiplier);
     }
 
     private static class SellRandomFromTag implements VillagerTrades.ItemListing
@@ -361,13 +361,14 @@ public class SewingKitMod
         public static void clientSetup(final FMLClientSetupEvent event)
         {
             MenuScreens.register(SewingTableContainer.TYPE, SewingTableScreen::new);
+            SewingTableScreen.register();
         }
 
         @SubscribeEvent
         public static void textureStitch(final TextureStitchEvent.Pre event)
         {
             //noinspection deprecation
-            if (event.getMap().location().equals(TextureAtlas.LOCATION_BLOCKS))
+            if (event.getAtlas().location().equals(TextureAtlas.LOCATION_BLOCKS))
             {
                 event.addSprite(location("gui/needle_slot_background"));
                 event.addSprite(location("gui/pattern_slot_background"));

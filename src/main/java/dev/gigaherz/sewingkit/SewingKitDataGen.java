@@ -92,7 +92,7 @@ public class SewingKitDataGen
                 String name = type.substring(0, 1).toUpperCase() + type.substring(1);
                 add(needle.getNeedle(), name + " Sewing Needle");
             });
-            add("text.sewingkit.needle.lore_text", "\"Ow! Prickl...zz..z...\"");
+            add("text.sewingkit.needle.lore_text", "\"Ouch!\"");
 
             add(SewingKitMod.WOOL_HAT.get(), "Wool Hat");
             add(SewingKitMod.WOOL_SHIRT.get(), "Wool Shirt");
@@ -110,6 +110,8 @@ public class SewingKitDataGen
             add(SewingKitMod.FILE.get(), "Raspy File");
 
             add("entity.minecraft.villager.sewingkit.tailor", "Tailor");
+
+            add("text.sewingkit.recipe", "Required materials:");
         }
     }
 

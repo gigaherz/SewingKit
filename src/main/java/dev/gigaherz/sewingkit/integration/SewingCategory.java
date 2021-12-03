@@ -1,5 +1,5 @@
 package dev.gigaherz.sewingkit.integration;
-
+/*
 import com.mojang.blaze3d.vertex.PoseStack;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
@@ -138,4 +138,4 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     public void draw(SewingRecipe recipe, PoseStack matrixStack, double mouseX, double mouseY)
     {
     }
-}
+}*/

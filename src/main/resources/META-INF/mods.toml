@@ -1,5 +1,5 @@
 modLoader="javafml"
-loaderVersion="[37,)"
+loaderVersion="[38,)"
 license="BSD (3 clause)"
 
 [[mods]]
@@ -19,12 +19,12 @@ Sewing Kit is a base mod for anything that wants to add sewing features, such as
 [[dependencies.sewingkit]]
     modId="forge"
     mandatory=true
-    versionRange="[37.0.31,)"
+    versionRange="[38.0.10,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.sewingkit]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.17.1,1.18)"
+    versionRange="[1.18,1.19)"
     ordering="NONE"
     side="BOTH"

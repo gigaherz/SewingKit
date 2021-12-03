@@ -59,7 +59,7 @@ public class ToolActionIngredient extends Ingredient
             JsonObject object = new JsonObject();
             object.addProperty("type", NAME.toString());
             object.addProperty("tool_type", toolType.name());
-            object.addProperty("tool_level", Objects.requireNonNull(TierSortingRegistry.getName(toolLevel)).toString());
+            if (toolLevel != null) object.addProperty("tool_level", Objects.requireNonNull(TierSortingRegistry.getName(toolLevel), "Tool level not found: " + toolLevel).toString());
             return object;
         }
     }

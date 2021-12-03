@@ -2,14 +2,23 @@ package dev.gigaherz.sewingkit.table;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.datafixers.util.Either;
+import com.mojang.math.Matrix4f;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.core.NonNullList;
@@ -19,6 +28,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.network.chat.Component;
 import net.minecraft.ChatFormatting;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -32,6 +42,20 @@ import java.util.stream.Collectors;
 public class SewingTableScreen extends AbstractContainerScreen<SewingTableContainer>
 {
     private static final ResourceLocation BACKGROUND_TEXTURE = SewingKitMod.location("textures/gui/sewing_station.png");
+
+    private static SewingRecipe recipeContext;
+
+    @SubscribeEvent
+    public static void gatherComponents(RenderTooltipEvent.GatherComponents event)
+    {
+        if (recipeContext != null)
+            event.getTooltipElements().add(Either.right(new RecipeTooltipComponent(recipeContext)));
+    }
+
+    public static void register()
+    {
+        MinecraftForgeClient.registerTooltipComponentFactory(RecipeTooltipComponent.class, ClientRecipeTooltipComponent::new);
+    }
 
     private float sliderProgress;
     private boolean clickedOnScroll;
@@ -89,8 +113,10 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableContai
                 int k1 = j + i1 / 4 * 18 + 2;
                 if (x >= j1 && x < j1 + 16 && y >= k1 && y < k1 + 18)
                 {
+                    var recipe = menu.getRecipeList().get(l);
+                    this.recipeContext = recipe;
                     this.renderTooltip(matrixStack, list.get(l).getResultItem(), x, y);
-                    renderHoveredRecipe(matrixStack, x, y, menu.getRecipeList().get(l));
+                    this.recipeContext = null;
                 }
             }
         }
@@ -138,88 +164,101 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableContai
         matrixStack.popPose();
     }
 
-    private static int tooltipX = 0;
-    private static int tooltipY = 0;
-    private static int tooltipWidth = 0;
-    private static int tooltipHeight = 0;
-    private int ticks = 0;
-
-    private static final ResourceLocation RECIPE_TEXTURE = SewingKitMod.location("textures/gui/recipetooltip.png");
-
-    protected void renderHoveredRecipe(PoseStack matrixStack, int mouseX, int mouseY, SewingRecipe sewingRecipe)
+    public static record RecipeTooltipComponent(SewingRecipe recipe) implements TooltipComponent
     {
-        matrixStack.pushPose();
-        matrixStack.translate(0, 0, 300);
+    }
 
-        int x = tooltipX;
-        int y = tooltipY - 35 - 8;
+    public static class ClientRecipeTooltipComponent implements ClientTooltipComponent
+    {
+        private static final ResourceLocation RECIPE_TEXTURE = SewingKitMod.location("textures/gui/recipetooltip.png");
 
+        private final SewingRecipe recipe;
+        private final Component label;
 
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.setShaderTexture(0, RECIPE_TEXTURE);
-        blit(matrixStack, x, y, 0, 0, 35, 35, 64, 64);
-
-        NonNullList<SewingRecipe.Material> materials = sewingRecipe.getMaterials();
-        for (int i = 0; i < materials.size(); i++)
+        public ClientRecipeTooltipComponent(RecipeTooltipComponent component)
         {
-            int xx = x + (i % 2) * 17 + 1;
-            int yy = y + (i / 2) * 17 + 1;
-            SewingRecipe.Material material = materials.get(i);
-            ItemStack[] stacks = material.ingredient.getItems();
-            if (stacks.length > 0)
-            {
-                float zz = itemRenderer.blitOffset;
-                itemRenderer.blitOffset = 0;
-
-                PoseStack viewModelPose = RenderSystem.getModelViewStack();
-                viewModelPose.pushPose();
-                viewModelPose.mulPoseMatrix(matrixStack.last().pose());
-
-                ItemStack stack = stacks[(ticks / 32) % stacks.length].copy();
-                stack.setCount(material.count);
-                itemRenderer.renderAndDecorateItem(stack, xx, yy);
-
-                viewModelPose.popPose();
-                itemRenderer.blitOffset = zz;
-            }
-            else
-            {
-                RenderSystem.setShader(GameRenderer::getPositionTexShader);
-                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                RenderSystem.setShaderTexture(0, RECIPE_TEXTURE);
-                blit(matrixStack, xx, yy, 36, 0, 16, 16, 64, 64);
-            }
-            if (material.count != 1)
-            {
-                matrixStack.pushPose();
-                matrixStack.translate(0, 0, 300);
-
-                String text = String.format("%d", material.count);
-                int w = font.width(text);
-                font.drawShadow(matrixStack, text, xx + 17 - w, yy + 9, 0xFFFFFF);
-
-                matrixStack.popPose();
-            }
+            this.recipe = component.recipe();
+            this.label = new TranslatableComponent("text.sewingkit.recipe");
         }
 
-        matrixStack.popPose();
-    }
+        @Override
+        public int getHeight()
+        {
+            return 20 + 9 * 2; // 20 + Font.lineHeight * 2
+        }
 
-    @Override
-    public void containerTick()
-    {
-        super.containerTick();
-        ticks++;
-    }
+        @Override
+        public int getWidth(Font font)
+        {
+            return Math.max(18*4 + 4, font.width(label));
+        }
 
-    @SubscribeEvent
-    public static void tooltipEvent(RenderTooltipEvent.PostText event)
-    {
-        tooltipX = event.getX();
-        tooltipY = event.getY();
-        tooltipWidth = event.getWidth();
-        tooltipHeight = event.getHeight();
+        @Override
+        public void renderImage(Font font, int x, int y, PoseStack matrixStack, ItemRenderer itemRenderer, int p_194053_)
+        {
+            matrixStack.pushPose();
+            matrixStack.translate(0, 0, 300);
+
+            RenderSystem.setShader(GameRenderer::getPositionTexShader);
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
+            y += font.lineHeight;
+
+            matrixStack.pushPose();
+            matrixStack.translate(0, 0, 300);
+
+            font.drawShadow(matrixStack, label, x, y,0xFFFFFF);
+
+            matrixStack.popPose();
+
+            y += font.lineHeight;
+
+            NonNullList<SewingRecipe.Material> materials = recipe.getMaterials();
+            for (int i = 0; i < materials.size(); i++)
+            {
+                int xx = x + i * 17 + 4;
+
+                SewingRecipe.Material material = materials.get(i);
+                ItemStack[] stacks = material.ingredient.getItems();
+                if (stacks.length > 0)
+                {
+                    float zz = itemRenderer.blitOffset;
+                    itemRenderer.blitOffset = 0;
+
+                    PoseStack viewModelPose = RenderSystem.getModelViewStack();
+                    viewModelPose.pushPose();
+                    viewModelPose.mulPoseMatrix(matrixStack.last().pose());
+
+                    var ticks = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
+                    ItemStack stack = stacks[(int) ((ticks / 32) % stacks.length)].copy();
+                    stack.setCount(1);//material.count);
+                    itemRenderer.renderAndDecorateItem(stack, xx, y);
+
+                    viewModelPose.popPose();
+                    itemRenderer.blitOffset = zz;
+                }
+                else
+                {
+                    RenderSystem.setShader(GameRenderer::getPositionTexShader);
+                    RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                    RenderSystem.setShaderTexture(0, RECIPE_TEXTURE);
+                    blit(matrixStack, xx, y, 36, 0, 16, 16, 64, 64);
+                }
+                if (material.count != 1)
+                {
+                    matrixStack.pushPose();
+                    matrixStack.translate(0, 0, 300);
+
+                    String text = String.format("%d", material.count);
+                    int w = font.width(text);
+                    font.drawShadow(matrixStack, text, xx + 17 - w, y + 9, 0xFFFFFF);
+
+                    matrixStack.popPose();
+                }
+            }
+
+            matrixStack.popPose();
+        }
     }
 
     private void renderButtons(PoseStack matrixStack, int x, int y, int p_238853_4_, int p_238853_5_, int p_238853_6_)

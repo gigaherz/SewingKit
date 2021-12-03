@@ -22,8 +22,8 @@
   ],
   "tool": {
     "type": "sewingkit:tool_ingredient",
-    "tool_type": "sewing_needle",
-    "tool_level": 5
+    "tool_type": "sewingkit_sew",
+    "tool_level": "minecraft:netherite"
   },
   "result": {
     "item": "minecraft:leather_horse_armor"
