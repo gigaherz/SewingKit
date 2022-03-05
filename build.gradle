@@ -20,7 +20,7 @@ repositories {
     }
 }
 
-version = '1.5.0'
+version = '1.5.5'
 group = 'dev.gigaherz.sewingkit' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'SewingKit-UNKNOWN'
 
@@ -38,7 +38,7 @@ sourceSets {
 
 minecraft {
     //mappings channel: 'parchment', version: '2021.10.31-1.17.1'
-    mappings channel: 'official', version: '1.18'
+    mappings channel: 'official', version: '1.18.2'
 
     accessTransformer(file("src/main/resources/META-INF/accesstransformer.cfg"))
 
@@ -93,7 +93,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18-38.0.12'
+    minecraft 'net.minecraftforge:forge:1.18.2-40.0.3'
 
     //compileOnly fg.deobf("mezz.jei:jei-1.17.1:8.2.0.36:api")
     //runtimeOnly fg.deobf("mezz.jei:jei-1.17.1:8.2.0.36")
@@ -122,26 +122,28 @@ tasks.withType(GenerateModuleMetadata) {
     enabled = false
 }
 
-publish.dependsOn('reobfJar')
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId project.archivesBaseName
-            from components.java
+project.afterEvaluate {
+    publish.dependsOn('reobfJar')
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifactId project.archivesBaseName
+                from components.java
 
-            pom.withXml {
-                asNode().dependencies.dependency.each { dep ->
-                    if(dep.groupId.last().value().last() in ["net.minecraftforge","mezz.jei"]) {
-                        assert dep.parent().remove(dep)
+                pom.withXml {
+                    asNode().dependencies.dependency.each { dep ->
+                        if (dep.groupId.last().value().last() in ["net.minecraftforge", "mezz.jei"]) {
+                            assert dep.parent().remove(dep)
+                        }
                     }
                 }
             }
         }
-    }
 
-    repositories {
-        maven {
-            url "$projectDir/../CommonMaven"
+        repositories {
+            maven {
+                url "$projectDir/../CommonMaven"
+            }
         }
     }
 }

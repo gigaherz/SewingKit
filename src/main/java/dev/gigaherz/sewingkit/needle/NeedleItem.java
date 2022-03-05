@@ -1,8 +1,10 @@
 package dev.gigaherz.sewingkit.needle;
 
+import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.Tag;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.DiggerItem;
@@ -24,7 +26,7 @@ public class NeedleItem extends DiggerItem
 {
     public static final ToolAction SEW = ToolAction.get("sewingkit_sew");
 
-    public static final Tag.Named<Block> BREAKABLE_NEEDLE = BlockTags.createOptional(new ResourceLocation("toolbelt:breakable_needle"));
+    public static final TagKey<Block> BREAKABLE_NEEDLE = TagKey.create(Registry.BLOCK_REGISTRY, new ResourceLocation("toolbelt:breakable_needle"));
 
     public NeedleItem(float attackDamageIn, float attackSpeedIn, NeedleMaterial material, Properties builderIn)
     {

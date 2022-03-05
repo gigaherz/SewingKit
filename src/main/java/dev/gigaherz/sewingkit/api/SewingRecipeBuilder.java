@@ -10,6 +10,7 @@ import net.minecraft.advancements.CriterionTriggerInstance;
 import net.minecraft.advancements.RequirementsStrategy;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -68,7 +69,7 @@ public class SewingRecipeBuilder
         return withTool(Ingredient.of(tool));
     }
 
-    public SewingRecipeBuilder withTool(Tag<Item> tool)
+    public SewingRecipeBuilder withTool(TagKey<Item> tool)
     {
         return withTool(Ingredient.of(tool));
     }
@@ -105,7 +106,7 @@ public class SewingRecipeBuilder
         return addMaterial(Ingredient.of(x), count);
     }
 
-    public SewingRecipeBuilder addMaterial(Tag<Item> x, int count)
+    public SewingRecipeBuilder addMaterial(TagKey<Item> x, int count)
     {
         return addMaterial(Ingredient.of(x), 1);
     }
@@ -115,7 +116,7 @@ public class SewingRecipeBuilder
         return addMaterial(Ingredient.of(x), 1);
     }
 
-    public SewingRecipeBuilder addMaterial(Tag<Item> x)
+    public SewingRecipeBuilder addMaterial(TagKey<Item> x)
     {
         return addMaterial(Ingredient.of(x), 1);
     }

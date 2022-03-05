@@ -267,8 +267,10 @@ public class SewingTableContainer extends AbstractContainerMenu
         return p_241818_1_ >= 0 && p_241818_1_ < this.recipes.size();
     }
 
+    @Override
     public void slotsChanged(Container inventoryIn)
     {
+        super.slotsChanged(inventoryIn);
         boolean anyChanged = false;
         for (int i = 0; i < 6; i++)
         {

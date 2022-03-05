@@ -11,7 +11,10 @@ import dev.gigaherz.sewingkit.needle.Needles;
 import dev.gigaherz.sewingkit.patterns.PatternItem;
 import dev.gigaherz.sewingkit.table.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -55,6 +58,7 @@ import org.apache.logging.log4j.Logger;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
@@ -76,7 +80,7 @@ public class SewingKitMod
         }
     };
 
-    public static final Tag.Named<Block> BONE_TAG = BlockTags.createOptional(new ResourceLocation("sewingkit:needs_bone_tool"));
+    public static final TagKey<Block> BONE_TAG = TagKey.create(Registry.BLOCK_REGISTRY, new ResourceLocation("sewingkit:needs_bone_tool"));
     public static final Tier BONE_TIER = TierSortingRegistry.registerTier(
             new ForgeTier(Tiers.STONE.getLevel(), 100, 1.0f, 0.0f, 0, BONE_TAG, () -> Ingredient.of(Tags.Items.BONES) ),
             new ResourceLocation("sewingkit:bone"), List.of(Tiers.WOOD), List.of(Tiers.IRON));
@@ -318,14 +322,14 @@ public class SewingKitMod
 
     private static class SellRandomFromTag implements VillagerTrades.ItemListing
     {
-        private final Tag<Item> tagSource;
+        private final TagKey<Item> tagSource;
         private final int quantity;
         private final int price;
         private final int maxUses;
         private final int xp;
         private final float priceMultiplier;
 
-        private SellRandomFromTag(Tag<Item> tagSource, int quantity, int price, int maxUses, int xp, float priceMultiplier)
+        private SellRandomFromTag(TagKey<Item> tagSource, int quantity, int price, int maxUses, int xp, float priceMultiplier)
         {
             this.tagSource = tagSource;
             this.quantity = quantity;
@@ -339,8 +343,10 @@ public class SewingKitMod
         @Override
         public MerchantOffer getOffer(Entity trader, Random rand)
         {
-            Item random = tagSource.getRandomElement(rand);
-            return new MerchantOffer(new ItemStack(Items.EMERALD, price), new ItemStack(random, quantity), this.maxUses, this.xp, this.priceMultiplier);
+            return Registry.ITEM.getTag(tagSource)
+                    .flatMap(tag -> tag.getRandomElement(rand))
+                    .map(itemHolder -> new MerchantOffer(new ItemStack(Items.EMERALD, price), new ItemStack(itemHolder.value(), quantity), this.maxUses, this.xp, this.priceMultiplier))
+                    .orElse(null);
         }
     }
 
