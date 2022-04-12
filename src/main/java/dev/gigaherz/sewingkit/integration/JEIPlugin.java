@@ -1,5 +1,5 @@
 package dev.gigaherz.sewingkit.integration;
-/*
+
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import mezz.jei.api.IModPlugin;
@@ -43,4 +43,4 @@ public class JEIPlugin implements IModPlugin
         ClientLevel world = Objects.requireNonNull(Minecraft.getInstance().level);
         registration.addRecipes(SewingRecipe.getAllRecipes(world), SewingCategory.UID);
     }
-}*/
+}

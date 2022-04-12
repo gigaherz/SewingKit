@@ -366,7 +366,9 @@ public class SewingKitMod
         @SubscribeEvent
         public static void clientSetup(final FMLClientSetupEvent event)
         {
-            MenuScreens.register(SewingTableContainer.TYPE, SewingTableScreen::new);
+            event.enqueueWork(() -> {
+                MenuScreens.register(SewingTableContainer.TYPE, SewingTableScreen::new);
+            });
             SewingTableScreen.register();
         }
 

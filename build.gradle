@@ -20,7 +20,7 @@ repositories {
     }
 }
 
-version = '1.5.5'
+version = '1.5.6'
 group = 'dev.gigaherz.sewingkit' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'SewingKit-UNKNOWN'
 
@@ -37,7 +37,7 @@ sourceSets {
 }
 
 minecraft {
-    //mappings channel: 'parchment', version: '2021.10.31-1.17.1'
+    //mappings channel: 'parchment', version: '2022.03.13-1.18.2'
     mappings channel: 'official', version: '1.18.2'
 
     accessTransformer(file("src/main/resources/META-INF/accesstransformer.cfg"))
@@ -93,10 +93,10 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.18.2-40.0.3'
+    minecraft 'net.minecraftforge:forge:1.18.2-40.0.44'
 
-    //compileOnly fg.deobf("mezz.jei:jei-1.17.1:8.2.0.36:api")
-    //runtimeOnly fg.deobf("mezz.jei:jei-1.17.1:8.2.0.36")
+    compileOnly fg.deobf("mezz.jei:jei-1.18.2:9.7.0.180:api")
+    runtimeOnly fg.deobf("mezz.jei:jei-1.18.2:9.7.0.180")
 }
 
 jar {
