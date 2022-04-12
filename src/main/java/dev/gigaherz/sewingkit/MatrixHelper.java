@@ -2,9 +2,7 @@ package dev.gigaherz.sewingkit;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3d;
 import com.mojang.math.Vector3f;
-import net.minecraftforge.common.model.TransformationHelper;
 
 public class MatrixHelper
 {

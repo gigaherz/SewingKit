@@ -36,7 +36,7 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     {
         INSTANCE = this;
         background = guiHelper.createDrawable(GUI_TEXTURE_LOCATION, 6, 12, 159, 61);
-        icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(SewingKitMod.SEWING_STATION_BLOCK.get()));
+        icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM, new ItemStack(SewingKitMod.SEWING_STATION_BLOCK.get()));
     }
 
     @SuppressWarnings("removal")
@@ -115,32 +115,33 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
                 .addItemStacks(pattern)
                 .setSlotName("pattern");
 
-        for(int i=0;i<4;i++)
+        for (int i = 0; i < 4; i++)
         {
-            builder.addSlot(RecipeIngredientRole.INPUT, slotX[2+i], slotY[2+i])
+            builder.addSlot(RecipeIngredientRole.INPUT, slotX[2 + i], slotY[2 + i])
                     .addItemStacks((i < inputLists.size()) ? inputLists.get(i) : List.of());
         }
 
-        builder.addSlot(RecipeIngredientRole.OUTPUT, slotX[6], slotY[6]);
+        builder.addSlot(RecipeIngredientRole.OUTPUT, slotX[6], slotY[6])
+                .addItemStack(recipe.getResultItem());
     }
 
     private static final int[] slotX = {
-            8 - 7,
-            30 - 7,
-            10 - 7,
-            28 - 7,
-            10 - 7,
-            28 - 7,
-            143 - 7
+            8 - 6,
+            30 - 6,
+            10 - 6,
+            28 - 6,
+            10 - 6,
+            28 - 6,
+            143 - 6
     };
 
     private static final int[] slotY = {
-            15 - 13,
-            15 - 13,
-            35 - 13,
-            35 - 13,
-            53 - 13,
-            53 - 13,
-            33 - 13
+            15 - 12,
+            15 - 12,
+            35 - 12,
+            35 - 12,
+            53 - 12,
+            53 - 12,
+            33 - 12
     };
 }

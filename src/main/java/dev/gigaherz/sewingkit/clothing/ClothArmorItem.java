@@ -1,11 +1,9 @@
 package dev.gigaherz.sewingkit.clothing;
 
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.item.DyeableArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.DyeableArmorItem;
 import net.minecraft.world.item.ItemStack;
-
-import net.minecraft.world.item.Item.Properties;
 
 public class ClothArmorItem extends DyeableArmorItem
 {

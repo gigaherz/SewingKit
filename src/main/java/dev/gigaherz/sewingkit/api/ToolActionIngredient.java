@@ -2,12 +2,12 @@ package dev.gigaherz.sewingkit.api;
 
 import com.google.gson.JsonObject;
 import dev.gigaherz.sewingkit.SewingKitMod;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.TieredItem;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.TierSortingRegistry;
 import net.minecraftforge.common.ToolAction;
 import net.minecraftforge.common.crafting.IIngredientSerializer;
@@ -59,7 +59,8 @@ public class ToolActionIngredient extends Ingredient
             JsonObject object = new JsonObject();
             object.addProperty("type", NAME.toString());
             object.addProperty("tool_type", toolType.name());
-            if (toolLevel != null) object.addProperty("tool_level", Objects.requireNonNull(TierSortingRegistry.getName(toolLevel), "Tool level not found: " + toolLevel).toString());
+            if (toolLevel != null)
+                object.addProperty("tool_level", Objects.requireNonNull(TierSortingRegistry.getName(toolLevel), "Tool level not found: " + toolLevel).toString());
             return object;
         }
     }

@@ -8,5 +8,8 @@ public interface InventoryProvider
 
     IItemHandlerModifiable getInventory();
 
-    default boolean isDummy() { return false; }
+    default boolean isDummy()
+    {
+        return false;
+    }
 }
