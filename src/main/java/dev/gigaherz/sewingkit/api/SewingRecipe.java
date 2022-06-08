@@ -15,7 +15,6 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.registries.ForgeRegistryEntry;
 import net.minecraftforge.registries.ObjectHolder;
 
 import javax.annotation.Nullable;
@@ -26,11 +25,6 @@ import java.util.stream.Collectors;
 
 public class SewingRecipe implements Recipe<Container>
 {
-    @ObjectHolder("sewingkit:sewing")
-    public static RecipeSerializer<?> SERIALIZER = null;
-
-    public static RecipeType<SewingRecipe> SEWING = RecipeType.register(SewingKitMod.location("sewing").toString());
-
     private final String group;
     private final ResourceLocation id;
 
@@ -53,7 +47,7 @@ public class SewingRecipe implements Recipe<Container>
 
     public static Collection<SewingRecipe> getAllRecipes(Level world)
     {
-        return world.getRecipeManager().getAllRecipesFor(SEWING);
+        return world.getRecipeManager().getAllRecipesFor(SewingKitMod.SEWING.get());
     }
 
     @Override
@@ -131,13 +125,13 @@ public class SewingRecipe implements Recipe<Container>
     @Override
     public RecipeSerializer<?> getSerializer()
     {
-        return SERIALIZER;
+        return SewingKitMod.SEWING_RECIPE.get();
     }
 
     @Override
     public RecipeType<?> getType()
     {
-        return SEWING;
+        return SewingKitMod.SEWING.get();
     }
 
     @Override
@@ -156,7 +150,7 @@ public class SewingRecipe implements Recipe<Container>
         return pattern != null ? pattern : Ingredient.EMPTY;
     }
 
-    public static class Serializer extends ForgeRegistryEntry<RecipeSerializer<?>>
+    public static class Serializer
             implements RecipeSerializer<SewingRecipe>
     {
         protected SewingRecipe createRecipe(ResourceLocation recipeId, String group, NonNullList<Material> materials, Ingredient pattern, Ingredient tool, ItemStack result)

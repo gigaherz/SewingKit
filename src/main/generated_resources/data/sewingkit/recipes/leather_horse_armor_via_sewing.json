@@ -2,30 +2,30 @@
   "type": "sewingkit:sewing",
   "materials": [
     {
+      "count": 12,
       "ingredient": {
         "item": "sewingkit:leather_sheet"
-      },
-      "count": 12
+      }
     },
     {
+      "count": 6,
       "ingredient": {
         "item": "sewingkit:leather_strip"
-      },
-      "count": 6
+      }
     },
     {
+      "count": 1,
       "ingredient": {
         "tag": "forge:string"
-      },
-      "count": 1
+      }
     }
   ],
-  "tool": {
-    "type": "sewingkit:tool_ingredient",
-    "tool_type": "sewingkit_sew",
-    "tool_level": "minecraft:netherite"
-  },
   "result": {
     "item": "minecraft:leather_horse_armor"
+  },
+  "tool": {
+    "type": "sewingkit:tool_ingredient",
+    "tool_level": "minecraft:netherite",
+    "tool_type": "sewingkit_sew"
   }
 }

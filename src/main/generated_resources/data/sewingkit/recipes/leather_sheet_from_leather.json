@@ -2,17 +2,17 @@
   "type": "sewingkit:sewing",
   "materials": [
     {
+      "count": 1,
       "ingredient": {
         "tag": "forge:leather"
-      },
-      "count": 1
+      }
     }
   ],
+  "result": {
+    "count": 4,
+    "item": "sewingkit:leather_sheet"
+  },
   "tool": {
     "tag": "forge:shears"
-  },
-  "result": {
-    "item": "sewingkit:leather_sheet",
-    "count": 4
   }
 }

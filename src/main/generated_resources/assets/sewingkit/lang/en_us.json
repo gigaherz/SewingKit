@@ -2,6 +2,7 @@
   "block.sewingkit.sewing_station": "Sewing Table",
   "block.sewingkit.storing_sewing_station": "Sewing Table with Drawers",
   "container.sewingkit.sewing_station": "Sewing Station",
+  "container.sewingkit.storing_sewing_station": "Sewing Station with Drawers",
   "entity.minecraft.villager.sewingkit.tailor": "Tailor",
   "item.sewingkit.bone_sewing_needle": "Bone Sewing Needle",
   "item.sewingkit.common_pattern": "Common Pattern",

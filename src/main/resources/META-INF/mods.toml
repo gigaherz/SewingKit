@@ -1,6 +1,7 @@
 modLoader="javafml"
-loaderVersion="[38,)"
+loaderVersion="[41,)"
 license="BSD (3 clause)"
+issueTrackerURL="https://github.com/gigaherz/SewingKit/issues"
 
 [[mods]]
     modId="sewingkit"
@@ -14,18 +15,17 @@ Sewing Kit is a base mod for anything that wants to add sewing features, such as
     authors="gigaherz"
     #updateJSONURL="http://myurl.me/"
     displayURL="https://github.com/gigaherz/SewingKit"
-    issueTrackerURL="https://github.com/gigaherz/SewingKit/issues"
 
 [[dependencies.sewingkit]]
     modId="forge"
     mandatory=true
-    versionRange="[38.0.10,)"
+    versionRange="[41.0.1,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.sewingkit]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.18,1.19)"
+    versionRange="[1.19,1.20)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.sewingkit]]

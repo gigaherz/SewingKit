@@ -2,29 +2,29 @@
   "type": "sewingkit:sewing",
   "materials": [
     {
+      "count": 1,
       "ingredient": {
         "item": "sewingkit:wool_roll"
-      },
-      "count": 1
+      }
     },
     {
+      "count": 1,
       "ingredient": {
         "item": "sewingkit:wool_trim"
-      },
-      "count": 1
+      }
     },
     {
+      "count": 1,
       "ingredient": {
         "tag": "forge:string"
-      },
-      "count": 1
+      }
     }
   ],
+  "result": {
+    "item": "sewingkit:wool_hat"
+  },
   "tool": {
     "type": "sewingkit:tool_ingredient",
     "tool_type": "sewingkit_sew"
-  },
-  "result": {
-    "item": "sewingkit:wool_hat"
   }
 }

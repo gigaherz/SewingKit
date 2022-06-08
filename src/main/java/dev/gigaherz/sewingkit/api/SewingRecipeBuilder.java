@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
+import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.CriterionTriggerInstance;
@@ -267,7 +268,7 @@ public class SewingRecipeBuilder
         @Override
         public RecipeSerializer<?> getType()
         {
-            return SewingRecipe.SERIALIZER;
+            return SewingKitMod.SEWING_RECIPE.get();
         }
 
         @Nullable

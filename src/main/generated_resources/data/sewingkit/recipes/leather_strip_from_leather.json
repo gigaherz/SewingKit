@@ -2,17 +2,17 @@
   "type": "sewingkit:sewing",
   "materials": [
     {
+      "count": 1,
       "ingredient": {
         "tag": "forge:leather"
-      },
-      "count": 1
+      }
     }
   ],
+  "result": {
+    "count": 3,
+    "item": "sewingkit:leather_strip"
+  },
   "tool": {
     "tag": "forge:shears"
-  },
-  "result": {
-    "item": "sewingkit:leather_strip",
-    "count": 3
   }
 }

@@ -20,7 +20,7 @@ class SewingTableInventory extends ItemStackHandler implements InventoryProvider
     }
 
     @Override
-    public void addWeakListener(SewingTableContainer e)
+    public void addWeakListener(SewingTableMenu e)
     {
         listenable.addWeakListener(e);
     }

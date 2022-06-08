@@ -10,17 +10,17 @@ import java.util.List;
 
 public class ListenableHolder
 {
-    private final List<Reference<? extends SewingTableContainer>> listeners = Lists.newArrayList();
-    private final ReferenceQueue<SewingTableContainer> pendingRemovals = new ReferenceQueue<>();
+    private final List<Reference<? extends SewingTableMenu>> listeners = Lists.newArrayList();
+    private final ReferenceQueue<SewingTableMenu> pendingRemovals = new ReferenceQueue<>();
 
-    public void addWeakListener(SewingTableContainer e)
+    public void addWeakListener(SewingTableMenu e)
     {
         listeners.add(new WeakReference<>(e, pendingRemovals));
     }
 
     public void doCallbacks()
     {
-        for (Reference<? extends SewingTableContainer>
+        for (Reference<? extends SewingTableMenu>
              ref = pendingRemovals.poll();
              ref != null;
              ref = pendingRemovals.poll())
@@ -28,10 +28,10 @@ public class ListenableHolder
             listeners.remove(ref);
         }
 
-        for (Iterator<Reference<? extends SewingTableContainer>> iterator = listeners.iterator(); iterator.hasNext(); )
+        for (Iterator<Reference<? extends SewingTableMenu>> iterator = listeners.iterator(); iterator.hasNext(); )
         {
-            Reference<? extends SewingTableContainer> reference = iterator.next();
-            SewingTableContainer listener = reference.get();
+            Reference<? extends SewingTableMenu> reference = iterator.next();
+            SewingTableMenu listener = reference.get();
             if (listener == null)
                 iterator.remove();
             else

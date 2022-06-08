@@ -1,5 +1,9 @@
 {
   "variants": {
+    "facing=east": {
+      "model": "sewingkit:block/storing_sewing_station",
+      "y": 90
+    },
     "facing=north": {
       "model": "sewingkit:block/storing_sewing_station"
     },
@@ -10,10 +14,6 @@
     "facing=west": {
       "model": "sewingkit:block/storing_sewing_station",
       "y": 270
-    },
-    "facing=east": {
-      "model": "sewingkit:block/storing_sewing_station",
-      "y": 90
     }
   }
 }

@@ -1,5 +1,5 @@
 package dev.gigaherz.sewingkit.integration;
-
+/*
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import mezz.jei.api.constants.VanillaTypes;
@@ -82,12 +82,6 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
         return icon;
     }
 
-    /**
-     * Sets all the recipe's ingredients by filling out an instance of {@link IRecipeLayoutBuilder}.
-     * This is used by JEI for lookups, to figure out what ingredients are inputs and outputs for a recipe.
-     *
-     * @since 9.4.0
-     */
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, SewingRecipe recipe, IFocusGroup focuses)
     {
@@ -144,4 +138,4 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
             53 - 12,
             33 - 12
     };
-}
+}*/

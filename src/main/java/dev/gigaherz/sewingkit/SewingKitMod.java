@@ -17,6 +17,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
@@ -26,6 +27,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
@@ -38,12 +40,12 @@ import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.*;
 import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
@@ -53,10 +55,8 @@ import net.minecraftforge.registries.RegistryObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 @Mod(SewingKitMod.MODID)
@@ -85,6 +85,9 @@ public class SewingKitMod
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, MODID);
     private static final DeferredRegister<PoiType> POI_TYPES = DeferredRegister.create(ForgeRegistries.POI_TYPES, MODID);
     private static final DeferredRegister<VillagerProfession> PROFESSIONS = DeferredRegister.create(ForgeRegistries.PROFESSIONS, MODID);
+    private static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, MODID);
+    private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, MODID);
+    private static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.CONTAINERS, MODID);
 
     public static final RegistryObject<Item> LEATHER_STRIP = ITEMS.register("leather_strip",
             () -> new Item(new Item.Properties().stacksTo(64).tab(SEWING_KIT))
@@ -146,8 +149,8 @@ public class SewingKitMod
             () -> new BlockItem(STORING_SEWING_STATION_BLOCK.get(), new Item.Properties().tab(SEWING_KIT))
     );
 
-    public static final RegistryObject<BlockEntityType<?>> STORING_SEWING_STATION_TILE_ENTITY = BLOCK_ENTITIES.register("storing_sewing_station",
-            () -> BlockEntityType.Builder.of(StoringSewingTableTileEntity::new, STORING_SEWING_STATION_BLOCK.get()).build(null)
+    public static final RegistryObject<BlockEntityType<?>> STORING_SEWING_STATION_BLOCK_ENTITY = BLOCK_ENTITIES.register("storing_sewing_station",
+            () -> BlockEntityType.Builder.of(StoringSewingTableBlockEntity::new, STORING_SEWING_STATION_BLOCK.get()).build(null)
     );
 
     public static final RegistryObject<Item> WOOL_HAT = ITEMS.register("wool_hat",
@@ -187,47 +190,53 @@ public class SewingKitMod
     );
 
     public static final RegistryObject<PoiType> TABLE_POI = POI_TYPES.register("tailor",
-            () -> new PoiType("tailor", PoiType.getBlockStates(SEWING_STATION_BLOCK.get()), 1, 1)
+            () -> new PoiType(ImmutableSet.copyOf(SEWING_STATION_BLOCK.get().getStateDefinition().getPossibleStates()), 1, 1)
     );
 
     @SuppressWarnings("UnstableApiUsage")
     public static final RegistryObject<VillagerProfession> TAILOR = PROFESSIONS.register("tailor",
-            () -> new VillagerProfession("tailor", TABLE_POI.get(),
+            () -> new VillagerProfession("tailor", holder -> holder.is(TABLE_POI.getKey()), holder -> holder.is(TABLE_POI.getKey()),
                     Arrays.stream(Needles.values()).map(Needles::getNeedle).collect(ImmutableSet.toImmutableSet()),
                     ImmutableSet.of(), null)
     );
 
+    public static final RegistryObject<RecipeType<SewingRecipe>> SEWING = RECIPE_TYPES.register("sewing", () -> new RecipeType<>()
+    {
+        @Override
+        public String toString()
+        {
+            return "sewingkit:sewing";
+        }
+    });
+
+    public static final RegistryObject<RecipeSerializer<SewingRecipe>> SEWING_RECIPE = RECIPE_SERIALIZERS.register("sewing", () -> new SewingRecipe.Serializer());
+
+    public static final RegistryObject<MenuType<SewingTableMenu>> SEWING_STATION_MENU = MENU_TYPES.register("sewing_station", () -> new MenuType<>(SewingTableMenu::new));
+
     public SewingKitMod()
     {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
+        modBus.addListener(this::construct);
         modBus.addListener(this::processIMC);
         modBus.addListener(this::gatherData);
-        modBus.addGenericListener(RecipeSerializer.class, this::registerRecipes);
-        modBus.addGenericListener(MenuType.class, this::registerContainers);
 
         ITEMS.register(modBus);
         BLOCKS.register(modBus);
         POI_TYPES.register(modBus);
         PROFESSIONS.register(modBus);
         BLOCK_ENTITIES.register(modBus);
+        RECIPE_SERIALIZERS.register(modBus);
+        MENU_TYPES.register(modBus);
+        RECIPE_TYPES.register(modBus);
 
         MinecraftForge.EVENT_BUS.addListener(this::villagerTrades);
     }
 
-    private void registerRecipes(RegistryEvent.Register<RecipeSerializer<?>> event)
+    private void construct(FMLConstructModEvent event)
     {
-        CraftingHelper.register(ToolActionIngredient.NAME, ToolActionIngredient.Serializer.INSTANCE);
-
-        event.getRegistry().registerAll(
-                new SewingRecipe.Serializer().setRegistryName("sewing")
-        );
-    }
-
-    private void registerContainers(RegistryEvent.Register<MenuType<?>> event)
-    {
-        event.getRegistry().registerAll(
-                new MenuType<>(SewingTableContainer::new).setRegistryName("sewing_station")
-        );
+        event.enqueueWork(() -> {
+            CraftingHelper.register(ToolActionIngredient.NAME, ToolActionIngredient.Serializer.INSTANCE);
+        });
     }
 
     private void processIMC(final InterModProcessEvent event)
@@ -255,7 +264,7 @@ public class SewingKitMod
         ));
 
         trademap.get(2).addAll(Arrays.asList(
-                new SellRandomFromTag(ItemTags.CARPETS, 8, 7, 8, 1, 2),
+                new SellRandomFromTag(ItemTags.WOOL_CARPETS, 8, 7, 8, 1, 2),
                 sellItem(COMMON_PATTERN.get(), 15, 1, 10, 4),
 
                 buyItem(new ItemStack(LEATHER_STRIP.get(), 2), 1, 12, 1, 0.5F),
@@ -333,9 +342,9 @@ public class SewingKitMod
             this.priceMultiplier = priceMultiplier;
         }
 
-        @Nullable
+        @org.jetbrains.annotations.Nullable
         @Override
-        public MerchantOffer getOffer(Entity trader, Random rand)
+        public MerchantOffer getOffer(Entity p_219693_, RandomSource rand)
         {
             return Registry.ITEM.getTag(tagSource)
                     .flatMap(tag -> tag.getRandomElement(rand))
@@ -361,7 +370,7 @@ public class SewingKitMod
         public static void clientSetup(final FMLClientSetupEvent event)
         {
             event.enqueueWork(() -> {
-                MenuScreens.register(SewingTableContainer.TYPE, SewingTableScreen::new);
+                MenuScreens.register(SEWING_STATION_MENU.get(), SewingTableScreen::new);
             });
             SewingTableScreen.register();
         }

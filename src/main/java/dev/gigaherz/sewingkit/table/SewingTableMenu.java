@@ -21,18 +21,14 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.RecipeWrapper;
-import net.minecraftforge.registries.ObjectHolder;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class SewingTableContainer extends AbstractContainerMenu
+public class SewingTableMenu extends AbstractContainerMenu
 {
-    @ObjectHolder("sewingkit:sewing_station")
-    public static MenuType<SewingTableContainer> TYPE;
-
     private static final int NUM_INPUTS = 6;
     private static final int NUM_OUTPUTS = 1;
     private static final int NUM_INVENTORY = 9 * 3;
@@ -63,19 +59,19 @@ public class SewingTableContainer extends AbstractContainerMenu
      */
     private final ResultContainer inventory = new ResultContainer();
 
-    public SewingTableContainer(int windowIdIn, Inventory playerInventoryIn)
+    public SewingTableMenu(int windowIdIn, Inventory playerInventoryIn)
     {
         this(windowIdIn, playerInventoryIn, ContainerLevelAccess.NULL);
     }
 
-    public SewingTableContainer(int windowIdIn, Inventory playerInventoryIn, final ContainerLevelAccess worldPosCallableIn)
+    public SewingTableMenu(int windowIdIn, Inventory playerInventoryIn, final ContainerLevelAccess worldPosCallableIn)
     {
         this(windowIdIn, playerInventoryIn, worldPosCallableIn, new SewingTableInventory());
     }
 
-    public SewingTableContainer(int windowIdIn, Inventory playerInventoryIn, final ContainerLevelAccess worldPosCallableIn, InventoryProvider inventoryProvider)
+    public SewingTableMenu(int windowIdIn, Inventory playerInventoryIn, final ContainerLevelAccess worldPosCallableIn, InventoryProvider inventoryProvider)
     {
-        super(TYPE, windowIdIn);
+        super(SewingKitMod.SEWING_STATION_MENU.get(), windowIdIn);
         this.openedFrom = worldPosCallableIn;
         this.world = playerInventoryIn.player.level;
         this.inputInventory = inventoryProvider.getInventory();
@@ -113,7 +109,7 @@ public class SewingTableContainer extends AbstractContainerMenu
                 if (!thePlayer.level.isClientSide)
                 {
                     stack.onCraftedBy(thePlayer.level, thePlayer, stack.getCount());
-                    SewingTableContainer.this.inventory.awardUsedRecipes(thePlayer);
+                    SewingTableMenu.this.inventory.awardUsedRecipes(thePlayer);
 
                     SewingRecipe recipe = recipes.get(getSelectedRecipe());
                     Map<Ingredient, Integer> remaining = recipe.getMaterials().stream().collect(Collectors.toMap(i -> i.ingredient, i -> i.count));
@@ -293,7 +289,7 @@ public class SewingTableContainer extends AbstractContainerMenu
         this.slots.get(OUTPUTS_START).set(ItemStack.EMPTY);
         if (hasItemsinInputSlots())
         {
-            this.recipes = this.world.getRecipeManager().getRecipesFor(SewingRecipe.SEWING, inventoryIn, this.world);
+            this.recipes = this.world.getRecipeManager().getRecipesFor(SewingKitMod.SEWING.get(), inventoryIn, this.world);
         }
         if (recipes.size() > 0 && recipe != null)
         {
@@ -401,11 +397,6 @@ public class SewingTableContainer extends AbstractContainerMenu
         this.broadcastChanges();
 
         return stackCopy;
-    }
-
-    private boolean hasRecipe(ItemStack stackInSlot)
-    {
-        return this.world.getRecipeManager().getRecipeFor(SewingRecipe.SEWING, new SimpleContainer(stackInSlot), this.world).isPresent();
     }
 
     public void removed(Player playerIn)

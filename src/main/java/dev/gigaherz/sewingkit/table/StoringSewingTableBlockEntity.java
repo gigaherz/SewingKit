@@ -1,5 +1,6 @@
 package dev.gigaherz.sewingkit.table;
 
+import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -7,13 +8,9 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.registries.ObjectHolder;
 
-public class StoringSewingTableTileEntity extends BlockEntity implements InventoryProvider
+public class StoringSewingTableBlockEntity extends BlockEntity implements InventoryProvider
 {
-    @ObjectHolder("sewingkit:storing_sewing_station")
-    public static BlockEntityType<?> TYPE;
-
     private final ItemStackHandler inventory = new ItemStackHandler(6)
     {
         @Override
@@ -25,14 +22,14 @@ public class StoringSewingTableTileEntity extends BlockEntity implements Invento
         }
     };
 
-    protected StoringSewingTableTileEntity(BlockEntityType<?> tileEntityTypeIn, BlockPos pos, BlockState state)
+    protected StoringSewingTableBlockEntity(BlockEntityType<?> tileEntityTypeIn, BlockPos pos, BlockState state)
     {
         super(tileEntityTypeIn, pos, state);
     }
 
-    public StoringSewingTableTileEntity(BlockPos pos, BlockState state)
+    public StoringSewingTableBlockEntity(BlockPos pos, BlockState state)
     {
-        super(TYPE, pos, state);
+        super(SewingKitMod.STORING_SEWING_STATION_BLOCK_ENTITY.get(), pos, state);
     }
 
     public IItemHandlerModifiable getInventory()
@@ -63,7 +60,7 @@ public class StoringSewingTableTileEntity extends BlockEntity implements Invento
     }
 
     @Override
-    public void addWeakListener(SewingTableContainer e)
+    public void addWeakListener(SewingTableMenu e)
     {
         listenable.addWeakListener(e);
     }

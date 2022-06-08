@@ -2,17 +2,17 @@
   "type": "sewingkit:sewing",
   "materials": [
     {
+      "count": 1,
       "ingredient": {
-        "tag": "minecraft:carpets"
-      },
-      "count": 1
+        "tag": "minecraft:wool_carpets"
+      }
     }
   ],
+  "result": {
+    "count": 3,
+    "item": "sewingkit:wool_trim"
+  },
   "tool": {
     "tag": "forge:shears"
-  },
-  "result": {
-    "item": "sewingkit:wool_trim",
-    "count": 3
   }
 }

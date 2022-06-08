@@ -2,7 +2,7 @@ package dev.gigaherz.sewingkit.table;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
@@ -95,15 +95,15 @@ public class StoringSewingTableBlock extends Block implements EntityBlock
     public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
     {
         BlockEntity te = worldIn.getBlockEntity(pos);
-        if (!(te instanceof StoringSewingTableTileEntity table))
+        if (!(te instanceof StoringSewingTableBlockEntity table))
             return InteractionResult.FAIL;
 
         if (worldIn.isClientSide)
             return InteractionResult.SUCCESS;
 
         player.openMenu(new SimpleMenuProvider(
-                (id, playerInv, p) -> new SewingTableContainer(id, playerInv, ContainerLevelAccess.create(worldIn, pos), table),
-                new TranslatableComponent("container.sewingkit.sewing_station")
+                (id, playerInv, p) -> new SewingTableMenu(id, playerInv, ContainerLevelAccess.create(worldIn, pos), table),
+                Component.translatable("container.sewingkit.storing_sewing_station")
         ));
 
         return InteractionResult.SUCCESS;
@@ -113,6 +113,6 @@ public class StoringSewingTableBlock extends Block implements EntityBlock
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state)
     {
-        return new StoringSewingTableTileEntity(pos, state);
+        return new StoringSewingTableBlockEntity(pos, state);
     }
 }

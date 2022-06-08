@@ -1,6 +1,8 @@
 {
     "pack": {
         "description": "sewingkit resources",
-        "pack_format": 9
+        "pack_format": 9,
+        "forge:assets_pack_format": 9,
+        "forge:data_pack_format": 10
     }
 }

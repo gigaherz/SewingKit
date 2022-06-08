@@ -15,7 +15,6 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -35,7 +34,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = SewingKitMod.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
-public class SewingTableScreen extends AbstractContainerScreen<SewingTableContainer>
+public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
 {
     private static final ResourceLocation BACKGROUND_TEXTURE = SewingKitMod.location("textures/gui/sewing_station.png");
 
@@ -58,7 +57,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableContai
     private int recipeIndexOffset;
     private boolean hasItemsInInputSlot;
 
-    public SewingTableScreen(SewingTableContainer containerIn, Inventory playerInv, Component titleIn)
+    public SewingTableScreen(SewingTableMenu containerIn, Inventory playerInv, Component titleIn)
     {
         super(containerIn, playerInv, titleIn);
         containerIn.setInventoryUpdateListener(this::onInventoryUpdate);
@@ -174,7 +173,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableContai
         public ClientRecipeTooltipComponent(RecipeTooltipComponent component)
         {
             this.recipe = component.recipe();
-            this.label = new TranslatableComponent("text.sewingkit.recipe");
+            this.label = Component.translatable("text.sewingkit.recipe");
         }
 
         @Override

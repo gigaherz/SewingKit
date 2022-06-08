@@ -2,29 +2,29 @@
   "type": "sewingkit:sewing",
   "materials": [
     {
+      "count": 8,
       "ingredient": {
         "item": "sewingkit:leather_sheet"
-      },
-      "count": 8
+      }
     },
     {
+      "count": 2,
       "ingredient": {
         "item": "sewingkit:leather_strip"
-      },
-      "count": 2
+      }
     },
     {
+      "count": 1,
       "ingredient": {
         "tag": "forge:string"
-      },
-      "count": 1
+      }
     }
   ],
+  "result": {
+    "item": "minecraft:leather_chestplate"
+  },
   "tool": {
     "type": "sewingkit:tool_ingredient",
     "tool_type": "sewingkit_sew"
-  },
-  "result": {
-    "item": "minecraft:leather_chestplate"
   }
 }

@@ -2,7 +2,7 @@ package dev.gigaherz.sewingkit.table;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
@@ -60,10 +60,13 @@ public class SewingTableBlock extends Block
     {
         return Shapes.or(
                 cuboidWithRotation(facing, 0, 14, 0, 16, 16, 16),
-                cuboidWithRotation(facing, 11, 6, 1, 15, 14, 15),
-                cuboidWithRotation(facing, 12, 0, 2, 14, 6, 14),
-                cuboidWithRotation(facing, 1, 6, 1, 5, 14, 15),
-                cuboidWithRotation(facing, 2, 0, 2, 4, 6, 14)
+                cuboidWithRotation(facing, 2, 0, 2, 4, 6, 4),
+                cuboidWithRotation(facing, 2, 0, 12, 4, 6, 14),
+                cuboidWithRotation(facing, 12, 0, 2, 14, 6, 4),
+                cuboidWithRotation(facing, 12, 0, 12, 14, 6, 14),
+                cuboidWithRotation(facing, 2, 6, 2, 4, 14, 14),
+                cuboidWithRotation(facing, 12, 6, 2, 14, 14, 14),
+                cuboidWithRotation(facing, 4, 10, 10, 12, 14, 12)
         );
     }
 
@@ -96,8 +99,8 @@ public class SewingTableBlock extends Block
             return InteractionResult.SUCCESS;
 
         player.openMenu(new SimpleMenuProvider(
-                (id, playerInv, p) -> new SewingTableContainer(id, playerInv, ContainerLevelAccess.create(worldIn, pos)),
-                new TranslatableComponent("container.sewingkit.sewing_station")
+                (id, playerInv, p) -> new SewingTableMenu(id, playerInv, ContainerLevelAccess.create(worldIn, pos)),
+                Component.translatable("container.sewingkit.sewing_station")
         ));
 
         return InteractionResult.SUCCESS;

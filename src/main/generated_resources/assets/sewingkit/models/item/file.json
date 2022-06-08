@@ -1,38 +1,21 @@
 {
   "parent": "minecraft:item/generated",
   "display": {
-    "thirdperson_righthand": {
+    "firstperson_lefthand": {
       "rotation": [
-        62,
-        147,
-        40
-      ],
-      "translation": [
-        -2.25,
-        1.5,
-        -0.25
+        136,
+        -99,
+        54
       ],
       "scale": [
-        0.48,
-        0.48,
-        0.48
-      ]
-    },
-    "thirdperson_lefthand": {
-      "rotation": [
-        45,
-        -33,
-        -55
+        0.68,
+        0.68,
+        0.68
       ],
       "translation": [
-        -2.25,
-        1.5,
-        -0.25
-      ],
-      "scale": [
-        0.48,
-        0.48,
-        0.48
+        1.13,
+        5,
+        1.13
       ]
     },
     "firstperson_righthand": {
@@ -41,44 +24,34 @@
         99,
         136
       ],
-      "translation": [
-        1.13,
-        5,
-        1.13
-      ],
       "scale": [
         0.68,
         0.68,
         0.68
+      ],
+      "translation": [
+        1.13,
+        5,
+        1.13
       ]
     },
-    "firstperson_lefthand": {
+    "fixed": {
       "rotation": [
-        136,
-        -99,
-        54
-      ],
-      "translation": [
-        1.13,
-        5,
-        1.13
-      ],
-      "scale": [
-        0.68,
-        0.68,
-        0.68
+        0,
+        180,
+        0
       ]
     },
     "ground": {
-      "translation": [
-        0,
-        2,
-        0
-      ],
       "scale": [
         0.5,
         0.5,
         0.5
+      ],
+      "translation": [
+        0,
+        2,
+        0
       ]
     },
     "head": {
@@ -93,11 +66,38 @@
         0.75
       ]
     },
-    "fixed": {
+    "thirdperson_lefthand": {
       "rotation": [
-        0,
-        180,
-        0
+        45,
+        -33,
+        -55
+      ],
+      "scale": [
+        0.48,
+        0.48,
+        0.48
+      ],
+      "translation": [
+        -2.25,
+        1.5,
+        -0.25
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        62,
+        147,
+        40
+      ],
+      "scale": [
+        0.48,
+        0.48,
+        0.48
+      ],
+      "translation": [
+        -2.25,
+        1.5,
+        -0.25
       ]
     }
   },

@@ -4,7 +4,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 
 public interface InventoryProvider
 {
-    void addWeakListener(SewingTableContainer e);
+    void addWeakListener(SewingTableMenu e);
 
     IItemHandlerModifiable getInventory();
 

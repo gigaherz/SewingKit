@@ -5,6 +5,7 @@ import com.mojang.datafixers.util.Pair;
 import dev.gigaherz.sewingkit.api.SewingRecipeBuilder;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
 import dev.gigaherz.sewingkit.needle.Needles;
+import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.loot.BlockLoot;
@@ -16,6 +17,7 @@ import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Tiers;
@@ -46,23 +48,17 @@ public class SewingKitDataGen
     {
         DataGenerator gen = event.getGenerator();
 
-        if (event.includeClient())
-        {
-            gen.addProvider(new Lang(gen));
-            // Let blockstate provider see generated item models by passing its existing file helper
-            ItemModelProvider itemModels = new ItemModels(gen, event.getExistingFileHelper());
-            gen.addProvider(itemModels);
-            gen.addProvider(new BlockStates(gen, itemModels.existingFileHelper));
-        }
-        if (event.includeServer())
-        {
+        gen.addProvider(event.includeClient(), new Lang(gen));
+        // Let blockstate provider see generated item models by passing its existing file helper
+        ItemModelProvider itemModels = new ItemModels(gen, event.getExistingFileHelper());
+        gen.addProvider(event.includeClient(), itemModels);
+        gen.addProvider(event.includeClient(), new BlockStates(gen, itemModels.existingFileHelper));
 
-            var blockTags = new BlockTags(gen, event.getExistingFileHelper());
-            gen.addProvider(blockTags);
-            //gen.addProvider(new ItemTags(gen, blockTags));
-            gen.addProvider(new Recipes(gen));
-            gen.addProvider(new Loot(gen));
-        }
+        var blockTags = new BlockTags(gen, event.getExistingFileHelper());
+        gen.addProvider(event.includeServer(), blockTags);
+        //gen.addProvider(new ItemTags(gen, blockTags));
+        gen.addProvider(event.includeServer(), new Recipes(gen));
+        gen.addProvider(event.includeServer(), new Loot(gen));
     }
 
     public static class Lang extends LanguageProvider
@@ -77,6 +73,7 @@ public class SewingKitDataGen
         {
             add("itemGroup.sewing_kit", "Sewing Kit");
             add("container.sewingkit.sewing_station", "Sewing Station");
+            add("container.sewingkit.storing_sewing_station", "Sewing Station with Drawers");
             add("jei.category.sewingkit.sewing", "Sewing");
 
             add(SewingKitMod.LEATHER_STRIP.get(), "Leather Strip");
@@ -164,33 +161,33 @@ public class SewingKitDataGen
 
             basicIcon(SewingKitMod.FILE.getId())
                     .transforms()
-                    .transform(ModelBuilder.Perspective.THIRDPERSON_RIGHT)
+                    .transform(ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND)
                     .rotation(62, 180 - 33, 40)
                     .translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
                     .end()
-                    .transform(ModelBuilder.Perspective.THIRDPERSON_LEFT)
+                    .transform(ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND)
                     .rotation(45, -33, -55)
                     .translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
                     .end()
-                    .transform(ModelBuilder.Perspective.FIRSTPERSON_RIGHT)
+                    .transform(ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND)
                     .rotation(-54, 99, 136)
                     .translation(1.13f, 5f, 1.13f)
                     .scale(0.68f)
                     .end()
-                    .transform(ModelBuilder.Perspective.FIRSTPERSON_LEFT)
+                    .transform(ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND)
                     .rotation(136, -99, 54)
                     .translation(1.13f, 5f, 1.13f)
                     .scale(0.68f)
                     .end()
-                    .transform(ModelBuilder.Perspective.GROUND)
+                    .transform(ItemTransforms.TransformType.GROUND)
                     .translation(0, 2, 0)
                     .scale(0.5f)
                     .end()
-                    .transform(ModelBuilder.Perspective.HEAD)
+                    .transform(ItemTransforms.TransformType.HEAD)
                     .rotation(-4, 44, 4)
                     .translation(-7.25f, 6.75f, 0.75f)
                     .end()
-                    .transform(ModelBuilder.Perspective.FIXED)
+                    .transform(ItemTransforms.TransformType.FIXED)
                     .rotation(0, 180, 0)
                     .end()
                     .end();
@@ -312,8 +309,8 @@ public class SewingKitDataGen
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_ROLL.get(), 1)
                     .withTool(Tags.Items.SHEARS)
-                    .addMaterial(ItemTags.CARPETS)
-                    .addCriterion("has_wool", has(ItemTags.CARPETS))
+                    .addMaterial(ItemTags.WOOL_CARPETS)
+                    .addCriterion("has_wool", has(ItemTags.WOOL_CARPETS))
                     .build(consumer, SewingKitMod.location("wool_roll_from_carpet"));
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_TRIM.get(), 8)
@@ -324,8 +321,8 @@ public class SewingKitDataGen
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_TRIM.get(), 3)
                     .withTool(Tags.Items.SHEARS)
-                    .addMaterial(ItemTags.CARPETS)
-                    .addCriterion("has_wool", has(ItemTags.CARPETS))
+                    .addMaterial(ItemTags.WOOL_CARPETS)
+                    .addCriterion("has_wool", has(ItemTags.WOOL_CARPETS))
                     .build(consumer, SewingKitMod.location("wool_trim_from_carpet"));
 
             SewingRecipeBuilder.begin(SewingKitMod.WOOL_SHOES.get())
@@ -412,8 +409,9 @@ public class SewingKitDataGen
             @Override
             protected Iterable<Block> getKnownBlocks()
             {
-                return ForgeRegistries.BLOCKS.getValues().stream()
-                        .filter(b -> b.getRegistryName().getNamespace().equals(SewingKitMod.MODID))
+                return ForgeRegistries.BLOCKS.getEntries().stream()
+                        .filter(e -> e.getKey().location().getNamespace().equals(SewingKitMod.MODID))
+                        .map(Map.Entry::getValue)
                         .collect(Collectors.toList());
             }
         }
@@ -429,7 +427,9 @@ public class SewingKitDataGen
         @Override
         protected void addTags()
         {
-            //this.tag(NeedleItem.BREAKABLE_NEEDLE).add(Blocks.COBWEB);
+            tag(net.minecraft.tags.BlockTags.MINEABLE_WITH_AXE)
+                    .add(SewingKitMod.SEWING_STATION_BLOCK.get())
+                    .add(SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
         }
     }
 }
