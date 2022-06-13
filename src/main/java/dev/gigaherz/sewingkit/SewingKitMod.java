@@ -11,6 +11,7 @@ import dev.gigaherz.sewingkit.needle.Needles;
 import dev.gigaherz.sewingkit.patterns.PatternItem;
 import dev.gigaherz.sewingkit.table.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.Registry;
@@ -58,6 +59,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Mod(SewingKitMod.MODID)
 public class SewingKitMod
@@ -190,14 +192,22 @@ public class SewingKitMod
     );
 
     public static final RegistryObject<PoiType> TABLE_POI = POI_TYPES.register("tailor",
-            () -> new PoiType(ImmutableSet.copyOf(SEWING_STATION_BLOCK.get().getStateDefinition().getPossibleStates()), 1, 1)
+            () -> new PoiType(Stream.concat(
+                    SEWING_STATION_BLOCK.get().getStateDefinition().getPossibleStates().stream(),
+                    STORING_SEWING_STATION_BLOCK.get().getStateDefinition().getPossibleStates().stream()
+            ).collect(Collectors.toUnmodifiableSet()), 1, 1)
     );
 
     @SuppressWarnings("UnstableApiUsage")
     public static final RegistryObject<VillagerProfession> TAILOR = PROFESSIONS.register("tailor",
-            () -> new VillagerProfession("tailor", holder -> holder.is(TABLE_POI.getKey()), holder -> holder.is(TABLE_POI.getKey()),
-                    Arrays.stream(Needles.values()).map(Needles::getNeedle).collect(ImmutableSet.toImmutableSet()),
-                    ImmutableSet.of(), null)
+            () -> {
+                var key = TABLE_POI.getKey();
+                return new VillagerProfession("tailor",
+                        holder -> holder.is(key),
+                        holder -> holder.is(key),
+                        Arrays.stream(Needles.values()).map(Needles::getNeedle).collect(ImmutableSet.toImmutableSet()),
+                        ImmutableSet.of(), null);
+            }
     );
 
     public static final RegistryObject<RecipeType<SewingRecipe>> SEWING = RECIPE_TYPES.register("sewing", () -> new RecipeType<>()
@@ -228,6 +238,8 @@ public class SewingKitMod
         RECIPE_SERIALIZERS.register(modBus);
         MENU_TYPES.register(modBus);
         RECIPE_TYPES.register(modBus);
+
+        Minecraft.getInstance().getMainRenderTarget().enableStencil();
 
         MinecraftForge.EVENT_BUS.addListener(this::villagerTrades);
     }

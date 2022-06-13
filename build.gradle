@@ -20,7 +20,7 @@ repositories {
     }
 }
 
-version = '1.6.0'
+version = '1.6.1'
 group = 'dev.gigaherz.sewingkit' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'SewingKit-UNKNOWN'
 
@@ -93,7 +93,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19-41.0.1'
+    minecraft 'net.minecraftforge:forge:1.19-41.0.16'
 
     //compileOnly fg.deobf("mezz.jei:jei-1.18.2:9.5.5.174:api")
     //runtimeOnly fg.deobf("mezz.jei:jei-1.18.2:9.5.5.174")
