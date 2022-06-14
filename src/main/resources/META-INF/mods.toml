@@ -1,6 +1,7 @@
 modLoader="javafml"
 loaderVersion="[38,)"
 license="BSD (3 clause)"
+issueTrackerURL="https://github.com/gigaherz/SewingKit/issues"
 
 [[mods]]
     modId="sewingkit"
@@ -14,7 +15,6 @@ Sewing Kit is a base mod for anything that wants to add sewing features, such as
     authors="gigaherz"
     #updateJSONURL="http://myurl.me/"
     displayURL="https://github.com/gigaherz/SewingKit"
-    issueTrackerURL="https://github.com/gigaherz/SewingKit/issues"
 
 [[dependencies.sewingkit]]
     modId="forge"

@@ -16,6 +16,7 @@ import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Tiers;
@@ -429,7 +430,9 @@ public class SewingKitDataGen
         @Override
         protected void addTags()
         {
-            //this.tag(NeedleItem.BREAKABLE_NEEDLE).add(Blocks.COBWEB);
+            tag(net.minecraft.tags.BlockTags.MINEABLE_WITH_AXE)
+                    .add(SewingKitMod.SEWING_STATION_BLOCK.get())
+                    .add(SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
         }
     }
 }
