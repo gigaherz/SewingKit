@@ -1,5 +1,6 @@
 package dev.gigaherz.sewingkit.integration;
-/*
+
+import com.google.common.collect.ImmutableList;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import mezz.jei.api.IModPlugin;
@@ -28,7 +29,7 @@ public class JEIPlugin implements IModPlugin
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration)
     {
-        registration.addRecipeCatalyst(new ItemStack(SewingKitMod.SEWING_STATION_BLOCK.get()), SewingCategory.UID);
+        registration.addRecipeCatalyst(new ItemStack(SewingKitMod.SEWING_STATION_BLOCK.get()), SewingCategory.SEWING);
     }
 
     @Override
@@ -41,6 +42,6 @@ public class JEIPlugin implements IModPlugin
     public void registerRecipes(IRecipeRegistration registration)
     {
         ClientLevel world = Objects.requireNonNull(Minecraft.getInstance().level);
-        registration.addRecipes(SewingRecipe.getAllRecipes(world), SewingCategory.UID);
+        registration.addRecipes(SewingCategory.SEWING, ImmutableList.copyOf(SewingRecipe.getAllRecipes(world)));
     }
-}*/
+}

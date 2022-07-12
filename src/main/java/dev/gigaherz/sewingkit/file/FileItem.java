@@ -10,6 +10,7 @@ public class FileItem extends Item
         super(properties);
     }
 
+    @Deprecated
     @Override
     public boolean hasCraftingRemainingItem()
     {
@@ -17,13 +18,13 @@ public class FileItem extends Item
     }
 
     @Override
-    public boolean hasContainerItem(ItemStack stack)
+    public boolean hasCraftingRemainingItem(ItemStack stack)
     {
         return stack.getDamageValue() < stack.getMaxDamage();
     }
 
     @Override
-    public ItemStack getContainerItem(ItemStack itemStack)
+    public ItemStack getCraftingRemainingItem(ItemStack itemStack)
     {
         if (itemStack.getDamageValue() < itemStack.getMaxDamage())
         {

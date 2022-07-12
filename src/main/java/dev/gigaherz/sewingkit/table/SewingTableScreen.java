@@ -24,7 +24,7 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.MinecraftForgeClient;
+import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -41,15 +41,16 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
     private static SewingRecipe recipeContext;
 
     @SubscribeEvent
+    public static void register(RegisterClientTooltipComponentFactoriesEvent event)
+    {
+        event.register(RecipeTooltipComponent.class, ClientRecipeTooltipComponent::new);
+    }
+
+    @SubscribeEvent
     public static void gatherComponents(RenderTooltipEvent.GatherComponents event)
     {
         if (recipeContext != null)
             event.getTooltipElements().add(Either.right(new RecipeTooltipComponent(recipeContext)));
-    }
-
-    public static void register()
-    {
-        MinecraftForgeClient.registerTooltipComponentFactory(RecipeTooltipComponent.class, ClientRecipeTooltipComponent::new);
     }
 
     private float sliderProgress;

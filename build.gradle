@@ -18,9 +18,18 @@ repositories {
     maven {
         url "https://dvs1.progwml6.com/files/maven/"
     }
+    maven { // CURIOS
+        url "https://maven.theillusivec4.top/"
+    }
+    maven {
+        url "https://cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
 }
 
-version = '1.6.1'
+version = '1.6.5'
 group = 'dev.gigaherz.sewingkit' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'SewingKit-UNKNOWN'
 
@@ -49,6 +58,9 @@ minecraft {
             property 'forge.logging.markers', ''
             property 'forge.logging.console.level', 'debug'
 
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+
             forceExit false
 
             mods {
@@ -63,6 +75,9 @@ minecraft {
 
             property 'forge.logging.markers', ''
             property 'forge.logging.console.level', 'debug'
+
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
 
             forceExit false
 
@@ -79,6 +94,9 @@ minecraft {
             property 'forge.logging.markers', ''
             property 'forge.logging.console.level', 'debug'
 
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+
             args '--mod', 'sewingkit', '--all', '--output', file('src/main/generated_resources/'), '--existing', file('src/main/resources/')
 
             forceExit false
@@ -93,10 +111,17 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19-41.0.16'
+    minecraft 'net.minecraftforge:forge:1.19-41.0.94'
 
-    //compileOnly fg.deobf("mezz.jei:jei-1.18.2:9.5.5.174:api")
-    //runtimeOnly fg.deobf("mezz.jei:jei-1.18.2:9.5.5.174")
+    compileOnly fg.deobf("mezz.jei:jei-1.19-common-api:11.0.0.206")
+    runtimeOnly fg.deobf("mezz.jei:jei-1.19-common:11.0.0.206")
+    compileOnly fg.deobf("mezz.jei:jei-1.19-forge-api:11.0.0.206")
+    runtimeOnly fg.deobf("mezz.jei:jei-1.19-forge:11.0.0.206")
+
+    //compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19-5.1.0.4")
+    runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19-5.1.0.4")
+
+    runtimeOnly fg.deobf("curse.maven:cosmetic-armor-reworked-237307:3822500")
 }
 
 jar {
@@ -123,16 +148,18 @@ tasks.withType(GenerateModuleMetadata) {
 }
 
 project.afterEvaluate {
-    publish.dependsOn('reobfJar')
+    publish.dependsOn('build')
     publishing {
         publications {
             mavenJava(MavenPublication) {
                 artifactId project.archivesBaseName
                 from components.java
 
+                //artifact sourceJar
+
                 pom.withXml {
                     asNode().dependencies.dependency.each { dep ->
-                        if (dep.groupId.last().value().last() in ["net.minecraftforge", "mezz.jei"]) {
+                        if (!(dep.groupId.last().value().last() in [])) {
                             assert dep.parent().remove(dep)
                         }
                     }
@@ -141,8 +168,21 @@ project.afterEvaluate {
         }
 
         repositories {
-            maven {
-                url "$projectDir/../CommonMaven"
+            if (findProperty("RELEASE") && System.env.giga_maven_host != null) {
+                System.out.println("Remote publish enabled on " + System.env.giga_maven_host)
+                maven {
+                    url System.env.giga_maven_host
+                    credentials {
+                        username System.env.giga_maven_user
+                        password System.env.giga_maven_password
+                    }
+                }
+            }
+            else {
+                System.out.println("Remote publish disabled.")
+                maven {
+                    url "$projectDir/../CommonMaven"
+                }
             }
         }
     }

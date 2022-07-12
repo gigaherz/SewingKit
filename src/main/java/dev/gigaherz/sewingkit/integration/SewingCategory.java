@@ -1,5 +1,5 @@
 package dev.gigaherz.sewingkit.integration;
-/*
+
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import mezz.jei.api.constants.VanillaTypes;
@@ -11,7 +11,6 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
@@ -36,24 +35,7 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     {
         INSTANCE = this;
         background = guiHelper.createDrawable(GUI_TEXTURE_LOCATION, 6, 12, 159, 61);
-        icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM, new ItemStack(SewingKitMod.SEWING_STATION_BLOCK.get()));
-    }
-
-    @SuppressWarnings("removal")
-    @Deprecated
-    @Nonnull
-    @Override
-    public ResourceLocation getUid()
-    {
-        return UID;
-    }
-
-    @SuppressWarnings("removal")
-    @Deprecated
-    @Override
-    public Class<? extends SewingRecipe> getRecipeClass()
-    {
-        return SewingRecipe.class;
+        icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(SewingKitMod.SEWING_STATION_BLOCK.get()));
     }
 
     @Override
@@ -66,7 +48,7 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     @Override
     public Component getTitle()
     {
-        return new TranslatableComponent("jei.category.sewingkit.sewing");
+        return Component.translatable("jei.category.sewingkit.sewing");
     }
 
     @Nonnull
@@ -138,4 +120,4 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
             53 - 12,
             33 - 12
     };
-}*/
+}

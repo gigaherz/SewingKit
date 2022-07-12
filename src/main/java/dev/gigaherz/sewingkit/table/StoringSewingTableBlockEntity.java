@@ -29,7 +29,7 @@ public class StoringSewingTableBlockEntity extends BlockEntity implements Invent
 
     public StoringSewingTableBlockEntity(BlockPos pos, BlockState state)
     {
-        super(SewingKitMod.STORING_SEWING_STATION_BLOCK_ENTITY.get(), pos, state);
+        this(SewingKitMod.STORING_SEWING_STATION_BLOCK_ENTITY.get(), pos, state);
     }
 
     public IItemHandlerModifiable getInventory()

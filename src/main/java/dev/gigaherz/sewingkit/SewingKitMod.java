@@ -36,20 +36,18 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.Material;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.ColorHandlerEvent;
-import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.*;
 import net.minecraftforge.common.crafting.CraftingHelper;
+import net.minecraftforge.data.event.GatherDataEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLConstructModEvent;
-import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.forge.event.lifecycle.GatherDataEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -58,6 +56,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -84,12 +83,12 @@ public class SewingKitMod
 
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
-    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITIES, MODID);
+    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
     private static final DeferredRegister<PoiType> POI_TYPES = DeferredRegister.create(ForgeRegistries.POI_TYPES, MODID);
-    private static final DeferredRegister<VillagerProfession> PROFESSIONS = DeferredRegister.create(ForgeRegistries.PROFESSIONS, MODID);
+    private static final DeferredRegister<VillagerProfession> PROFESSIONS = DeferredRegister.create(ForgeRegistries.VILLAGER_PROFESSIONS, MODID);
     private static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, MODID);
     private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, MODID);
-    private static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.CONTAINERS, MODID);
+    private static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
 
     public static final RegistryObject<Item> LEATHER_STRIP = ITEMS.register("leather_strip",
             () -> new Item(new Item.Properties().stacksTo(64).tab(SEWING_KIT))
@@ -198,10 +197,9 @@ public class SewingKitMod
             ).collect(Collectors.toUnmodifiableSet()), 1, 1)
     );
 
-    @SuppressWarnings("UnstableApiUsage")
     public static final RegistryObject<VillagerProfession> TAILOR = PROFESSIONS.register("tailor",
             () -> {
-                var key = TABLE_POI.getKey();
+                var key = Objects.requireNonNull(TABLE_POI.getKey());
                 return new VillagerProfession("tailor",
                         holder -> holder.is(key),
                         holder -> holder.is(key),
@@ -227,7 +225,6 @@ public class SewingKitMod
     {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(this::construct);
-        modBus.addListener(this::processIMC);
         modBus.addListener(this::gatherData);
 
         ITEMS.register(modBus);
@@ -239,8 +236,6 @@ public class SewingKitMod
         MENU_TYPES.register(modBus);
         RECIPE_TYPES.register(modBus);
 
-        Minecraft.getInstance().getMainRenderTarget().enableStencil();
-
         MinecraftForge.EVENT_BUS.addListener(this::villagerTrades);
     }
 
@@ -249,14 +244,6 @@ public class SewingKitMod
         event.enqueueWork(() -> {
             CraftingHelper.register(ToolActionIngredient.NAME, ToolActionIngredient.Serializer.INSTANCE);
         });
-    }
-
-    private void processIMC(final InterModProcessEvent event)
-    {
-        // some example code to receive and process InterModComms from other mods
-        LOGGER.info("Got IMC {}", event.getIMCStream().
-                map(m -> m.getMessageSupplier().get()).
-                collect(Collectors.toList()));
     }
 
     private void villagerTrades(VillagerTradesEvent event)
@@ -384,7 +371,6 @@ public class SewingKitMod
             event.enqueueWork(() -> {
                 MenuScreens.register(SEWING_STATION_MENU.get(), SewingTableScreen::new);
             });
-            SewingTableScreen.register();
         }
 
         @SubscribeEvent
@@ -399,14 +385,9 @@ public class SewingKitMod
         }
 
         @SubscribeEvent
-        public static void modelRegistry(final ModelRegistryEvent event)
+        public static void itemColors(final RegisterColorHandlersEvent.Item event)
         {
-        }
-
-        @SubscribeEvent
-        public static void itemColors(final ColorHandlerEvent.Item event)
-        {
-            event.getItemColors().register(
+            event.register(
                     (stack, color) -> color > 0 ? -1 : ((DyeableLeatherItem) stack.getItem()).getColor(stack),
                     WOOL_HAT.get(), WOOL_SHIRT.get(), WOOL_PANTS.get(), WOOL_SHOES.get());
         }
