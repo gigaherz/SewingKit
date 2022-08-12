@@ -16,6 +16,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,7 +51,19 @@ public class ToolActionIngredient extends Ingredient
 
         private boolean checkTier(ItemStack stack)
         {
-            return toolLevel == null || (stack.getItem() instanceof TieredItem tieredItem) && TierSortingRegistry.getTiersLowerThan(tieredItem.getTier()).contains(toolLevel);
+            if (toolLevel == null)
+            {
+                return true;
+            }
+
+            if (stack.getItem() instanceof TieredItem tieredItem)
+            {
+                var tier = tieredItem.getTier();
+                if (toolLevel == tier) return true;
+                return TierSortingRegistry.getTiersLowerThan(tier).contains(toolLevel);
+            }
+
+            return false;
         }
 
         @Override

@@ -40,10 +40,14 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
 
     private static SewingRecipe recipeContext;
 
-    @SubscribeEvent
-    public static void register(RegisterClientTooltipComponentFactoriesEvent event)
+    @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = SewingKitMod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+    public class ModBusEvent
     {
-        event.register(RecipeTooltipComponent.class, ClientRecipeTooltipComponent::new);
+        @SubscribeEvent
+        public static void register(RegisterClientTooltipComponentFactoriesEvent event)
+        {
+            event.register(RecipeTooltipComponent.class, ClientRecipeTooltipComponent::new);
+        }
     }
 
     @SubscribeEvent

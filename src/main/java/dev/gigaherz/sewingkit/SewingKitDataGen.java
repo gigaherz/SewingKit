@@ -19,9 +19,7 @@ import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.level.block.Block;
@@ -30,7 +28,10 @@ import net.minecraft.world.level.storage.loot.LootTables;
 import net.minecraft.world.level.storage.loot.ValidationContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
-import net.minecraftforge.client.model.generators.*;
+import net.minecraftforge.client.model.generators.BlockStateProvider;
+import net.minecraftforge.client.model.generators.ItemModelBuilder;
+import net.minecraftforge.client.model.generators.ItemModelProvider;
+import net.minecraftforge.client.model.generators.ModelFile;
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.data.ExistingFileHelper;
 import net.minecraftforge.common.data.LanguageProvider;
@@ -47,20 +48,6 @@ import java.util.stream.Collectors;
 
 public class SewingKitDataGen
 {
-    private static final Codec<String> BIOME_OR_TAG = Codec.either(
-            ResourceLocation.CODEC,
-            ResourceLocation.CODEC
-    ).xmap(
-            fromEither -> fromEither.map(
-                    ResourceLocation::toString,
-                    rl -> "#" + rl.toString()
-            ),
-            fromString -> fromString.startsWith("#")
-                    ? Either.right(new ResourceLocation(fromString.substring(1)))
-                    : Either.left(new ResourceLocation(fromString))
-    );
-
-
     public static void gatherData(GatherDataEvent event)
     {
         DataGenerator gen = event.getGenerator();
