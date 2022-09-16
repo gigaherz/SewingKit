@@ -1,0 +1,7 @@
+{
+  "processors": [
+    {
+      "processor_type": "sewingkit:tailor_shop_processor"
+    }
+  ]
+}

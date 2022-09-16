@@ -5,12 +5,14 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Codec;
 import dev.gigaherz.sewingkit.api.SewingRecipeBuilder;
+import dev.gigaherz.sewingkit.loot.RandomDye;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
 import dev.gigaherz.sewingkit.needle.Needles;
 import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.loot.BlockLoot;
+import net.minecraft.data.loot.ChestLoot;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.data.models.model.ModelLocationUtils;
 import net.minecraft.data.recipes.FinishedRecipe;
@@ -20,14 +22,24 @@ import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.tags.BlockTagsProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.util.valueproviders.UniformFloat;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.LootTables;
 import net.minecraft.world.level.storage.loot.ValidationContext;
+import net.minecraft.world.level.storage.loot.entries.EmptyLootItem;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.functions.EnchantRandomlyFunction;
+import net.minecraft.world.level.storage.loot.functions.LootItemConditionalFunction;
+import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import net.minecraftforge.client.model.generators.BlockStateProvider;
 import net.minecraftforge.client.model.generators.ItemModelBuilder;
 import net.minecraftforge.client.model.generators.ItemModelProvider;
@@ -380,9 +392,9 @@ public class SewingKitDataGen
         }
 
         private final List<Pair<Supplier<Consumer<BiConsumer<ResourceLocation, LootTable.Builder>>>, LootContextParamSet>> tables = ImmutableList.of(
-                Pair.of(Loot.BlockTables::new, LootContextParamSets.BLOCK)
+                Pair.of(Loot.BlockTables::new, LootContextParamSets.BLOCK),
+                Pair.of(Loot.ChestTables::new, LootContextParamSets.CHEST)
                 //Pair.of(FishingLootTables::new, LootParameterSets.FISHING),
-                //Pair.of(ChestLootTables::new, LootParameterSets.CHEST),
                 //Pair.of(EntityLootTables::new, LootParameterSets.ENTITY),
                 //Pair.of(GiftLootTables::new, LootParameterSets.GIFT)
         );
@@ -417,6 +429,44 @@ public class SewingKitDataGen
                         .filter(e -> e.getKey().location().getNamespace().equals(SewingKitMod.MODID))
                         .map(Map.Entry::getValue)
                         .collect(Collectors.toList());
+            }
+        }
+
+        public static class ChestTables extends ChestLoot
+        {
+            @Override
+            public void accept(BiConsumer<ResourceLocation, LootTable.Builder> consumer)
+            {
+                consumer.accept(SewingKitMod.location("chest/tailor_shop_upper_floor"), LootTable.lootTable()
+                        // armor
+                        .withPool(LootPool.lootPool().setRolls(UniformGenerator.between(0,2))
+                                .add(LootItem.lootTableItem(SewingKitMod.WOOL_HAT.get()).setWeight(1).apply(RandomDye.builder()))
+                                .add(LootItem.lootTableItem(SewingKitMod.WOOL_SHIRT.get()).setWeight(1).apply(RandomDye.builder()))
+                                .add(LootItem.lootTableItem(SewingKitMod.WOOL_PANTS.get()).setWeight(1).apply(RandomDye.builder()))
+                                .add(LootItem.lootTableItem(SewingKitMod.WOOL_SHOES.get()).setWeight(1).apply(RandomDye.builder()))
+                                .add(LootItem.lootTableItem(Items.LEATHER_HELMET).setWeight(1).apply(RandomDye.builder()))
+                                .add(LootItem.lootTableItem(Items.LEATHER_CHESTPLATE).setWeight(1).apply(RandomDye.builder()))
+                                .add(LootItem.lootTableItem(Items.LEATHER_LEGGINGS).setWeight(1).apply(RandomDye.builder()))
+                                .add(LootItem.lootTableItem(Items.LEATHER_BOOTS).setWeight(1).apply(RandomDye.builder()))
+                        )
+                        // needle
+                        .withPool(LootPool.lootPool().setRolls(UniformGenerator.between(0, 1))
+                                .add(LootItem.lootTableItem(SewingKitMod.WOOD_SEWING_NEEDLE.get()).setWeight(100))
+                                .add(LootItem.lootTableItem(SewingKitMod.BONE_SEWING_NEEDLE.get()).setWeight(50))
+                                .add(LootItem.lootTableItem(SewingKitMod.IRON_SEWING_NEEDLE.get()).setWeight(20))
+                                .add(LootItem.lootTableItem(SewingKitMod.DIAMOND_SEWING_NEEDLE.get()).setWeight(5))
+                                .add(LootItem.lootTableItem(SewingKitMod.NETHERITE_SEWING_NEEDLE.get()).setWeight(1))
+                                .add(LootItem.lootTableItem(SewingKitMod.GOLD_SEWING_NEEDLE.get()).setWeight(1))
+                        )
+                        // materials
+                        .withPool(LootPool.lootPool().setRolls(UniformGenerator.between(2, 5))
+                                .add(LootItem.lootTableItem(SewingKitMod.WOOL_ROLL.get()).setWeight(1).apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 3.0F))))
+                                .add(LootItem.lootTableItem(SewingKitMod.WOOL_TRIM.get()).setWeight(5).apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 5.0F))))
+                                .add(LootItem.lootTableItem(SewingKitMod.LEATHER_SHEET.get()).setWeight(1).apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 3.0F))))
+                                .add(LootItem.lootTableItem(SewingKitMod.LEATHER_STRIP.get()).setWeight(5).apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 5.0F))))
+                                .add(LootItem.lootTableItem(Items.STRING).setWeight(5).apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 16.0F))))
+                        )
+                );
             }
         }
     }

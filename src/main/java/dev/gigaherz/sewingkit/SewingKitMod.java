@@ -1,20 +1,24 @@
 package dev.gigaherz.sewingkit;
 
 import com.google.common.collect.ImmutableSet;
+import com.mojang.datafixers.util.Pair;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import dev.gigaherz.sewingkit.api.ToolActionIngredient;
 import dev.gigaherz.sewingkit.clothing.ClothArmorItem;
 import dev.gigaherz.sewingkit.clothing.ClothArmorMaterial;
 import dev.gigaherz.sewingkit.file.FileItem;
+import dev.gigaherz.sewingkit.loot.RandomDye;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
 import dev.gigaherz.sewingkit.needle.Needles;
 import dev.gigaherz.sewingkit.patterns.PatternItem;
+import dev.gigaherz.sewingkit.structure.TailorShopProcessor;
 import dev.gigaherz.sewingkit.table.*;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
@@ -34,13 +38,20 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
+import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.*;
 import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.data.event.GatherDataEvent;
+import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -54,6 +65,7 @@ import net.minecraftforge.registries.RegistryObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -89,6 +101,8 @@ public class SewingKitMod
     private static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(ForgeRegistries.RECIPE_TYPES, MODID);
     private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(ForgeRegistries.RECIPE_SERIALIZERS, MODID);
     private static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
+    private static final DeferredRegister<StructureProcessorType<?>> STRUCTURE_PROCESSORS = DeferredRegister.create(Registry.STRUCTURE_PROCESSOR_REGISTRY, MODID);
+    private static final DeferredRegister<LootItemFunctionType> LOOT_FUNCTIONS = DeferredRegister.create(Registry.LOOT_FUNCTION_REGISTRY, MODID);
 
     public static final RegistryObject<Item> LEATHER_STRIP = ITEMS.register("leather_strip",
             () -> new Item(new Item.Properties().stacksTo(64).tab(SEWING_KIT))
@@ -221,6 +235,15 @@ public class SewingKitMod
 
     public static final RegistryObject<MenuType<SewingTableMenu>> SEWING_STATION_MENU = MENU_TYPES.register("sewing_station", () -> new MenuType<>(SewingTableMenu::new));
 
+    public static final RegistryObject<LootItemFunctionType> RANDOM_DYE =
+            LOOT_FUNCTIONS.register("random_dye", () -> new LootItemFunctionType(new RandomDye.Serializer()));
+
+    public static final RegistryObject<StructureProcessorType<TailorShopProcessor>> TAILOR_SHOP_PROCESSOR =
+            STRUCTURE_PROCESSORS.register("tailor_shop_processor", () -> TailorShopProcessor::codec);
+
+    private static final ResourceKey<StructureProcessorList> TAILOR_SHOP_PROCESSOR_LIST_KEY = ResourceKey.create(
+            Registry.PROCESSOR_LIST_REGISTRY, location("tailor_shop_processors"));
+
     public SewingKitMod()
     {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -235,8 +258,11 @@ public class SewingKitMod
         RECIPE_SERIALIZERS.register(modBus);
         MENU_TYPES.register(modBus);
         RECIPE_TYPES.register(modBus);
+        LOOT_FUNCTIONS.register(modBus);
+        STRUCTURE_PROCESSORS.register(modBus);
 
         MinecraftForge.EVENT_BUS.addListener(this::villagerTrades);
+        MinecraftForge.EVENT_BUS.addListener(this::addBuildingToVillages);
     }
 
     private void construct(FMLConstructModEvent event)
@@ -244,6 +270,57 @@ public class SewingKitMod
         event.enqueueWork(() -> {
             CraftingHelper.register(ToolActionIngredient.NAME, ToolActionIngredient.Serializer.INSTANCE);
         });
+    }
+
+    public void addBuildingToVillages(final ServerAboutToStartEvent event) {
+        Registry<StructureTemplatePool> templatePoolRegistry = event.getServer().registryAccess().registry(Registry.TEMPLATE_POOL_REGISTRY).orElseThrow();
+        Registry<StructureProcessorList> processorListRegistry = event.getServer().registryAccess().registry(Registry.PROCESSOR_LIST_REGISTRY).orElseThrow();
+
+        // Adds our piece to all village houses pool
+        // Note, the resourcelocation is getting the pool files from the data folder. Not assets folder.
+        addBuildingToPool(templatePoolRegistry, processorListRegistry,
+                new ResourceLocation("minecraft:village/plains/houses"),
+                "sewingkit:tailor_shop", 5);
+
+        addBuildingToPool(templatePoolRegistry, processorListRegistry,
+                new ResourceLocation("minecraft:village/snowy/houses"),
+                "sewingkit:tailor_shop", 5);
+
+        addBuildingToPool(templatePoolRegistry, processorListRegistry,
+                new ResourceLocation("minecraft:village/savanna/houses"),
+                "sewingkit:tailor_shop", 5);
+
+        addBuildingToPool(templatePoolRegistry, processorListRegistry,
+                new ResourceLocation("minecraft:village/taiga/houses"),
+                "sewingkit:tailor_shop", 5);
+
+        addBuildingToPool(templatePoolRegistry, processorListRegistry,
+                new ResourceLocation("minecraft:village/desert/houses"),
+                "sewingkit:tailor_shop", 5);
+    }
+
+    private static void addBuildingToPool(Registry<StructureTemplatePool> templatePoolRegistry,
+                                          Registry<StructureProcessorList> processorListRegistry,
+                                          ResourceLocation poolRL,
+                                          String nbtPieceRL,
+                                          int weight)
+    {
+        Holder<StructureProcessorList> emptyProcessorList = processorListRegistry.getHolderOrThrow(TAILOR_SHOP_PROCESSOR_LIST_KEY);
+
+        StructureTemplatePool pool = templatePoolRegistry.get(poolRL);
+        if (pool == null) return;
+
+        SinglePoolElement piece = SinglePoolElement.single(nbtPieceRL, emptyProcessorList).apply(StructureTemplatePool.Projection.RIGID);
+
+        for (int i = 0; i < weight; i++)
+        {
+            pool.templates.add(piece);
+        }
+
+        // for completeness
+        List<Pair<StructurePoolElement, Integer>> listOfPieceEntries = new ArrayList<>(pool.rawTemplates);
+        listOfPieceEntries.add(new Pair<>(piece, weight));
+        pool.rawTemplates = listOfPieceEntries;
     }
 
     private void villagerTrades(VillagerTradesEvent event)

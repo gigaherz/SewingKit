@@ -47,7 +47,7 @@ sourceSets {
 
 minecraft {
     //mappings channel: 'parchment', version: '2022.03.13-1.18.2'
-    mappings channel: 'official', version: '1.19.1'
+    mappings channel: 'official', version: '1.19.2'
 
     accessTransformer(file("src/main/resources/META-INF/accesstransformer.cfg"))
 
@@ -111,7 +111,7 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19.2-43.0.2'
+    minecraft 'net.minecraftforge:forge:1.19.2-43.1.25'
 
     compileOnly fg.deobf("mezz.jei:jei-1.19.1-common-api:11.2.0.244")
     runtimeOnly fg.deobf("mezz.jei:jei-1.19.1-common:11.2.0.244")

@@ -1,0 +1,213 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "sewingkit:random_dye"
+            }
+          ],
+          "name": "sewingkit:wool_hat"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "sewingkit:random_dye"
+            }
+          ],
+          "name": "sewingkit:wool_shirt"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "sewingkit:random_dye"
+            }
+          ],
+          "name": "sewingkit:wool_pants"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "sewingkit:random_dye"
+            }
+          ],
+          "name": "sewingkit:wool_shoes"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "sewingkit:random_dye"
+            }
+          ],
+          "name": "minecraft:leather_helmet"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "sewingkit:random_dye"
+            }
+          ],
+          "name": "minecraft:leather_chestplate"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "sewingkit:random_dye"
+            }
+          ],
+          "name": "minecraft:leather_leggings"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "sewingkit:random_dye"
+            }
+          ],
+          "name": "minecraft:leather_boots"
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "max": 2.0,
+        "min": 0.0
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "sewingkit:wood_sewing_needle",
+          "weight": 100
+        },
+        {
+          "type": "minecraft:item",
+          "name": "sewingkit:bone_sewing_needle",
+          "weight": 50
+        },
+        {
+          "type": "minecraft:item",
+          "name": "sewingkit:iron_sewing_needle",
+          "weight": 20
+        },
+        {
+          "type": "minecraft:item",
+          "name": "sewingkit:diamond_sewing_needle",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "sewingkit:netherite_sewing_needle"
+        },
+        {
+          "type": "minecraft:item",
+          "name": "sewingkit:gold_sewing_needle"
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "max": 1.0,
+        "min": 0.0
+      }
+    },
+    {
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 3.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "sewingkit:wool_roll"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 5.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "sewingkit:wool_trim",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 3.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "sewingkit:leather_sheet"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 5.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "sewingkit:leather_strip",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 16.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "minecraft:string",
+          "weight": 5
+        }
+      ],
+      "rolls": {
+        "type": "minecraft:uniform",
+        "max": 5.0,
+        "min": 2.0
+      }
+    }
+  ]
+}
