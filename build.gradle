@@ -29,7 +29,7 @@ repositories {
     }
 }
 
-version = '1.6.9'
+version = '1.7.0'
 group = 'dev.gigaherz.sewingkit' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'SewingKit-UNKNOWN'
 
