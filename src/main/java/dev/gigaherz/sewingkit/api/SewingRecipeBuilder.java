@@ -1,6 +1,7 @@
 package dev.gigaherz.sewingkit.api;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
@@ -11,7 +12,10 @@ import net.minecraft.advancements.CriterionTriggerInstance;
 import net.minecraft.advancements.RequirementsStrategy;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -21,13 +25,16 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraftforge.common.ToolAction;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class SewingRecipeBuilder
 {
+    private final RecipeCategory category;
     private String group;
     private Ingredient tool;
     private Ingredient pattern;
@@ -37,28 +44,29 @@ public class SewingRecipeBuilder
     private CompoundTag tag;
     private final Advancement.Builder advancementBuilder = Advancement.Builder.advancement();
 
-    public static SewingRecipeBuilder begin(Item result)
+    public static SewingRecipeBuilder begin(RecipeCategory cat, Item result)
     {
-        return begin(result, 1, null);
+        return begin(cat, result, 1, null);
     }
 
-    public static SewingRecipeBuilder begin(Item result, int count)
+    public static SewingRecipeBuilder begin(RecipeCategory cat, Item result, int count)
     {
-        return begin(result, count, null);
+        return begin(cat, result, count, null);
     }
 
-    public static SewingRecipeBuilder begin(Item result, CompoundTag tag)
+    public static SewingRecipeBuilder begin(RecipeCategory cat, Item result, CompoundTag tag)
     {
-        return begin(result, 1, tag);
+        return begin(cat, result, 1, tag);
     }
 
-    public static SewingRecipeBuilder begin(Item result, int count, @Nullable CompoundTag tag)
+    public static SewingRecipeBuilder begin(RecipeCategory cat, Item result, int count, @Nullable CompoundTag tag)
     {
-        return new SewingRecipeBuilder(result, count, tag);
+        return new SewingRecipeBuilder(cat, result, count, tag);
     }
 
-    protected SewingRecipeBuilder(Item result, int count, @Nullable CompoundTag tag)
+    protected SewingRecipeBuilder(RecipeCategory cat, Item result, int count, @Nullable CompoundTag tag)
     {
+        this.category = cat;
         this.result = result;
         this.count = count;
         this.tag = tag;
@@ -152,13 +160,7 @@ public class SewingRecipeBuilder
         return this;
     }
 
-    public void build(Consumer<FinishedRecipe> consumerIn)
-    {
-        //noinspection deprecation
-        this.build(consumerIn, Registry.ITEM.getKey(this.result));
-    }
-
-    public void build(Consumer<FinishedRecipe> consumerIn, ResourceLocation id)
+    public void save(Consumer<FinishedRecipe> consumerIn, ResourceLocation id)
     {
         this.validate(id);
         this.advancementBuilder
@@ -166,7 +168,7 @@ public class SewingRecipeBuilder
                 .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
                 .rewards(AdvancementRewards.Builder.recipe(id))
                 .requirements(RequirementsStrategy.OR);
-        ResourceLocation advancementId = new ResourceLocation(id.getNamespace(), "recipes/" + this.result.getItemCategory().getRecipeFolderName() + "/" + id.getPath());
+        ResourceLocation advancementId = new ResourceLocation(id.getNamespace(), "recipes/" + category.getFolderName() + "/" + id.getPath());
         consumerIn.accept(createFinishedRecipe(id, this.group == null ? "" : this.group, this.result, this.count, this.tag, this.tool, this.pattern, this.materials, this.advancementBuilder, advancementId));
     }
 
@@ -245,7 +247,7 @@ public class SewingRecipeBuilder
             }
 
             JsonObject resultJson = new JsonObject();
-            resultJson.addProperty("item", Registry.ITEM.getKey(this.result).toString());
+            resultJson.addProperty("item", ForgeRegistries.ITEMS.getKey(this.result).toString());
             if (this.count > 1)
             {
                 resultJson.addProperty("count", this.count);

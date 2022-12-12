@@ -2,6 +2,7 @@ package dev.gigaherz.sewingkit.needle;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -21,7 +22,7 @@ public class NeedleItem extends DiggerItem
 {
     public static final ToolAction SEW = ToolAction.get("sewingkit_sew");
 
-    public static final TagKey<Block> BREAKABLE_NEEDLE = TagKey.create(Registry.BLOCK_REGISTRY, new ResourceLocation("toolbelt:breakable_needle"));
+    public static final TagKey<Block> BREAKABLE_NEEDLE = TagKey.create(Registries.BLOCK, new ResourceLocation("toolbelt:breakable_needle"));
 
     public NeedleItem(float attackDamageIn, float attackSpeedIn, NeedleMaterial material, Properties builderIn)
     {

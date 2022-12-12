@@ -24,8 +24,8 @@
   "item.sewingkit.wool_shirt": "Wool Shirt",
   "item.sewingkit.wool_shoes": "Wool Shoes",
   "item.sewingkit.wool_trim": "Wool Trim",
-  "itemGroup.sewing_kit": "Sewing Kit",
   "jei.category.sewingkit.sewing": "Sewing",
+  "tab.sewing_kit": "Sewing Kit",
   "text.sewingkit.needle.lore_text": "\"Ouch!\"",
   "text.sewingkit.recipe": "Required materials:"
 }

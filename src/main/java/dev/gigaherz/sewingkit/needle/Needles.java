@@ -2,6 +2,7 @@ package dev.gigaherz.sewingkit.needle;
 
 import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -69,6 +70,6 @@ public enum Needles implements NeedleMaterial
 
     private static TagKey<Item> bind(String name)
     {
-        return TagKey.create(Registry.ITEM_REGISTRY, new ResourceLocation(name));
+        return TagKey.create(Registries.ITEM, new ResourceLocation(name));
     }
 }
