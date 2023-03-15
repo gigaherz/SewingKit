@@ -3,9 +3,7 @@ package dev.gigaherz.sewingkit.table;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -115,4 +113,17 @@ public class StoringSewingTableBlock extends Block implements EntityBlock
     {
         return new StoringSewingTableBlockEntity(pos, state);
     }
+
+    public void onRemove(BlockState p_49076_, Level p_49077_, BlockPos p_49078_, BlockState p_49079_, boolean p_49080_) {
+        if (!p_49076_.is(p_49079_.getBlock())) {
+            BlockEntity blockentity = p_49077_.getBlockEntity(p_49078_);
+            if (blockentity instanceof StoringSewingTableBlockEntity be) {
+                be.dropContents();
+                p_49077_.updateNeighbourForOutputSignal(p_49078_, this);
+            }
+
+            super.onRemove(p_49076_, p_49077_, p_49078_, p_49079_, p_49080_);
+        }
+    }
+
 }

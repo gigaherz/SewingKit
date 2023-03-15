@@ -9,10 +9,12 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.StackedContents;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -27,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class SewingTableMenu extends AbstractContainerMenu
+public class SewingTableMenu extends RecipeBookMenu<Container>
 {
     private static final int NUM_INPUTS = 6;
     private static final int NUM_OUTPUTS = 1;
@@ -407,5 +409,60 @@ public class SewingTableMenu extends AbstractContainerMenu
         {
             this.openedFrom.execute((world, pos) -> this.clearContainer(playerIn, new RecipeWrapper(this.inputInventory)));
         }
+    }
+
+    // ======================== Recipebook stuff
+    @Override
+    public void fillCraftSlotsStackedContents(StackedContents p_40117_)
+    {
+        //inventoryProvider.getInventory()
+    }
+
+    @Override
+    public void clearCraftingContent()
+    {
+
+    }
+
+    @Override
+    public boolean recipeMatches(Recipe<? super Container> p_40118_)
+    {
+        return false;
+    }
+
+    @Override
+    public int getResultSlotIndex()
+    {
+        return 0;
+    }
+
+    @Override
+    public int getGridWidth()
+    {
+        return 0;
+    }
+
+    @Override
+    public int getGridHeight()
+    {
+        return 0;
+    }
+
+    @Override
+    public int getSize()
+    {
+        return 0;
+    }
+
+    @Override
+    public RecipeBookType getRecipeBookType()
+    {
+        return null;
+    }
+
+    @Override
+    public boolean shouldMoveToInventory(int p_150635_)
+    {
+        return false;
     }
 }

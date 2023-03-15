@@ -3,10 +3,12 @@ package dev.gigaherz.sewingkit.table;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.Containers;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.items.IItemHandlerModifiable;
+import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
 
 public class StoringSewingTableBlockEntity extends BlockEntity implements InventoryProvider
@@ -63,5 +65,14 @@ public class StoringSewingTableBlockEntity extends BlockEntity implements Invent
     public void addWeakListener(SewingTableMenu e)
     {
         listenable.addWeakListener(e);
+    }
+
+    public void dropContents()
+    {
+        for(int i=0;i<inventory.getSlots();i++)
+        {
+            var pos = getBlockPos();
+            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(i));
+        }
     }
 }
