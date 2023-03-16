@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
@@ -100,12 +101,17 @@ public class SewingRecipe implements Recipe<Container>
     }
 
     @Override
-    public ItemStack assemble(Container inv)
+    public ItemStack assemble(Container p_44001_, RegistryAccess registryAccess)
     {
-        return getResultItem().copy();
+        return getResultItem(registryAccess).copy();
     }
 
     @Override
+    public ItemStack getResultItem(RegistryAccess registryAccess)
+    {
+        return output;
+    }
+
     public ItemStack getResultItem()
     {
         return output;

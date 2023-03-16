@@ -21,6 +21,7 @@ import net.minecraft.data.tags.VanillaBlockTagsProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.Tiers;
 import net.minecraft.world.level.block.Block;
@@ -167,33 +168,33 @@ public class SewingKitDataGen
 
             basicIcon(SewingKitMod.FILE.getId())
                     .transforms()
-                    .transform(ItemTransforms.TransformType.THIRD_PERSON_RIGHT_HAND)
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
                     .rotation(62, 180 - 33, 40)
                     .translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
                     .end()
-                    .transform(ItemTransforms.TransformType.THIRD_PERSON_LEFT_HAND)
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
                     .rotation(45, -33, -55)
                     .translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
                     .end()
-                    .transform(ItemTransforms.TransformType.FIRST_PERSON_RIGHT_HAND)
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
                     .rotation(-54, 99, 136)
                     .translation(1.13f, 5f, 1.13f)
                     .scale(0.68f)
                     .end()
-                    .transform(ItemTransforms.TransformType.FIRST_PERSON_LEFT_HAND)
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
                     .rotation(136, -99, 54)
                     .translation(1.13f, 5f, 1.13f)
                     .scale(0.68f)
                     .end()
-                    .transform(ItemTransforms.TransformType.GROUND)
+                    .transform(ItemDisplayContext.GROUND)
                     .translation(0, 2, 0)
                     .scale(0.5f)
                     .end()
-                    .transform(ItemTransforms.TransformType.HEAD)
+                    .transform(ItemDisplayContext.HEAD)
                     .rotation(-4, 44, 4)
                     .translation(-7.25f, 6.75f, 0.75f)
                     .end()
-                    .transform(ItemTransforms.TransformType.FIXED)
+                    .transform(ItemDisplayContext.FIXED)
                     .rotation(0, 180, 0)
                     .end()
                     .end();

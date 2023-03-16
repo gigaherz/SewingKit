@@ -5,6 +5,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.LazyLoadedValue;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.crafting.Ingredient;
 
@@ -38,41 +39,49 @@ public enum ClothArmorMaterial implements ArmorMaterial
         this.repairMaterial = new LazyLoadedValue<>(repairMaterial);
     }
 
-    public int getDurabilityForSlot(EquipmentSlot slotIn)
+    @Override
+    public int getDurabilityForType(ArmorItem.Type type)
     {
-        return MAX_DAMAGE_ARRAY[slotIn.getIndex()] * this.maxDamageFactor;
+        return MAX_DAMAGE_ARRAY[type.getSlot().getIndex()] * this.maxDamageFactor;
     }
 
-    public int getDefenseForSlot(EquipmentSlot slotIn)
+    @Override
+    public int getDefenseForType(ArmorItem.Type type)
     {
-        return this.damageReductionAmountArray[slotIn.getIndex()];
+        return this.damageReductionAmountArray[type.getSlot().getIndex()];
     }
 
+    @Override
     public int getEnchantmentValue()
     {
         return this.enchantability;
     }
 
+    @Override
     public SoundEvent getEquipSound()
     {
         return this.soundEvent;
     }
 
+    @Override
     public Ingredient getRepairIngredient()
     {
         return this.repairMaterial.get();
     }
 
+    @Override
     public String getName()
     {
         return this.name;
     }
 
+    @Override
     public float getToughness()
     {
         return this.toughness;
     }
 
+    @Override
     public float getKnockbackResistance()
     {
         return this.knockbackResistance;

@@ -194,22 +194,22 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         }
 
         @Override
-        public void renderImage(Font font, int x, int y, PoseStack matrixStack, ItemRenderer itemRenderer, int p_194053_)
+        public void renderImage(Font font, int x, int y, PoseStack poseStack, ItemRenderer itemRenderer)
         {
-            matrixStack.pushPose();
-            matrixStack.translate(0, 0, 300);
+            poseStack.pushPose();
+            poseStack.translate(0, 0, 150);
 
             RenderSystem.setShader(GameRenderer::getPositionTexShader);
             RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
             y += font.lineHeight;
 
-            matrixStack.pushPose();
-            matrixStack.translate(0, 0, 300);
+            poseStack.pushPose();
+            poseStack.translate(0, 0, 150);
 
-            font.drawShadow(matrixStack, label, x, y, 0xFFFFFF);
+            font.drawShadow(poseStack, label, x, y, 0xFFFFFF);
 
-            matrixStack.popPose();
+            poseStack.popPose();
 
             y += font.lineHeight;
 
@@ -222,46 +222,39 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
                 ItemStack[] stacks = material.ingredient.getItems();
                 if (stacks.length > 0)
                 {
-                    float zz = itemRenderer.blitOffset;
-                    itemRenderer.blitOffset = 0;
-
-                    PoseStack viewModelPose = RenderSystem.getModelViewStack();
-                    viewModelPose.pushPose();
-                    viewModelPose.mulPoseMatrix(matrixStack.last().pose());
-
                     var ticks = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
                     ItemStack stack = stacks[(int) ((ticks / 32) % stacks.length)].copy();
                     stack.setCount(1);//material.count);
-                    itemRenderer.renderAndDecorateItem(stack, xx, y);
-
-                    viewModelPose.popPose();
-                    itemRenderer.blitOffset = zz;
+                    poseStack.pushPose();
+                    poseStack.translate(0,0,-50);
+                    itemRenderer.renderAndDecorateItem(poseStack, stack, xx, y);
+                    poseStack.popPose();
                 }
                 else
                 {
                     RenderSystem.setShader(GameRenderer::getPositionTexShader);
                     RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                     RenderSystem.setShaderTexture(0, RECIPE_TEXTURE);
-                    blit(matrixStack, xx, y, 36, 0, 16, 16, 64, 64);
+                    blit(poseStack, xx, y, 36, 0, 16, 16, 64, 64);
                 }
                 if (material.count != 1)
                 {
-                    matrixStack.pushPose();
-                    matrixStack.translate(0, 0, 300);
+                    poseStack.pushPose();
+                    poseStack.translate(0, 0, 150);
 
                     String text = String.format("%d", material.count);
                     int w = font.width(text);
-                    font.drawShadow(matrixStack, text, xx + 17 - w, y + 9, 0xFFFFFF);
+                    font.drawShadow(poseStack, text, xx + 17 - w, y + 9, 0xFFFFFF);
 
-                    matrixStack.popPose();
+                    poseStack.popPose();
                 }
             }
 
-            matrixStack.popPose();
+            poseStack.popPose();
         }
     }
 
-    private void renderButtons(PoseStack matrixStack, int x, int y, int p_238853_4_, int p_238853_5_, int p_238853_6_)
+    private void renderButtons(PoseStack poseStack, int x, int y, int p_238853_4_, int p_238853_5_, int p_238853_6_)
     {
         for (int i = this.recipeIndexOffset; i < p_238853_6_ && i < this.menu.getRecipeListSize(); ++i)
         {
@@ -279,12 +272,13 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
                 j1 += 36;
             }
 
-            this.blit(matrixStack, k, i1 - 1, 0, j1, 16, 18);
+            this.blit(poseStack, k, i1 - 1, 0, j1, 16, 18);
         }
     }
 
     private void drawRecipesItems(int left, int top, int recipeIndexOffsetMax)
     {
+        var poseStack = new PoseStack();
         List<SewingRecipe> list = this.menu.getRecipeList();
 
         for (int i = this.recipeIndexOffset; i < recipeIndexOffsetMax && i < this.menu.getRecipeListSize(); ++i)
@@ -293,7 +287,8 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
             int k = left + j % 4 * 16;
             int l = j / 4;
             int i1 = top + l * 18 + 2;
-            this.minecraft.getItemRenderer().renderAndDecorateItem(list.get(i).getResultItem(), k, i1);
+            poseStack.translate(0.0F, 0.0F, 0.0F);
+            this.minecraft.getItemRenderer().renderAndDecorateItem(poseStack, list.get(i).getResultItem(), k, i1);
         }
     }
 

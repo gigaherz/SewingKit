@@ -128,6 +128,8 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
                             lastTimeSoundPlayed = l;
                         }
                     });
+
+                    onInventoryChanged();
                 }
                 super.onTake(thePlayer, stack);
             }
@@ -136,6 +138,8 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
         bindPlayerInventory(playerInventoryIn);
 
         this.addDataSlot(this.selectedRecipe);
+
+        onInventoryChanged();
     }
 
     private boolean consumeCraftingMaterials(Player thePlayer, Map<Ingredient, Integer> remaining)
@@ -310,7 +314,7 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
         {
             SewingRecipe stonecuttingrecipe = this.recipes.get(this.selectedRecipe.get());
             this.inventory.setRecipeUsed(stonecuttingrecipe);
-            this.slots.get(OUTPUTS_START).set(stonecuttingrecipe.assemble(new RecipeWrapper(this.inputInventory)));
+            this.slots.get(OUTPUTS_START).set(stonecuttingrecipe.assemble(new RecipeWrapper(this.inputInventory), world.registryAccess()));
         }
         else
         {

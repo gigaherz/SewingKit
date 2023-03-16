@@ -30,6 +30,8 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.world.flag.FeatureFlagSet;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -162,19 +164,19 @@ public class SewingKitMod
     );
 
     public static final RegistryObject<Item> WOOL_HAT = ITEMS.register("wool_hat",
-            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, EquipmentSlot.HEAD, new Item.Properties())
+            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, ArmorItem.Type.HELMET, new Item.Properties())
     );
 
     public static final RegistryObject<Item> WOOL_SHIRT = ITEMS.register("wool_shirt",
-            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, EquipmentSlot.CHEST, new Item.Properties())
+            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, ArmorItem.Type.CHESTPLATE, new Item.Properties())
     );
 
     public static final RegistryObject<Item> WOOL_PANTS = ITEMS.register("wool_pants",
-            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, EquipmentSlot.LEGS, new Item.Properties())
+            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, ArmorItem.Type.LEGGINGS, new Item.Properties())
     );
 
     public static final RegistryObject<Item> WOOL_SHOES = ITEMS.register("wool_shoes",
-            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, EquipmentSlot.FEET, new Item.Properties())
+            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, ArmorItem.Type.BOOTS, new Item.Properties())
     );
 
     public static final RegistryObject<Item> COMMON_PATTERN = ITEMS.register("common_pattern",
@@ -226,7 +228,7 @@ public class SewingKitMod
 
     public static final RegistryObject<RecipeSerializer<SewingRecipe>> SEWING_RECIPE = RECIPE_SERIALIZERS.register("sewing", () -> new SewingRecipe.Serializer());
 
-    public static final RegistryObject<MenuType<SewingTableMenu>> SEWING_STATION_MENU = MENU_TYPES.register("sewing_station", () -> new MenuType<>(SewingTableMenu::new));
+    public static final RegistryObject<MenuType<SewingTableMenu>> SEWING_STATION_MENU = MENU_TYPES.register("sewing_station", () -> new MenuType<>(SewingTableMenu::new, FeatureFlags.DEFAULT_FLAGS));
 
     public static final RegistryObject<LootItemFunctionType> RANDOM_DYE =
             LOOT_FUNCTIONS.register("random_dye", () -> new LootItemFunctionType(new RandomDye.Serializer()));
@@ -271,7 +273,7 @@ public class SewingKitMod
         SEWING_KIT = event.registerCreativeModeTab(location("sewing_kit"), builder -> builder
                 .icon(() -> new ItemStack(WOOD_SEWING_NEEDLE.get()))
                 .title(Component.translatable(""))
-                .displayItems((featureFlags, output, hasOp) -> {
+                .displayItems((featureFlags, output) -> {
                     output.accept(SEWING_STATION_ITEM.get());
                     output.accept(STORING_SEWING_STATION_ITEM.get());
                     output.accept(WOOD_SEWING_NEEDLE.get());
