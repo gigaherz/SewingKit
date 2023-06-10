@@ -47,15 +47,13 @@ import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
-import net.minecraft.world.level.material.Material;
+import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
-import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.*;
 import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.event.CreativeModeTabEvent;
 import net.minecraftforge.event.server.ServerAboutToStartEvent;
 import net.minecraftforge.event.village.VillagerTradesEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -98,6 +96,7 @@ public class SewingKitMod
     private static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
     private static final DeferredRegister<StructureProcessorType<?>> STRUCTURE_PROCESSORS = DeferredRegister.create(Registries.STRUCTURE_PROCESSOR, MODID);
     private static final DeferredRegister<LootItemFunctionType> LOOT_FUNCTIONS = DeferredRegister.create(Registries.LOOT_FUNCTION_TYPE, MODID);
+    private static final DeferredRegister<CreativeModeTab> CREATIVE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
     public static final RegistryObject<Item> LEATHER_STRIP = ITEMS.register("leather_strip",
             () -> new Item(new Item.Properties().stacksTo(64))
@@ -144,7 +143,7 @@ public class SewingKitMod
     );
 
     public static final RegistryObject<Block> SEWING_STATION_BLOCK = BLOCKS.register("sewing_station",
-            () -> new SewingTableBlock(BlockBehaviour.Properties.of(Material.WOOD).strength(2.5F))
+            () -> new SewingTableBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.5F))
     );
 
     public static final RegistryObject<Item> SEWING_STATION_ITEM = ITEMS.register("sewing_station",
@@ -152,7 +151,7 @@ public class SewingKitMod
     );
 
     public static final RegistryObject<Block> STORING_SEWING_STATION_BLOCK = BLOCKS.register("storing_sewing_station",
-            () -> new StoringSewingTableBlock(BlockBehaviour.Properties.of(Material.WOOD).strength(2.5F))
+            () -> new StoringSewingTableBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.5F))
     );
 
     public static final RegistryObject<Item> STORING_SEWING_STATION_ITEM = ITEMS.register("storing_sewing_station",
@@ -239,12 +238,40 @@ public class SewingKitMod
     private static final ResourceKey<StructureProcessorList> TAILOR_SHOP_PROCESSOR_LIST_KEY =
             ResourceKey.create(Registries.PROCESSOR_LIST, location("tailor_shop_processors"));
 
+    public static final RegistryObject<CreativeModeTab> SEWING_KIT_TAB = CREATIVE_TABS.register("sewing_kit", () -> new CreativeModeTab.Builder(CreativeModeTab.Row.TOP,0)
+                    .icon(() -> new ItemStack(WOOD_SEWING_NEEDLE.get()))
+                    .title(Component.translatable("tab.sewing_kit"))
+                    .displayItems((featureFlags, output) -> {
+                        output.accept(SEWING_STATION_ITEM.get());
+                        output.accept(STORING_SEWING_STATION_ITEM.get());
+                        output.accept(WOOD_SEWING_NEEDLE.get());
+                        output.accept(STONE_SEWING_NEEDLE.get());
+                        output.accept(BONE_SEWING_NEEDLE.get());
+                        output.accept(GOLD_SEWING_NEEDLE.get());
+                        output.accept(IRON_SEWING_NEEDLE.get());
+                        output.accept(DIAMOND_SEWING_NEEDLE.get());
+                        output.accept(NETHERITE_SEWING_NEEDLE.get());
+                        output.accept(FILE.get());
+                        output.accept(LEATHER_STRIP.get());
+                        output.accept(LEATHER_SHEET.get());
+                        output.accept(WOOL_ROLL.get());
+                        output.accept(WOOL_TRIM.get());
+                        output.accept(WOOL_HAT.get());
+                        output.accept(WOOL_SHIRT.get());
+                        output.accept(WOOL_PANTS.get());
+                        output.accept(WOOL_SHOES.get());
+                        output.accept(COMMON_PATTERN.get());
+                        output.accept(UNCOMMON_PATTERN.get());
+                        output.accept(RARE_PATTERN.get());
+                        output.accept(LEGENDARY_PATTERN.get());
+                    }).build()
+        );
+
     public SewingKitMod()
     {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         modBus.addListener(this::construct);
         modBus.addListener(this::gatherData);
-        modBus.addListener(this::registerTabs);
 
         ITEMS.register(modBus);
         BLOCKS.register(modBus);
@@ -256,6 +283,7 @@ public class SewingKitMod
         RECIPE_TYPES.register(modBus);
         LOOT_FUNCTIONS.register(modBus);
         STRUCTURE_PROCESSORS.register(modBus);
+        CREATIVE_TABS.register(modBus);
 
         MinecraftForge.EVENT_BUS.addListener(this::villagerTrades);
         MinecraftForge.EVENT_BUS.addListener(this::addBuildingToVillages);
@@ -266,38 +294,6 @@ public class SewingKitMod
         event.enqueueWork(() -> {
             CraftingHelper.register(ToolActionIngredient.NAME, ToolActionIngredient.Serializer.INSTANCE);
         });
-    }
-
-    private void registerTabs(CreativeModeTabEvent.Register event)
-    {
-        SEWING_KIT = event.registerCreativeModeTab(location("sewing_kit"), builder -> builder
-                .icon(() -> new ItemStack(WOOD_SEWING_NEEDLE.get()))
-                .title(Component.translatable(""))
-                .displayItems((featureFlags, output) -> {
-                    output.accept(SEWING_STATION_ITEM.get());
-                    output.accept(STORING_SEWING_STATION_ITEM.get());
-                    output.accept(WOOD_SEWING_NEEDLE.get());
-                    output.accept(STONE_SEWING_NEEDLE.get());
-                    output.accept(BONE_SEWING_NEEDLE.get());
-                    output.accept(GOLD_SEWING_NEEDLE.get());
-                    output.accept(IRON_SEWING_NEEDLE.get());
-                    output.accept(DIAMOND_SEWING_NEEDLE.get());
-                    output.accept(NETHERITE_SEWING_NEEDLE.get());
-                    output.accept(FILE.get());
-                    output.accept(LEATHER_STRIP.get());
-                    output.accept(LEATHER_SHEET.get());
-                    output.accept(WOOL_ROLL.get());
-                    output.accept(WOOL_TRIM.get());
-                    output.accept(WOOL_HAT.get());
-                    output.accept(WOOL_SHIRT.get());
-                    output.accept(WOOL_PANTS.get());
-                    output.accept(WOOL_SHOES.get());
-                    output.accept(COMMON_PATTERN.get());
-                    output.accept(UNCOMMON_PATTERN.get());
-                    output.accept(RARE_PATTERN.get());
-                    output.accept(LEGENDARY_PATTERN.get());
-                })
-        );
     }
 
     public void addBuildingToVillages(final ServerAboutToStartEvent event) {

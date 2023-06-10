@@ -24,6 +24,7 @@ import net.minecraftforge.items.IItemHandlerModifiable;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.RecipeWrapper;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +76,7 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
     {
         super(SewingKitMod.SEWING_STATION_MENU.get(), windowIdIn);
         this.openedFrom = worldPosCallableIn;
-        this.world = playerInventoryIn.player.level;
+        this.world = playerInventoryIn.player.level();
         this.inputInventory = inventoryProvider.getInventory();
         this.inventoryProvider = inventoryProvider;
         inventoryProvider.addWeakListener(this);
@@ -108,17 +109,21 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
 
             public void onTake(Player thePlayer, ItemStack stack)
             {
-                if (!thePlayer.level.isClientSide)
+                if (!thePlayer.level().isClientSide)
                 {
-                    stack.onCraftedBy(thePlayer.level, thePlayer, stack.getCount());
-                    SewingTableMenu.this.inventory.awardUsedRecipes(thePlayer);
+                    stack.onCraftedBy(thePlayer.level(), thePlayer, stack.getCount());
+
+                    List<ItemStack> consumed = new ArrayList<>();
 
                     SewingRecipe recipe = recipes.get(getSelectedRecipe());
                     Map<Ingredient, Integer> remaining = recipe.getMaterials().stream().collect(Collectors.toMap(i -> i.ingredient, i -> i.count));
-                    if (consumeCraftingMaterials(thePlayer, remaining))
+                    if (consumeCraftingMaterials(thePlayer, remaining, consumed))
                     {
                         updateRecipeResultSlot();
                     }
+
+
+                    SewingTableMenu.this.inventory.awardUsedRecipes(thePlayer, consumed);
 
                     worldPosCallableIn.execute((world, pos) -> {
                         long l = world.getGameTime();
@@ -142,7 +147,7 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
         onInventoryChanged();
     }
 
-    private boolean consumeCraftingMaterials(Player thePlayer, Map<Ingredient, Integer> remaining)
+    private boolean consumeCraftingMaterials(Player thePlayer, Map<Ingredient, Integer> remaining, List<ItemStack> consumed)
     {
         boolean needsUpdate = false;
         for (int i = 0; i < 6; i++)
@@ -170,6 +175,7 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
                     ItemStack stack1 = slot.getItem();
                     if (ing.test(stack1))
                     {
+                        consumed.add(stack1.copy());
                         int remaining1 = Math.max(0, value - (stack1.getCount() + subtract));
                         subtract += (value - remaining1);
                         mat.setValue(remaining1);
@@ -380,7 +386,7 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
 
         if (endIndex > startIndex)
         {
-            if (notify) item.onCraftedBy(stackInSlot, playerIn.level, playerIn);
+            if (notify) item.onCraftedBy(stackInSlot, playerIn.level(), playerIn);
             if (!this.moveItemStackTo(stackInSlot, startIndex, endIndex, reverse))
             {
                 return ItemStack.EMPTY;

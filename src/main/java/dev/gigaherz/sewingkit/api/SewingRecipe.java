@@ -174,8 +174,8 @@ public class SewingRecipe implements Recipe<Container>
             {
                 materials.add(Material.deserialize(materialsJson.get(i).getAsJsonObject()));
             }
-            Ingredient pattern = json.has("pattern") ? CraftingHelper.getIngredient(json.get("ingredient")) : null;
-            Ingredient tool = json.has("tool") ? CraftingHelper.getIngredient(json.get("tool")) : null;
+            Ingredient pattern = json.has("pattern") ? CraftingHelper.getIngredient(json.get("ingredient"), true) : null;
+            Ingredient tool = json.has("tool") ? CraftingHelper.getIngredient(json.get("tool"), true) : null;
             ItemStack result = CraftingHelper.getItemStack(GsonHelper.getAsJsonObject(json, "result"), true);
             return createRecipe(recipeId, group, materials, pattern, tool, result);
         }
@@ -251,7 +251,7 @@ public class SewingRecipe implements Recipe<Container>
 
         public static Material deserialize(JsonObject object)
         {
-            Ingredient ingredient = CraftingHelper.getIngredient(object.get("ingredient"));
+            Ingredient ingredient = CraftingHelper.getIngredient(object.get("ingredient"), true);
             int count = GsonHelper.getAsInt(object, "count", 1);
             if (count <= 0)
             {

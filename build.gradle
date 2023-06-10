@@ -15,8 +15,9 @@ apply plugin: 'org.parchmentmc.librarian.forgegradle'
 apply plugin: 'maven-publish'
 
 repositories {
-    maven {
-        url "https://dvs1.progwml6.com/files/maven/"
+    maven { // JEI
+        url "https://maven.blamejared.com/"
+        // fallback: url = "https://modmaven.dev"
     }
     maven { // CURIOS
         url "https://maven.theillusivec4.top/"
@@ -47,7 +48,7 @@ sourceSets {
 
 minecraft {
     //mappings channel: 'official', version: '1.19.3'
-    mappings channel: 'parchment', version: '1.19.3-2023.03.12-1.19.4'
+    mappings channel: 'parchment', version: '1.19.3-2023.03.12-1.20'
 
     accessTransformer(file("src/main/resources/META-INF/accesstransformer.cfg"))
 
@@ -111,12 +112,12 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.19.4-45.0.6'
+    minecraft 'net.minecraftforge:forge:1.20-46.0.2'
 
-    compileOnly fg.deobf("mezz.jei:jei-1.19.1-common-api:11.2.0.244")
-    //runtimeOnly fg.deobf("mezz.jei:jei-1.19.1-common:11.2.0.244")
-    compileOnly fg.deobf("mezz.jei:jei-1.19.1-forge-api:11.2.0.244")
-    //runtimeOnly fg.deobf("mezz.jei:jei-1.19.1-forge:11.2.0.244")
+    compileOnly fg.deobf("mezz.jei:jei-1.20-common-api:14.0.0.4")
+    //runtimeOnly fg.deobf("mezz.jei:jei-1.20-common:14.0.0.4")
+    compileOnly fg.deobf("mezz.jei:jei-1.20-forge-api:14.0.0.4")
+    //runtimeOnly fg.deobf("mezz.jei:jei-1.20-forge:14.0.0.4")
 
     //compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19.2-5.1.1.0")
     //runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19.2-5.1.1.0")
