@@ -28,5 +28,6 @@
     "recipes": [
       "sewingkit:wool_shoes_via_sewing"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

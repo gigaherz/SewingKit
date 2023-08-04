@@ -28,5 +28,6 @@
     "recipes": [
       "sewingkit:wool_pants_via_sewing"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

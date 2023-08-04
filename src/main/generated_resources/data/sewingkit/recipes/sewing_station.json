@@ -19,5 +19,6 @@
   ],
   "result": {
     "item": "sewingkit:sewing_station"
-  }
+  },
+  "show_notification": true
 }

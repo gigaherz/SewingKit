@@ -30,5 +30,6 @@
     "recipes": [
       "sewingkit:storing_sewing_station"
     ]
-  }
+  },
+  "sends_telemetry_event": false
 }

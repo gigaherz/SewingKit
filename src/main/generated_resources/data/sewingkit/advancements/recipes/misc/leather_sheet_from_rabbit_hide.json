@@ -30,5 +30,6 @@
     "recipes": [
       "sewingkit:leather_sheet_from_rabbit_hide"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

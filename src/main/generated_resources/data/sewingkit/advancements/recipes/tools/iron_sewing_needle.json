@@ -28,5 +28,6 @@
     "recipes": [
       "sewingkit:iron_sewing_needle"
     ]
-  }
+  },
+  "sends_telemetry_event": false
 }

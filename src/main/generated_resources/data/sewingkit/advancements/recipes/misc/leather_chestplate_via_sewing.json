@@ -28,5 +28,6 @@
     "recipes": [
       "sewingkit:leather_chestplate_via_sewing"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

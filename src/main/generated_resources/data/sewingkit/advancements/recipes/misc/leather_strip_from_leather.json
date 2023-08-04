@@ -28,5 +28,6 @@
     "recipes": [
       "sewingkit:leather_strip_from_leather"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

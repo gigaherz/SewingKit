@@ -28,5 +28,6 @@
     "recipes": [
       "sewingkit:leather_horse_armor_via_sewing"
     ]
-  }
+  },
+  "sends_telemetry_event": true
 }

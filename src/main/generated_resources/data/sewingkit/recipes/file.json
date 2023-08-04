@@ -16,5 +16,6 @@
   ],
   "result": {
     "item": "sewingkit:file"
-  }
+  },
+  "show_notification": true
 }
