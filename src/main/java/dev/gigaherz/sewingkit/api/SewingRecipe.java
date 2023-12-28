@@ -1,33 +1,40 @@
 package dev.gigaherz.sewingkit.api;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.GsonHelper;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.common.crafting.CraftingHelper;
-import net.minecraftforge.registries.ObjectHolder;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class SewingRecipe implements Recipe<Container>
 {
+
+    public static final Codec<SewingRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            ExtraCodecs.strictOptionalField(Codec.STRING,"group", "").forGetter(SewingRecipe::getGroup),
+            NonNullList.codecOf(Material.CODEC).fieldOf("materials").forGetter(SewingRecipe::getMaterials),
+            ExtraCodecs.strictOptionalField(Ingredient.CODEC, "pattern").forGetter(SewingRecipe::getPattern),
+            ExtraCodecs.strictOptionalField(Ingredient.CODEC, "tool").forGetter(SewingRecipe::getTool),
+            ItemStack.ITEM_WITH_COUNT_CODEC.fieldOf("result").forGetter(recipe -> recipe.output),
+            ExtraCodecs.strictOptionalField(Codec.BOOL, "show_notification", true).forGetter(SewingRecipe::showNotification)
+    ).apply(instance, SewingRecipe::new));
+
     private final String group;
-    private final ResourceLocation id;
 
     private final NonNullList<Material> materials;
     @Nullable
@@ -36,17 +43,26 @@ public class SewingRecipe implements Recipe<Container>
     private final Ingredient tool;
     private final ItemStack output;
 
-    public SewingRecipe(ResourceLocation id, String group, NonNullList<Material> materials, @Nullable Ingredient pattern, @Nullable Ingredient tool, ItemStack output)
+    private final boolean showNotification;
+
+
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    private SewingRecipe(String group, NonNullList<Material> materials, Optional<Ingredient> pattern, Optional<Ingredient> tool, ItemStack output, boolean showNotification)
+    {
+        this(group, materials, pattern.orElse(null), tool.orElse(null), output, showNotification);
+    }
+
+    public SewingRecipe(String group, NonNullList<Material> materials, @Nullable Ingredient pattern, @Nullable Ingredient tool, ItemStack output, boolean showNotification)
     {
         this.group = group;
-        this.id = id;
         this.materials = materials;
         this.pattern = pattern;
         this.tool = tool;
         this.output = output;
+        this.showNotification = showNotification;
     }
 
-    public static Collection<SewingRecipe> getAllRecipes(Level world)
+    public static Collection<RecipeHolder<SewingRecipe>> getAllRecipes(Level world)
     {
         return world.getRecipeManager().getAllRecipesFor(SewingKitMod.SEWING.get());
     }
@@ -123,12 +139,6 @@ public class SewingRecipe implements Recipe<Container>
     }
 
     @Override
-    public ResourceLocation getId()
-    {
-        return id;
-    }
-
-    @Override
     public RecipeSerializer<?> getSerializer()
     {
         return SewingKitMod.SEWING_RECIPE.get();
@@ -146,42 +156,34 @@ public class SewingRecipe implements Recipe<Container>
         return new ItemStack(SewingKitMod.WOOD_SEWING_NEEDLE.get());
     }
 
-    public Ingredient getTool()
+    @Nullable
+    public Optional<Ingredient> getTool()
     {
-        return tool != null ? tool : Ingredient.EMPTY;
+        return Optional.ofNullable(tool);
     }
 
-    public Ingredient getPattern()
+    @Nullable
+    public Optional<Ingredient> getPattern()
     {
-        return pattern != null ? pattern : Ingredient.EMPTY;
+        return Optional.ofNullable(pattern);
+    }
+
+    @Override
+    public boolean showNotification() {
+        return this.showNotification;
     }
 
     public static class Serializer
             implements RecipeSerializer<SewingRecipe>
     {
-        protected SewingRecipe createRecipe(ResourceLocation recipeId, String group, NonNullList<Material> materials, Ingredient pattern, Ingredient tool, ItemStack result)
+        @Override
+        public Codec<SewingRecipe> codec()
         {
-            return new SewingRecipe(recipeId, group, materials, pattern, tool, result);
+            return CODEC;
         }
 
         @Override
-        public SewingRecipe fromJson(ResourceLocation recipeId, JsonObject json)
-        {
-            String group = GsonHelper.getAsString(json, "group", "");
-            JsonArray materialsJson = GsonHelper.getAsJsonArray(json, "materials");
-            NonNullList<Material> materials = NonNullList.create();
-            for (int i = 0; i < materialsJson.size(); i++)
-            {
-                materials.add(Material.deserialize(materialsJson.get(i).getAsJsonObject()));
-            }
-            Ingredient pattern = json.has("pattern") ? CraftingHelper.getIngredient(json.get("ingredient"), true) : null;
-            Ingredient tool = json.has("tool") ? CraftingHelper.getIngredient(json.get("tool"), true) : null;
-            ItemStack result = CraftingHelper.getItemStack(GsonHelper.getAsJsonObject(json, "result"), true);
-            return createRecipe(recipeId, group, materials, pattern, tool, result);
-        }
-
-        @Override
-        public SewingRecipe fromNetwork(ResourceLocation recipeId, FriendlyByteBuf buffer)
+        public SewingRecipe fromNetwork(FriendlyByteBuf buffer)
         {
             String group = buffer.readUtf(32767);
             int numMaterials = buffer.readVarInt();
@@ -195,7 +197,8 @@ public class SewingRecipe implements Recipe<Container>
             boolean hasTool = buffer.readBoolean();
             Ingredient tool = hasTool ? Ingredient.fromNetwork(buffer) : null;
             ItemStack result = buffer.readItem();
-            return createRecipe(recipeId, group, materials, pattern, tool, result);
+            boolean showNofitication = buffer.readBoolean();
+            return new SewingRecipe(group, materials, pattern, tool, result, showNofitication);
         }
 
         @Override
@@ -216,11 +219,17 @@ public class SewingRecipe implements Recipe<Container>
             if (hasTool)
                 recipe.tool.toNetwork(buffer);
             buffer.writeItem(recipe.output);
+            buffer.writeBoolean(recipe.showNotification);
         }
     }
 
     public static class Material implements Predicate<ItemStack>
     {
+        public static final Codec<Material> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            Ingredient.CODEC.fieldOf("ingredient").forGetter(mat -> mat.ingredient),
+            Codec.INT.fieldOf("count").forGetter(mat -> mat.count)
+        ).apply(instance, Material::new));
+
         public final Ingredient ingredient;
         public final int count;
 
@@ -239,25 +248,6 @@ public class SewingRecipe implements Recipe<Container>
         public boolean test(ItemStack itemStack)
         {
             return ingredient.test(itemStack) && itemStack.getCount() >= count;
-        }
-
-        public JsonObject serialize()
-        {
-            JsonObject material = new JsonObject();
-            material.add("ingredient", ingredient.toJson());
-            material.addProperty("count", count);
-            return material;
-        }
-
-        public static Material deserialize(JsonObject object)
-        {
-            Ingredient ingredient = CraftingHelper.getIngredient(object.get("ingredient"), true);
-            int count = GsonHelper.getAsInt(object, "count", 1);
-            if (count <= 0)
-            {
-                throw new IllegalArgumentException("Material count must be a positive integer.");
-            }
-            return new Material(ingredient, count);
         }
 
         public void write(FriendlyByteBuf packet)

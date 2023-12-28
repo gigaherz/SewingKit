@@ -1,9 +1,8 @@
 package dev.gigaherz.sewingkit.loot;
 
 import com.google.common.collect.Lists;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.*;
@@ -16,12 +15,17 @@ import java.util.List;
 
 public class RandomDye extends LootItemConditionalFunction
 {
+    public static final Codec<RandomDye> CODEC = RecordCodecBuilder.create(
+            instance -> commonFields(instance)
+                    .apply(instance, RandomDye::new)
+    );
+
     public static LootItemConditionalFunction.Builder<?> builder()
     {
         return LootItemConditionalFunction.simpleBuilder(RandomDye::new);
     }
 
-    protected RandomDye(LootItemCondition[] conditions)
+    protected RandomDye(List<LootItemCondition> conditions)
     {
         super(conditions);
     }
@@ -58,20 +62,5 @@ public class RandomDye extends LootItemConditionalFunction
 
     public static DyeItem getRandomDye(RandomSource rand) {
         return DyeItem.byColor(DyeColor.byId(rand.nextInt(16)));
-    }
-
-    public static class Serializer extends LootItemConditionalFunction.Serializer<RandomDye>
-    {
-        @Override
-        public void serialize(JsonObject jsonObject, RandomDye randomDye, JsonSerializationContext context)
-        {
-
-        }
-
-        @Override
-        public RandomDye deserialize(JsonObject jsonObject, JsonDeserializationContext context, LootItemCondition[] conditions)
-        {
-            return new RandomDye(conditions);
-        }
     }
 }

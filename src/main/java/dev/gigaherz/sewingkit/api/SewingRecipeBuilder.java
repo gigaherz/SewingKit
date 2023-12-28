@@ -1,36 +1,27 @@
 package dev.gigaherz.sewingkit.api;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.mojang.serialization.JsonOps;
-import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
-import net.minecraft.advancements.CriterionTriggerInstance;
-import net.minecraft.advancements.RequirementsStrategy;
+import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.recipes.FinishedRecipe;
+import net.minecraft.core.NonNullList;
 import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.ItemLike;
-import net.minecraftforge.common.ToolAction;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.common.ToolAction;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Set;
-import java.util.function.Consumer;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class SewingRecipeBuilder
 {
@@ -38,11 +29,13 @@ public class SewingRecipeBuilder
     private String group;
     private Ingredient tool;
     private Ingredient pattern;
-    private final List<SewingRecipe.Material> materials = Lists.newArrayList();
+    private final NonNullList<SewingRecipe.Material> materials = NonNullList.create();
     private final Item result;
     private final int count;
-    private CompoundTag tag;
-    private final Advancement.Builder advancementBuilder = Advancement.Builder.advancement();
+    @Nullable
+    private final CompoundTag tag;
+    private final Map<String, Criterion<?>> criteria = new LinkedHashMap<>();
+    private boolean showNotification = true;
 
     public static SewingRecipeBuilder begin(RecipeCategory cat, Item result)
     {
@@ -148,9 +141,9 @@ public class SewingRecipeBuilder
         return this;
     }
 
-    public SewingRecipeBuilder addCriterion(String name, CriterionTriggerInstance criterionIn)
+    public SewingRecipeBuilder addCriterion(String name, Criterion<?> criterionIn)
     {
-        this.advancementBuilder.addCriterion(name, criterionIn);
+        this.criteria.put(name, criterionIn);
         return this;
     }
 
@@ -160,131 +153,50 @@ public class SewingRecipeBuilder
         return this;
     }
 
-    public void save(Consumer<FinishedRecipe> consumerIn, ResourceLocation id)
-    {
-        this.validate(id);
-        this.advancementBuilder
-                .parent(new ResourceLocation("recipes/root"))
-                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
-                .rewards(AdvancementRewards.Builder.recipe(id))
-                .requirements(RequirementsStrategy.OR);
-        ResourceLocation advancementId = new ResourceLocation(id.getNamespace(), "recipes/" + category.getFolderName() + "/" + id.getPath());
-        consumerIn.accept(createFinishedRecipe(id, this.group == null ? "" : this.group, this.result, this.count, this.tag, this.tool, this.pattern, this.materials, this.advancementBuilder, advancementId));
+    public SewingRecipeBuilder showNotification(boolean showNotification) {
+        this.showNotification = showNotification;
+        return this;
     }
 
-    protected FinishedRecipe createFinishedRecipe(ResourceLocation id, String group, Item result, int count, CompoundTag tag, Ingredient tool, Ingredient pattern, List<SewingRecipe.Material> materials, Advancement.Builder advancementBuilder, ResourceLocation advancementId)
+    public void save(RecipeOutput consumerIn, ResourceLocation id)
     {
-        return new SewingRecipeBuilder.Result(id, group, result, count, tag, tool, pattern, materials, advancementBuilder, advancementId);
+        this.validate(id);
+
+        var advancementBuilder = Advancement.Builder.advancement();
+        advancementBuilder
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
+                .rewards(AdvancementRewards.Builder.recipe(id))
+                .requirements(AdvancementRequirements.Strategy.OR);
+        criteria.forEach(advancementBuilder::addCriterion);
+        ResourceLocation advancementId = id.withPrefix("recipes/" + category.getFolderName() + "/" );
+
+        var resultStack = new ItemStack(this.result, this.count);
+        resultStack.setTag(this.tag);
+
+        var recipe = new SewingRecipe(
+                Objects.requireNonNullElse(this.group, ""),
+                /*RecipeBuilder.determineBookCategory(this.category),*/
+                this.materials,
+                this.pattern,
+                this.tool,
+                resultStack,
+                this.showNotification);
+
+        consumerIn.accept(
+                id,
+                recipe,
+                advancementBuilder.build(advancementId));
     }
 
     private void validate(ResourceLocation id)
     {
-        if (this.advancementBuilder.getCriteria().isEmpty())
+        if (this.criteria.isEmpty())
         {
             throw new IllegalStateException("No way of obtaining sewing recipe " + id);
         }
         if (this.materials.isEmpty())
         {
             throw new IllegalStateException("No ingredients for sewing recipe " + id);
-        }
-    }
-
-    protected static class Result implements FinishedRecipe
-    {
-        private final ResourceLocation id;
-        private final Item result;
-        private final int count;
-        @Nullable
-        private final CompoundTag tag;
-        private final String group;
-        @Nullable
-        private final Ingredient tool;
-        @Nullable
-        private final Ingredient pattern;
-        private final List<SewingRecipe.Material> materials;
-        private final Advancement.Builder advancementBuilder;
-        private final ResourceLocation advancementId;
-
-        public Result(ResourceLocation id, String group, Item result, int count, @Nullable CompoundTag tag,
-                      @Nullable Ingredient tool, @Nullable Ingredient pattern, List<SewingRecipe.Material> materials,
-                      Advancement.Builder advancementBuilder, ResourceLocation advancementId)
-        {
-            this.id = id;
-            this.result = result;
-            this.count = count;
-            this.tag = tag;
-            this.group = group;
-            this.tool = tool;
-            this.pattern = pattern;
-            this.materials = materials;
-            this.advancementBuilder = advancementBuilder;
-            this.advancementId = advancementId;
-        }
-
-        @Override
-        public void serializeRecipeData(JsonObject recipeJson)
-        {
-            if (!this.group.isEmpty())
-            {
-                recipeJson.addProperty("group", this.group);
-            }
-
-            JsonArray jsonarray = new JsonArray();
-            for (SewingRecipe.Material material : this.materials)
-            {
-                jsonarray.add(material.serialize());
-            }
-            recipeJson.add("materials", jsonarray);
-
-            if (tool != null)
-            {
-                recipeJson.add("tool", tool.toJson());
-            }
-
-            if (pattern != null)
-            {
-                recipeJson.add("tool", pattern.toJson());
-            }
-
-            JsonObject resultJson = new JsonObject();
-            resultJson.addProperty("item", ForgeRegistries.ITEMS.getKey(this.result).toString());
-            if (this.count > 1)
-            {
-                resultJson.addProperty("count", this.count);
-            }
-            if (this.tag != null)
-            {
-                CompoundTag.CODEC.encodeStart(JsonOps.INSTANCE, tag).result().ifPresent(
-                        result -> resultJson.add("nbt", result)
-                );
-            }
-            recipeJson.add("result", resultJson);
-        }
-
-        @Override
-        public ResourceLocation getId()
-        {
-            return id;
-        }
-
-        @Override
-        public RecipeSerializer<?> getType()
-        {
-            return SewingKitMod.SEWING_RECIPE.get();
-        }
-
-        @Nullable
-        @Override
-        public JsonObject serializeAdvancement()
-        {
-            return this.advancementBuilder.serializeToJson();
-        }
-
-        @Nullable
-        @Override
-        public ResourceLocation getAdvancementId()
-        {
-            return advancementId;
         }
     }
 }

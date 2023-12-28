@@ -1,5 +1,5 @@
 package dev.gigaherz.sewingkit.integration;
-
+/*
 import com.google.common.collect.ImmutableList;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
@@ -44,4 +44,4 @@ public class JEIPlugin implements IModPlugin
         ClientLevel world = Objects.requireNonNull(Minecraft.getInstance().level);
         registration.addRecipes(SewingCategory.SEWING, ImmutableList.copyOf(SewingRecipe.getAllRecipes(world)));
     }
-}
+}*/

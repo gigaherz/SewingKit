@@ -6,7 +6,6 @@ import dev.gigaherz.sewingkit.api.SewingRecipe;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
-import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.StackedContents;
@@ -15,14 +14,15 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.SlotItemHandler;
-import net.minecraftforge.items.wrapper.RecipeWrapper;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,7 +50,7 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
     };
 
     private final InventoryProvider inventoryProvider;
-    private List<SewingRecipe> recipes = Lists.newArrayList();
+    private List<RecipeHolder<SewingRecipe>> recipes = Lists.newArrayList();
     private long lastTimeSoundPlayed;
 
     private Runnable inventoryUpdateListener = () -> {
@@ -115,7 +115,7 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
 
                     List<ItemStack> consumed = new ArrayList<>();
 
-                    SewingRecipe recipe = recipes.get(getSelectedRecipe());
+                    SewingRecipe recipe = recipes.get(getSelectedRecipe()).value();
                     Map<Ingredient, Integer> remaining = recipe.getMaterials().stream().collect(Collectors.toMap(i -> i.ingredient, i -> i.count));
                     if (consumeCraftingMaterials(thePlayer, remaining, consumed))
                     {
@@ -218,7 +218,7 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
         return this.selectedRecipe.get();
     }
 
-    public List<SewingRecipe> getRecipeList()
+    public List<RecipeHolder<SewingRecipe>> getRecipeList()
     {
         return this.recipes;
     }
@@ -295,7 +295,7 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
 
     private void updateAvailableRecipes(Container inventoryIn)
     {
-        SewingRecipe recipe = getSelectedRecipe() >= 0 && recipes.size() > 0 ? recipes.get(getSelectedRecipe()) : null;
+        SewingRecipe recipe = getSelectedRecipe() >= 0 && recipes.size() > 0 ? recipes.get(getSelectedRecipe()).value() : null;
         this.recipes.clear();
         this.selectedRecipe.set(-1);
         this.slots.get(OUTPUTS_START).set(ItemStack.EMPTY);
@@ -318,9 +318,9 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
     {
         if (!this.recipes.isEmpty() && this.isValidRecipeIndex(this.selectedRecipe.get()))
         {
-            SewingRecipe stonecuttingrecipe = this.recipes.get(this.selectedRecipe.get());
+            var stonecuttingrecipe = this.recipes.get(this.selectedRecipe.get());
             this.inventory.setRecipeUsed(stonecuttingrecipe);
-            this.slots.get(OUTPUTS_START).set(stonecuttingrecipe.assemble(new RecipeWrapper(this.inputInventory), world.registryAccess()));
+            this.slots.get(OUTPUTS_START).set(stonecuttingrecipe.value().assemble(new RecipeWrapper(this.inputInventory), world.registryAccess()));
         }
         else
         {
@@ -435,9 +435,9 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
     }
 
     @Override
-    public boolean recipeMatches(Recipe<? super Container> p_40118_)
+    public boolean recipeMatches(RecipeHolder<? extends Recipe<Container>> p_301144_)
     {
-        return false;
+        return false; // TODO
     }
 
     @Override

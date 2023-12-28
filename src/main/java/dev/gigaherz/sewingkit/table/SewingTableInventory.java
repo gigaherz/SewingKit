@@ -1,7 +1,7 @@
 package dev.gigaherz.sewingkit.table;
 
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 class SewingTableInventory extends ItemStackHandler implements InventoryProvider
 {

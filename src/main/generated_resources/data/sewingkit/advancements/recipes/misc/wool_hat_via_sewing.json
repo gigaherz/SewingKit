@@ -1,5 +1,4 @@
 {
-  "parent": "minecraft:recipes/root",
   "criteria": {
     "has_the_recipe": {
       "conditions": {
@@ -20,8 +19,8 @@
   },
   "requirements": [
     [
-      "has_wool",
-      "has_the_recipe"
+      "has_the_recipe",
+      "has_wool"
     ]
   ],
   "rewards": {

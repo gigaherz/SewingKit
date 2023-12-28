@@ -24,11 +24,12 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
-import net.minecraftforge.client.event.RenderTooltipEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
+import net.neoforged.neoforge.client.event.RenderTooltipEvent;
 
 import java.util.List;
 import java.util.Map;
@@ -79,8 +80,6 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
 
     protected void renderBg(GuiGraphics graphics, float partialTicks, int x, int y)
     {
-        this.renderBackground(graphics);
-
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
         int i = this.leftPos;
@@ -103,7 +102,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
             int i = this.leftPos + 52;
             int j = this.topPos + 14;
             int k = this.recipeIndexOffset + 12;
-            List<SewingRecipe> list = this.menu.getRecipeList();
+            List<RecipeHolder<SewingRecipe>> list = this.menu.getRecipeList();
 
             for (int l = this.recipeIndexOffset; l < k && l < this.menu.getRecipeListSize(); ++l)
             {
@@ -112,8 +111,8 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
                 int k1 = j + i1 / 4 * 18 + 2;
                 if (x >= j1 && x < j1 + 16 && y >= k1 && y < k1 + 18)
                 {
-                    recipeContext = menu.getRecipeList().get(l);
-                    graphics.renderTooltip(font, list.get(l).getResultItem(), x, y);
+                    recipeContext = list.get(l).value();
+                    graphics.renderTooltip(font, recipeContext.getResultItem(), x, y);
                     recipeContext = null;
                 }
             }
@@ -125,7 +124,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         int recipeIdx = menu.getSelectedRecipe();
         if (recipeIdx < 0 || recipeIdx >= menu.getRecipeListSize())
             return;
-        SewingRecipe recipe = menu.getRecipeList().get(recipeIdx);
+        SewingRecipe recipe = menu.getRecipeList().get(recipeIdx).value();
         if (recipe == null)
             return;
 
@@ -278,7 +277,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
     private void drawRecipesItems(GuiGraphics graphics, int left, int top, int recipeIndexOffsetMax)
     {
         var poseStack = new PoseStack();
-        List<SewingRecipe> list = this.menu.getRecipeList();
+        List<RecipeHolder<SewingRecipe>> list = this.menu.getRecipeList();
 
         for (int i = this.recipeIndexOffset; i < recipeIndexOffsetMax && i < this.menu.getRecipeListSize(); ++i)
         {
@@ -287,8 +286,9 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
             int l = j / 4;
             int i1 = top + l * 18 + 2;
             poseStack.translate(0.0F, 0.0F, 0.0F);
-            graphics.renderItem(list.get(i).getResultItem(), k, i1);
-            graphics.renderItemDecorations(font, list.get(i).getResultItem(), k, i1);
+            var resultItem = list.get(i).value().getResultItem();
+            graphics.renderItem(resultItem, k, i1);
+            graphics.renderItemDecorations(font, resultItem, k, i1);
         }
     }
 

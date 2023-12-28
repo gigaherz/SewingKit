@@ -1,6 +1,6 @@
 package dev.gigaherz.sewingkit.table;
 
-import net.minecraftforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 
 public interface InventoryProvider
 {

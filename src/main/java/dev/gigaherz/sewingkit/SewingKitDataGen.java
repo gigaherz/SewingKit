@@ -5,8 +5,8 @@ import dev.gigaherz.sewingkit.loot.RandomDye;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
 import dev.gigaherz.sewingkit.needle.Needles;
 import net.minecraft.Util;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -17,7 +17,6 @@ import net.minecraft.data.models.model.ModelLocationUtils;
 import net.minecraft.data.recipes.*;
 import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
-import net.minecraft.data.tags.VanillaBlockTagsProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.flag.FeatureFlags;
@@ -31,15 +30,14 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
-import net.minecraftforge.client.model.generators.BlockStateProvider;
-import net.minecraftforge.client.model.generators.ItemModelBuilder;
-import net.minecraftforge.client.model.generators.ItemModelProvider;
-import net.minecraftforge.client.model.generators.ModelFile;
-import net.minecraftforge.common.Tags;
-import net.minecraftforge.common.data.ExistingFileHelper;
-import net.minecraftforge.common.data.LanguageProvider;
-import net.minecraftforge.data.event.GatherDataEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
+import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
+import net.neoforged.neoforge.client.model.generators.ModelFile;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.LanguageProvider;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 import java.util.Arrays;
 import java.util.List;
@@ -47,7 +45,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class SewingKitDataGen
@@ -64,7 +61,7 @@ public class SewingKitDataGen
 
         gen.addProvider(event.includeServer(), new BlockTags(gen.getPackOutput(), event.getExistingFileHelper()));
         //gen.addProvider(new ItemTags(gen, blockTags));
-        gen.addProvider(event.includeServer(), new Recipes(gen.getPackOutput()));
+        gen.addProvider(event.includeServer(), new Recipes(gen.getPackOutput(), event.getLookupProvider()));
         gen.addProvider(event.includeServer(), Loot.create(gen.getPackOutput()));
     }
 
@@ -218,13 +215,13 @@ public class SewingKitDataGen
 
     private static class Recipes extends RecipeProvider
     {
-        public Recipes(PackOutput gen)
+        public Recipes(PackOutput gen, CompletableFuture<HolderLookup.Provider> lookupProvider)
         {
-            super(gen);
+            super(gen, lookupProvider);
         }
 
         @Override
-        protected void buildRecipes(Consumer<FinishedRecipe> consumer)
+        protected void buildRecipes(RecipeOutput consumer)
         {
             Arrays.stream(Needles.values()).forEach(needle -> ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, needle.getNeedle())
                     .requires(SewingKitMod.FILE.get())
@@ -402,7 +399,7 @@ public class SewingKitDataGen
             @Override
             protected Iterable<Block> getKnownBlocks()
             {
-                return ForgeRegistries.BLOCKS.getEntries().stream()
+                return BuiltInRegistries.BLOCK.entrySet().stream()
                         .filter(e -> e.getKey().location().getNamespace().equals(SewingKitMod.MODID))
                         .map(Map.Entry::getValue)
                         .collect(Collectors.toList());

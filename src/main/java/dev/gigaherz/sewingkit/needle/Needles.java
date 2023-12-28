@@ -1,14 +1,13 @@
 package dev.gigaherz.sewingkit.needle;
 
 import dev.gigaherz.sewingkit.SewingKitMod;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.Tiers;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 public enum Needles implements NeedleMaterial
 {
@@ -23,11 +22,11 @@ public enum Needles implements NeedleMaterial
     private final String type;
     private final int uses;
     private final Tier tier;
-    private final RegistryObject<Item> needleSupplier;
+    private final DeferredHolder<Item, ? extends Item> needleSupplier;
 
     private final TagKey<Item> materialTag;
 
-    Needles(String type, int uses, Tier tier, RegistryObject<Item> needleSupplier, TagKey<Item> materialTag)
+    Needles(String type, int uses, Tier tier, DeferredHolder<Item, ? extends Item> needleSupplier, TagKey<Item> materialTag)
     {
         this.type = type;
         this.uses = uses;
