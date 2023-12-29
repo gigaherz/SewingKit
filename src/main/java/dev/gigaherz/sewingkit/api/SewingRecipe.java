@@ -1,12 +1,12 @@
 package dev.gigaherz.sewingkit.api;
 
+import com.mojang.datafixers.Products;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -15,24 +15,27 @@ import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class SewingRecipe implements Recipe<Container>
 {
+    public static <T extends SewingRecipe> Products.P6<RecordCodecBuilder.Mu<T>, String, NonNullList<Material>, Optional<Ingredient>, Optional<Ingredient>, ItemStack, Boolean>
+    defaultSewingFields(RecordCodecBuilder.Instance<T> instance)
+    {
+        return instance.group(
+                ExtraCodecs.strictOptionalField(Codec.STRING, "group", "").forGetter(SewingRecipe::getGroup),
+                NonNullList.codecOf(Material.CODEC).fieldOf("materials").forGetter(SewingRecipe::getMaterials),
+                ExtraCodecs.strictOptionalField(Ingredient.CODEC, "pattern").forGetter(SewingRecipe::getPattern),
+                ExtraCodecs.strictOptionalField(Ingredient.CODEC, "tool").forGetter(SewingRecipe::getTool),
+                ItemStack.ITEM_WITH_COUNT_CODEC.fieldOf("result").forGetter(SewingRecipe::getOutput),
+                ExtraCodecs.strictOptionalField(Codec.BOOL, "show_notification", true).forGetter(SewingRecipe::showNotification)
+        );
+    }
 
-    public static final Codec<SewingRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ExtraCodecs.strictOptionalField(Codec.STRING,"group", "").forGetter(SewingRecipe::getGroup),
-            NonNullList.codecOf(Material.CODEC).fieldOf("materials").forGetter(SewingRecipe::getMaterials),
-            ExtraCodecs.strictOptionalField(Ingredient.CODEC, "pattern").forGetter(SewingRecipe::getPattern),
-            ExtraCodecs.strictOptionalField(Ingredient.CODEC, "tool").forGetter(SewingRecipe::getTool),
-            ItemStack.ITEM_WITH_COUNT_CODEC.fieldOf("result").forGetter(recipe -> recipe.output),
-            ExtraCodecs.strictOptionalField(Codec.BOOL, "show_notification", true).forGetter(SewingRecipe::showNotification)
-    ).apply(instance, SewingRecipe::new));
+    public static final Codec<SewingRecipe> CODEC = RecordCodecBuilder.create(instance -> defaultSewingFields(instance).apply(instance, SewingRecipe::new));
 
     private final String group;
 
@@ -41,13 +44,14 @@ public class SewingRecipe implements Recipe<Container>
     private final Ingredient pattern;
     @Nullable
     private final Ingredient tool;
+
     private final ItemStack output;
 
     private final boolean showNotification;
 
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private SewingRecipe(String group, NonNullList<Material> materials, Optional<Ingredient> pattern, Optional<Ingredient> tool, ItemStack output, boolean showNotification)
+    protected SewingRecipe(String group, NonNullList<Material> materials, Optional<Ingredient> pattern, Optional<Ingredient> tool, ItemStack output, boolean showNotification)
     {
         this(group, materials, pattern.orElse(null), tool.orElse(null), output, showNotification);
     }
@@ -168,13 +172,17 @@ public class SewingRecipe implements Recipe<Container>
         return Optional.ofNullable(pattern);
     }
 
+    public ItemStack getOutput()
+    {
+        return output;
+    }
+
     @Override
     public boolean showNotification() {
         return this.showNotification;
     }
 
-    public static class Serializer
-            implements RecipeSerializer<SewingRecipe>
+    public static class Serializer extends SerializerBase<SewingRecipe>
     {
         @Override
         public Codec<SewingRecipe> codec()
@@ -183,7 +191,18 @@ public class SewingRecipe implements Recipe<Container>
         }
 
         @Override
-        public SewingRecipe fromNetwork(FriendlyByteBuf buffer)
+        protected SewingRecipe makeRecipe(FriendlyByteBuf buffer, String group, NonNullList<Material> materials, Ingredient pattern, Ingredient tool, ItemStack result, boolean showNotification)
+        {
+            return new SewingRecipe(group, materials, pattern, tool, result, showNotification);
+        }
+    }
+
+    public static abstract class SerializerBase<T extends SewingRecipe>
+            implements RecipeSerializer<T>
+    {
+
+        @Override
+        public T fromNetwork(FriendlyByteBuf buffer)
         {
             String group = buffer.readUtf(32767);
             int numMaterials = buffer.readVarInt();
@@ -197,9 +216,11 @@ public class SewingRecipe implements Recipe<Container>
             boolean hasTool = buffer.readBoolean();
             Ingredient tool = hasTool ? Ingredient.fromNetwork(buffer) : null;
             ItemStack result = buffer.readItem();
-            boolean showNofitication = buffer.readBoolean();
-            return new SewingRecipe(group, materials, pattern, tool, result, showNofitication);
+            boolean showNotification = buffer.readBoolean();
+            return makeRecipe(buffer, group, materials, pattern, tool, result, showNotification);
         }
+
+        protected abstract T makeRecipe(FriendlyByteBuf buffer, String group, NonNullList<Material> materials, Ingredient pattern, Ingredient tool, ItemStack result, boolean showNotification);
 
         @Override
         public void toNetwork(FriendlyByteBuf buffer, SewingRecipe recipe)
