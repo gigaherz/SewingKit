@@ -70,11 +70,8 @@ import java.util.stream.Stream;
 @Mod(SewingKitMod.MODID)
 public class SewingKitMod
 {
-    private static final Logger LOGGER = LogManager.getLogger();
 
     public static final String MODID = "sewingkit";
-
-    public static CreativeModeTab SEWING_KIT;
 
     public static final TagKey<Block> BONE_TAG = TagKey.create(Registries.BLOCK, new ResourceLocation("sewingkit:needs_bone_tool"));
     public static final Tier BONE_TIER = TierSortingRegistry.registerTier(
