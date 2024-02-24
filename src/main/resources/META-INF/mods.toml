@@ -8,13 +8,12 @@ issueTrackerURL="https://github.com/gigaherz/SewingKit/issues"
     version="${file.jarVersion}"
     displayName="Sewing Kit"
     logoFile="logo.png"
+    credits="Image used in the mod logo taken by Marco Vech, licensed under CC BY 2.0 "
+    authors="gigaherz"
+    displayURL="https://github.com/gigaherz/SewingKit"
     description='''
 Sewing Kit is a base mod for anything that wants to add sewing features, such as leatherworking or tailoring.
 '''
-    credits="Image used in the mod logo taken by Marco Vech, licensed under CC BY 2.0 "
-    authors="gigaherz"
-    #updateJSONURL="http://myurl.me/"
-    displayURL="https://github.com/gigaherz/SewingKit"
 
 [[dependencies.sewingkit]]
     modId="neoforge"
@@ -24,7 +23,7 @@ Sewing Kit is a base mod for anything that wants to add sewing features, such as
     side="BOTH"
 [[dependencies.sewingkit]]
     modId="minecraft"
-type="required"
+    type="required"
     versionRange="[1.20.4,1.21)"
     ordering="NONE"
     side="BOTH"
