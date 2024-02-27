@@ -12,13 +12,10 @@ import net.minecraftforge.registries.RegistryObject;
 
 public enum Needles implements NeedleMaterial
 {
-    WOOD("wood", 10, Tiers.WOOD, SewingKitMod.WOOD_SEWING_NEEDLE, bind("minecraft:planks")),
-    STONE("stone", 15, Tiers.STONE, SewingKitMod.STONE_SEWING_NEEDLE, bind("minecraft:stone_crafting_materials")),
-    IRON("iron", 150, Tiers.IRON, SewingKitMod.IRON_SEWING_NEEDLE, bind("forge:ingots/iron")),
-    DIAMOND("diamond", 250, Tiers.DIAMOND, SewingKitMod.DIAMOND_SEWING_NEEDLE, bind("forge:gems/diamond")),
-    GOLD("gold", 25, Tiers.GOLD, SewingKitMod.GOLD_SEWING_NEEDLE, bind("forge:ingots/gold")),
-    NETHERITE("netherite", 350, Tiers.NETHERITE, SewingKitMod.NETHERITE_SEWING_NEEDLE, bind("forge:ingots/netherite")),
-    BONE("bone", 50, SewingKitMod.BONE_TIER, SewingKitMod.BONE_SEWING_NEEDLE, bind("forge:bones"));
+    IRON("iron", 40, Tiers.IRON, SewingKitMod.IRON_SEWING_NEEDLE, bind("forge:ingots/iron")),
+    GOLD("gold", 40, Tiers.GOLD, SewingKitMod.GOLD_SEWING_NEEDLE, bind("forge:ingots/gold")),
+    DIAMOND("diamond", 100, Tiers.DIAMOND, SewingKitMod.DIAMOND_SEWING_NEEDLE, bind("forge:gems/diamond")),
+    NETHERITE("netherite", 100, Tiers.NETHERITE, SewingKitMod.NETHERITE_SEWING_NEEDLE, bind("forge:ingots/netherite"));
 
     private final String type;
     private final int uses;

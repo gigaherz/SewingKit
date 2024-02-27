@@ -143,7 +143,7 @@ public class SewingRecipe implements Recipe<Container>
     @Override
     public ItemStack getToastSymbol()
     {
-        return new ItemStack(SewingKitMod.WOOD_SEWING_NEEDLE.get());
+        return new ItemStack(SewingKitMod.GOLD_SEWING_NEEDLE.get());
     }
 
     public Ingredient getTool()

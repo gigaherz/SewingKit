@@ -1,22 +1,19 @@
 {
   "type": "minecraft:crafting_shaped",
   "category": "misc",
+  "pattern": [
+    "111",
+    "2 2",
+    "2 2"
+  ],
   "key": {
-    "P": {
-      "tag": "minecraft:planks"
-    },
-    "S": {
-      "item": "minecraft:stick"
-    },
-    "x": {
+    "1": {
       "tag": "minecraft:wooden_slabs"
+    },
+    "2": {
+      "tag": "minecraft:planks"
     }
   },
-  "pattern": [
-    "xxx",
-    "P P",
-    "S S"
-  ],
   "result": {
     "item": "sewingkit:sewing_station"
   },

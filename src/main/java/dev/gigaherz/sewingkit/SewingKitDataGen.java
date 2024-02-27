@@ -80,14 +80,12 @@ public class SewingKitDataGen
         {
             add("tab.sewing_kit", "Sewing Kit");
             add("container.sewingkit.sewing_station", "Sewing Station");
-            add("container.sewingkit.storing_sewing_station", "Sewing Station with Drawers");
             add("jei.category.sewingkit.sewing", "Sewing");
 
             add(SewingKitMod.LEATHER_STRIP.get(), "Leather Strip");
             add(SewingKitMod.LEATHER_SHEET.get(), "Leather Sheet");
 
             add(SewingKitMod.SEWING_STATION_BLOCK.get(), "Sewing Table");
-            add(SewingKitMod.STORING_SEWING_STATION_BLOCK.get(), "Sewing Table with Drawers");
 
             Arrays.stream(Needles.values()).forEach(needle -> {
                 String type = needle.getType();
@@ -130,10 +128,6 @@ public class SewingKitDataGen
         {
             {
                 Block block = SewingKitMod.SEWING_STATION_BLOCK.get();
-                horizontalBlock(block, models().getExistingFile(ModelLocationUtils.getModelLocation(block)));
-            }
-            {
-                Block block = SewingKitMod.STORING_SEWING_STATION_BLOCK.get();
                 horizontalBlock(block, models().getExistingFile(ModelLocationUtils.getModelLocation(block)));
             }
         }
@@ -203,9 +197,6 @@ public class SewingKitDataGen
                     .parent(getExistingFile(ModelLocationUtils
                             .getModelLocation(SewingKitMod.SEWING_STATION_BLOCK.get())));
 
-            getBuilder(SewingKitMod.STORING_SEWING_STATION_ITEM.getId().getPath())
-                    .parent(getExistingFile(ModelLocationUtils
-                            .getModelLocation(SewingKitMod.STORING_SEWING_STATION_BLOCK.get())));
         }
 
         private ItemModelBuilder basicIcon(ResourceLocation item)
@@ -229,7 +220,6 @@ public class SewingKitDataGen
             Arrays.stream(Needles.values()).forEach(needle -> ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, needle.getNeedle())
                     .requires(SewingKitMod.FILE.get())
                     .requires(needle.getTier().getRepairIngredient())
-                    .unlockedBy("has_material", has(needle.getMaterial()))
                     .save(consumer));
 
             ShapedRecipeBuilder.shaped(RecipeCategory.MISC, SewingKitMod.SEWING_STATION_ITEM.get())
@@ -239,13 +229,6 @@ public class SewingKitDataGen
                     .define('x', ItemTags.WOODEN_SLABS)
                     .define('P', ItemTags.PLANKS)
                     .define('S', Items.STICK)
-                    .unlockedBy("has_wood", has(ItemTags.PLANKS))
-                    .save(consumer);
-
-            ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, SewingKitMod.STORING_SEWING_STATION_ITEM.get())
-                    .requires(SewingKitMod.SEWING_STATION_ITEM.get())
-                    .requires(Tags.Items.CHESTS_WOODEN)
-                    .unlockedBy("has_station", has(SewingKitMod.SEWING_STATION_ITEM.get()))
                     .save(consumer);
 
             // Sewing recipes: leather
@@ -370,7 +353,6 @@ public class SewingKitDataGen
                     .pattern("P  ")
                     .define('I', Tags.Items.INGOTS_IRON)
                     .define('P', ItemTags.PLANKS)
-                    .unlockedBy("has_iron", has(Tags.Items.INGOTS_IRON))
                     .save(consumer);
         }
     }
@@ -396,7 +378,6 @@ public class SewingKitDataGen
             protected void generate()
             {
                 this.dropSelf(SewingKitMod.SEWING_STATION_BLOCK.get());
-                this.dropSelf(SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
             }
 
             @Override
@@ -414,7 +395,7 @@ public class SewingKitDataGen
             @Override
             public void generate(BiConsumer<ResourceLocation, LootTable.Builder> consumer)
             {
-                consumer.accept(SewingKitMod.location("chest/tailor_shop_upper_floor"), LootTable.lootTable()
+                consumer.accept(SewingKitMod.location("chest/tailor_shop_chest"), LootTable.lootTable()
                         // armor
                         .withPool(LootPool.lootPool().setRolls(UniformGenerator.between(0,2))
                                 .add(LootItem.lootTableItem(SewingKitMod.WOOL_HAT.get()).setWeight(1).apply(RandomDye.builder()))
@@ -428,8 +409,6 @@ public class SewingKitDataGen
                         )
                         // needle
                         .withPool(LootPool.lootPool().setRolls(UniformGenerator.between(0, 1))
-                                .add(LootItem.lootTableItem(SewingKitMod.WOOD_SEWING_NEEDLE.get()).setWeight(100))
-                                .add(LootItem.lootTableItem(SewingKitMod.BONE_SEWING_NEEDLE.get()).setWeight(50))
                                 .add(LootItem.lootTableItem(SewingKitMod.IRON_SEWING_NEEDLE.get()).setWeight(20))
                                 .add(LootItem.lootTableItem(SewingKitMod.DIAMOND_SEWING_NEEDLE.get()).setWeight(5))
                                 .add(LootItem.lootTableItem(SewingKitMod.NETHERITE_SEWING_NEEDLE.get()).setWeight(1))
@@ -460,8 +439,7 @@ public class SewingKitDataGen
         protected void addTags(HolderLookup.Provider p_255662_)
         {
             tag(net.minecraft.tags.BlockTags.MINEABLE_WITH_AXE)
-                    .add(SewingKitMod.SEWING_STATION_BLOCK.get())
-                    .add(SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
+                    .add(SewingKitMod.SEWING_STATION_BLOCK.get());
         }
     }
 }

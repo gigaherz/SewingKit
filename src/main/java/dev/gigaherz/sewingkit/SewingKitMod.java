@@ -81,11 +81,6 @@ public class SewingKitMod
 
     public static CreativeModeTab SEWING_KIT;
 
-    public static final TagKey<Block> BONE_TAG = TagKey.create(Registries.BLOCK, new ResourceLocation("sewingkit:needs_bone_tool"));
-    public static final Tier BONE_TIER = TierSortingRegistry.registerTier(
-            new ForgeTier(Tiers.STONE.getLevel(), 100, 1.0f, 0.0f, 0, BONE_TAG, () -> Ingredient.of(Tags.Items.BONES)),
-            new ResourceLocation("sewingkit:bone"), List.of(Tiers.WOOD), List.of(Tiers.IRON));
-
     private static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
     private static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, MODID);
@@ -114,24 +109,12 @@ public class SewingKitMod
             () -> new Item(new Item.Properties().stacksTo(64))
     );
 
-    public static final RegistryObject<Item> WOOD_SEWING_NEEDLE = ITEMS.register("wood_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.WOOD, new Item.Properties())
-    );
-
-    public static final RegistryObject<Item> STONE_SEWING_NEEDLE = ITEMS.register("stone_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.STONE, new Item.Properties())
-    );
-
-    public static final RegistryObject<Item> BONE_SEWING_NEEDLE = ITEMS.register("bone_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.BONE, new Item.Properties())
+    public static final RegistryObject<Item> IRON_SEWING_NEEDLE = ITEMS.register("iron_sewing_needle",
+            () -> new NeedleItem(0, 1, Needles.IRON, new Item.Properties())
     );
 
     public static final RegistryObject<Item> GOLD_SEWING_NEEDLE = ITEMS.register("gold_sewing_needle",
             () -> new NeedleItem(0, 1, Needles.GOLD, new Item.Properties())
-    );
-
-    public static final RegistryObject<Item> IRON_SEWING_NEEDLE = ITEMS.register("iron_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.IRON, new Item.Properties())
     );
 
     public static final RegistryObject<Item> DIAMOND_SEWING_NEEDLE = ITEMS.register("diamond_sewing_needle",
@@ -148,18 +131,6 @@ public class SewingKitMod
 
     public static final RegistryObject<Item> SEWING_STATION_ITEM = ITEMS.register("sewing_station",
             () -> new BlockItem(SEWING_STATION_BLOCK.get(), new Item.Properties())
-    );
-
-    public static final RegistryObject<Block> STORING_SEWING_STATION_BLOCK = BLOCKS.register("storing_sewing_station",
-            () -> new StoringSewingTableBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.5F))
-    );
-
-    public static final RegistryObject<Item> STORING_SEWING_STATION_ITEM = ITEMS.register("storing_sewing_station",
-            () -> new BlockItem(STORING_SEWING_STATION_BLOCK.get(), new Item.Properties())
-    );
-
-    public static final RegistryObject<BlockEntityType<?>> STORING_SEWING_STATION_BLOCK_ENTITY = BLOCK_ENTITIES.register("storing_sewing_station",
-            () -> BlockEntityType.Builder.of(StoringSewingTableBlockEntity::new, STORING_SEWING_STATION_BLOCK.get()).build(null)
     );
 
     public static final RegistryObject<Item> WOOL_HAT = ITEMS.register("wool_hat",
@@ -201,7 +172,7 @@ public class SewingKitMod
     public static final RegistryObject<PoiType> TABLE_POI = POI_TYPES.register("tailor",
             () -> new PoiType(Stream.concat(
                     SEWING_STATION_BLOCK.get().getStateDefinition().getPossibleStates().stream(),
-                    STORING_SEWING_STATION_BLOCK.get().getStateDefinition().getPossibleStates().stream()
+                    SEWING_STATION_BLOCK.get().getStateDefinition().getPossibleStates().stream()
             ).collect(Collectors.toUnmodifiableSet()), 1, 1)
     );
 
@@ -239,31 +210,27 @@ public class SewingKitMod
             ResourceKey.create(Registries.PROCESSOR_LIST, location("tailor_shop_processors"));
 
     public static final RegistryObject<CreativeModeTab> SEWING_KIT_TAB = CREATIVE_TABS.register("sewing_kit", () -> new CreativeModeTab.Builder(CreativeModeTab.Row.TOP,0)
-                    .icon(() -> new ItemStack(WOOD_SEWING_NEEDLE.get()))
+                    .icon(() -> new ItemStack(GOLD_SEWING_NEEDLE.get()))
                     .title(Component.translatable("tab.sewing_kit"))
                     .displayItems((featureFlags, output) -> {
                         output.accept(SEWING_STATION_ITEM.get());
-                        output.accept(STORING_SEWING_STATION_ITEM.get());
-                        output.accept(WOOD_SEWING_NEEDLE.get());
-                        output.accept(STONE_SEWING_NEEDLE.get());
-                        output.accept(BONE_SEWING_NEEDLE.get());
-                        output.accept(GOLD_SEWING_NEEDLE.get());
                         output.accept(IRON_SEWING_NEEDLE.get());
+                        output.accept(GOLD_SEWING_NEEDLE.get());
                         output.accept(DIAMOND_SEWING_NEEDLE.get());
                         output.accept(NETHERITE_SEWING_NEEDLE.get());
-                        output.accept(FILE.get());
-                        output.accept(LEATHER_STRIP.get());
-                        output.accept(LEATHER_SHEET.get());
-                        output.accept(WOOL_ROLL.get());
-                        output.accept(WOOL_TRIM.get());
-                        output.accept(WOOL_HAT.get());
-                        output.accept(WOOL_SHIRT.get());
-                        output.accept(WOOL_PANTS.get());
-                        output.accept(WOOL_SHOES.get());
                         output.accept(COMMON_PATTERN.get());
                         output.accept(UNCOMMON_PATTERN.get());
                         output.accept(RARE_PATTERN.get());
                         output.accept(LEGENDARY_PATTERN.get());
+                        output.accept(LEATHER_STRIP.get());
+                        output.accept(LEATHER_SHEET.get());
+                        output.accept(WOOL_ROLL.get());
+                        output.accept(WOOL_TRIM.get());
+                        output.accept(FILE.get());
+                        output.accept(WOOL_HAT.get());
+                        output.accept(WOOL_SHIRT.get());
+                        output.accept(WOOL_PANTS.get());
+                        output.accept(WOOL_SHOES.get());
                     }).build()
         );
 
@@ -304,23 +271,23 @@ public class SewingKitMod
         // Note, the resourcelocation is getting the pool files from the data folder. Not assets folder.
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/plains/houses"),
-                "sewingkit:tailor_shop", 5);
+                "sewingkit:tailor_shop_plains", 2);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/snowy/houses"),
-                "sewingkit:tailor_shop", 5);
+                "sewingkit:tailor_shop_snowy", 2);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/savanna/houses"),
-                "sewingkit:tailor_shop", 5);
+                "sewingkit:tailor_shop_savanna", 2);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/taiga/houses"),
-                "sewingkit:tailor_shop", 5);
+                "sewingkit:tailor_shop_taiga", 2);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 new ResourceLocation("minecraft:village/desert/houses"),
-                "sewingkit:tailor_shop", 5);
+                "sewingkit:tailor_shop_desert", 2);
     }
 
     private static void addBuildingToPool(Registry<StructureTemplatePool> templatePoolRegistry,
@@ -384,27 +351,6 @@ public class SewingKitMod
         trademap.get(5).addAll(Arrays.asList(
                 sellItem(LEGENDARY_PATTERN.get(), 15, 1, 10, 4)
         ));
-
-            /*
-                   2, new VillagerTrades.ITrade[]{
-                            new VillagerTrades.EmeraldForItemsTrade(Items.IRON_INGOT, 4, 12, 10),
-                            new VillagerTrades.ItemsForEmeraldsTrade(new ItemStack(Items.BELL), 36, 1, 12, 5, 0.2F),
-                            new VillagerTrades.ItemsForEmeraldsTrade(new ItemStack(Items.CHAINMAIL_BOOTS), 1, 1, 12, 5, 0.2F),
-                            new VillagerTrades.ItemsForEmeraldsTrade(new ItemStack(Items.CHAINMAIL_LEGGINGS), 3, 1, 12, 5, 0.2F)},
-                   3, new VillagerTrades.ITrade[]{
-                            new VillagerTrades.EmeraldForItemsTrade(Items.LAVA_BUCKET, 1, 12, 20),
-                            new VillagerTrades.EmeraldForItemsTrade(Items.DIAMOND, 1, 12, 20),
-                            new VillagerTrades.ItemsForEmeraldsTrade(new ItemStack(Items.CHAINMAIL_HELMET), 1, 1, 12, 10, 0.2F),
-                            new VillagerTrades.ItemsForEmeraldsTrade(new ItemStack(Items.CHAINMAIL_CHESTPLATE), 4, 1, 12, 10, 0.2F),
-                            new VillagerTrades.ItemsForEmeraldsTrade(new ItemStack(Items.SHIELD), 5, 1, 12, 10, 0.2F)},
-                   4, new VillagerTrades.ITrade[]{
-                            new VillagerTrades.EnchantedItemForEmeraldsTrade(Items.DIAMOND_LEGGINGS, 14, 3, 15, 0.2F),
-                            new VillagerTrades.EnchantedItemForEmeraldsTrade(Items.DIAMOND_BOOTS, 8, 3, 15, 0.2F)},
-                   5, new VillagerTrades.ITrade[]{
-                            new VillagerTrades.EnchantedItemForEmeraldsTrade(Items.DIAMOND_HELMET, 8, 3, 30, 0.2F),
-                            new VillagerTrades.EnchantedItemForEmeraldsTrade(Items.DIAMOND_CHESTPLATE, 16, 3, 30, 0.2F)})));
-
-             */
 
     }
 

@@ -243,7 +243,7 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
      */
     public boolean stillValid(Player playerIn)
     {
-        return isWithinUsableDistance(this.openedFrom, playerIn, SewingKitMod.SEWING_STATION_BLOCK.get(), SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
+        return isWithinUsableDistance(this.openedFrom, playerIn, SewingKitMod.SEWING_STATION_BLOCK.get());
     }
 
     protected static boolean isWithinUsableDistance(ContainerLevelAccess worldPos, Player playerIn, Block... targetBlocks)
