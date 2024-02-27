@@ -24,7 +24,7 @@ public class PatternItem extends Item
     public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn)
     {
         super.appendHoverText(stack, worldIn, tooltip, flagIn);
-        tooltip.add(Component.translatable("This feature is not implemented yet.").withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD));
-        tooltip.add(Component.translatable("This item may be removed in the future.").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+//        tooltip.add(Component.translatable("This feature is not implemented yet.").withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD));
+//        tooltip.add(Component.translatable("This item may be removed in the future.").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
     }
 }
