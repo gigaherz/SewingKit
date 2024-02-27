@@ -88,31 +88,23 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "sewingkit:wood_sewing_needle",
-          "weight": 100
-        },
-        {
-          "type": "minecraft:item",
-          "name": "sewingkit:bone_sewing_needle",
-          "weight": 50
-        },
-        {
-          "type": "minecraft:item",
           "name": "sewingkit:iron_sewing_needle",
-          "weight": 20
+          "weight": 21
+        },
+        {
+          "type": "minecraft:item",
+          "name": "sewingkit:gold_sewing_needle",
+          "weight": 12
         },
         {
           "type": "minecraft:item",
           "name": "sewingkit:diamond_sewing_needle",
-          "weight": 5
+          "weight": 6
         },
         {
           "type": "minecraft:item",
-          "name": "sewingkit:netherite_sewing_needle"
-        },
-        {
-          "type": "minecraft:item",
-          "name": "sewingkit:gold_sewing_needle"
+          "name": "sewingkit:netherite_sewing_needle",
+          "weight": 1
         }
       ],
       "rolls": {
@@ -210,5 +202,5 @@
       }
     }
   ],
-  "random_sequence": "sewingkit:chest/tailor_shop_upper_floor"
+  "random_sequence": "sewingkit:chest/tailor_shop_chest"
 }
