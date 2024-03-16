@@ -30,7 +30,7 @@ repositories {
     }
 }
 
-version = '1.8.0'
+version = '1.8.1'
 group = 'dev.gigaherz.sewingkit' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'SewingKit-UNKNOWN'
 
@@ -112,12 +112,12 @@ minecraft {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.20.1-47.1.3'
+    minecraft 'net.minecraftforge:forge:1.20.1-47.2.20'
 
-    compileOnly fg.deobf("mezz.jei:jei-1.20.1-common-api:15.2.0.23")
-    runtimeOnly fg.deobf("mezz.jei:jei-1.20.1-common:15.2.0.23")
-    compileOnly fg.deobf("mezz.jei:jei-1.20.1-forge-api:15.2.0.23")
-    runtimeOnly fg.deobf("mezz.jei:jei-1.20.1-forge:15.2.0.23")
+    compileOnly fg.deobf("mezz.jei:jei-1.20.1-common-api:15.2.0.27")
+    runtimeOnly fg.deobf("mezz.jei:jei-1.20.1-common:15.2.0.27")
+    compileOnly fg.deobf("mezz.jei:jei-1.20.1-forge-api:15.2.0.27")
+    runtimeOnly fg.deobf("mezz.jei:jei-1.20.1-forge:15.2.0.27")
 
     //compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19.2-5.1.1.0")
     //runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19.2-5.1.1.0")
