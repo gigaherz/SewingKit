@@ -1,6 +1,5 @@
 package dev.gigaherz.sewingkit.integration;
-/*
-import com.google.common.collect.ImmutableList;
+
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import mezz.jei.api.IModPlugin;
@@ -12,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 import java.util.Objects;
 
@@ -42,6 +42,7 @@ public class JEIPlugin implements IModPlugin
     public void registerRecipes(IRecipeRegistration registration)
     {
         ClientLevel world = Objects.requireNonNull(Minecraft.getInstance().level);
-        registration.addRecipes(SewingCategory.SEWING, ImmutableList.copyOf(SewingRecipe.getAllRecipes(world)));
+
+        registration.addRecipes(SewingCategory.SEWING, SewingRecipe.getAllRecipes(world).stream().map(RecipeHolder::value).toList());
     }
-}*/
+}

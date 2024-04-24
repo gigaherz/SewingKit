@@ -160,13 +160,11 @@ public class SewingRecipe implements Recipe<Container>
         return new ItemStack(SewingKitMod.WOOD_SEWING_NEEDLE.get());
     }
 
-    @Nullable
     public Optional<Ingredient> getTool()
     {
         return Optional.ofNullable(tool);
     }
 
-    @Nullable
     public Optional<Ingredient> getPattern()
     {
         return Optional.ofNullable(pattern);

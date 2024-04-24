@@ -1,5 +1,5 @@
 package dev.gigaherz.sewingkit.integration;
-/*
+
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import mezz.jei.api.constants.VanillaTypes;
@@ -68,8 +68,8 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     public void setRecipe(IRecipeLayoutBuilder builder, SewingRecipe recipe, IFocusGroup focuses)
     {
 
-        var tool = Arrays.stream(recipe.getTool().getItems()).toList();
-        var pattern = Arrays.stream(recipe.getPattern().getItems()).toList();
+        var tool = recipe.getTool().stream().flatMap(s -> Arrays.stream(s.getItems())).toList();
+        var pattern =recipe.getPattern().stream().flatMap(s -> Arrays.stream(s.getItems())).toList();
         var inputs = recipe.getMaterials();
 
         List<List<ItemStack>> inputLists = new ArrayList<>();
@@ -120,4 +120,4 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
             53 - 12,
             33 - 12
     };
-}*/
+}

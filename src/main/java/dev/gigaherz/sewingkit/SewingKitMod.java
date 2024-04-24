@@ -209,14 +209,7 @@ public class SewingKitMod
             }
     );
 
-    public static final DeferredHolder<RecipeType<?>, RecipeType<SewingRecipe>> SEWING = RECIPE_TYPES.register("sewing", () -> new RecipeType<>()
-    {
-        @Override
-        public String toString()
-        {
-            return "sewingkit:sewing";
-        }
-    });
+    public static final DeferredHolder<RecipeType<?>, RecipeType<SewingRecipe>> SEWING = RECIPE_TYPES.register("sewing", RecipeType::simple);
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<SewingRecipe>> SEWING_RECIPE = RECIPE_SERIALIZERS.register("sewing", SewingRecipe.Serializer::new);
 

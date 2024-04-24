@@ -61,7 +61,7 @@ public class SewingKitDataGen
 
         gen.addProvider(event.includeServer(), new BlockTags(gen.getPackOutput(), event.getExistingFileHelper()));
         //gen.addProvider(new ItemTags(gen, blockTags));
-        gen.addProvider(event.includeServer(), new Recipes(gen.getPackOutput(), event.getLookupProvider()));
+        gen.addProvider(event.includeServer(), new Recipes(gen.getPackOutput()));
         gen.addProvider(event.includeServer(), Loot.create(gen.getPackOutput()));
     }
 
@@ -215,9 +215,9 @@ public class SewingKitDataGen
 
     private static class Recipes extends RecipeProvider
     {
-        public Recipes(PackOutput gen, CompletableFuture<HolderLookup.Provider> lookupProvider)
+        public Recipes(PackOutput gen)
         {
-            super(gen, lookupProvider);
+            super(gen);
         }
 
         @Override
