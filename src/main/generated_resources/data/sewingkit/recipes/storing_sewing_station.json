@@ -6,10 +6,11 @@
       "item": "sewingkit:sewing_station"
     },
     {
-      "tag": "forge:chests/wooden"
+      "tag": "c:chests/wooden"
     }
   ],
   "result": {
-    "item": "sewingkit:storing_sewing_station"
+    "count": 1,
+    "id": "sewingkit:storing_sewing_station"
   }
 }

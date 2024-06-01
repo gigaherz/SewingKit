@@ -2,11 +2,17 @@ package dev.gigaherz.sewingkit.api;
 
 import com.mojang.datafixers.Products;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.gigaherz.sewingkit.SewingKitMod;
+import io.netty.buffer.ByteBuf;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -26,16 +32,26 @@ public class SewingRecipe implements Recipe<Container>
     defaultSewingFields(RecordCodecBuilder.Instance<T> instance)
     {
         return instance.group(
-                ExtraCodecs.strictOptionalField(Codec.STRING, "group", "").forGetter(SewingRecipe::getGroup),
+                Codec.STRING.optionalFieldOf("group", "").forGetter(SewingRecipe::getGroup),
                 NonNullList.codecOf(Material.CODEC).fieldOf("materials").forGetter(SewingRecipe::getMaterials),
-                ExtraCodecs.strictOptionalField(Ingredient.CODEC, "pattern").forGetter(SewingRecipe::getPattern),
-                ExtraCodecs.strictOptionalField(Ingredient.CODEC, "tool").forGetter(SewingRecipe::getTool),
-                ItemStack.ITEM_WITH_COUNT_CODEC.fieldOf("result").forGetter(SewingRecipe::getOutput),
-                ExtraCodecs.strictOptionalField(Codec.BOOL, "show_notification", true).forGetter(SewingRecipe::showNotification)
+                Ingredient.CODEC.optionalFieldOf("pattern").forGetter(SewingRecipe::getPattern),
+                Ingredient.CODEC.optionalFieldOf("tool").forGetter(SewingRecipe::getTool),
+                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(SewingRecipe::getOutput),
+                Codec.BOOL.optionalFieldOf("show_notification", true).forGetter(SewingRecipe::showNotification)
         );
     }
 
-    public static final Codec<SewingRecipe> CODEC = RecordCodecBuilder.create(instance -> defaultSewingFields(instance).apply(instance, SewingRecipe::new));
+    public static final MapCodec<SewingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> defaultSewingFields(instance).apply(instance, SewingRecipe::new));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, SewingRecipe> STREAM_CODEC = StreamCodec.composite(
+            SewingKitMod.nullable(ByteBufCodecs.STRING_UTF8), SewingRecipe::getGroup,
+            ByteBufCodecs.collection(NonNullList::createWithCapacity, Material.STREAM_CODEC), SewingRecipe::getMaterials,
+            ByteBufCodecs.optional(Ingredient.CONTENTS_STREAM_CODEC), SewingRecipe::getPattern,
+            ByteBufCodecs.optional(Ingredient.CONTENTS_STREAM_CODEC), SewingRecipe::getTool,
+            ItemStack.STREAM_CODEC, SewingRecipe::getOutput,
+            ByteBufCodecs.BOOL, SewingRecipe::showNotification,
+            SewingRecipe::new
+    );
 
     private final String group;
 
@@ -121,13 +137,13 @@ public class SewingRecipe implements Recipe<Container>
     }
 
     @Override
-    public ItemStack assemble(Container p_44001_, RegistryAccess registryAccess)
+    public ItemStack assemble(Container container, HolderLookup.Provider provider)
     {
-        return getResultItem(registryAccess).copy();
+        return getResultItem(provider).copy();
     }
 
     @Override
-    public ItemStack getResultItem(RegistryAccess registryAccess)
+    public ItemStack getResultItem(HolderLookup.Provider provider)
     {
         return output;
     }
@@ -180,83 +196,33 @@ public class SewingRecipe implements Recipe<Container>
         return this.showNotification;
     }
 
-    public static class Serializer extends SerializerBase<SewingRecipe>
+    public static class Serializer implements RecipeSerializer<SewingRecipe>
     {
         @Override
-        public Codec<SewingRecipe> codec()
+        public MapCodec<SewingRecipe> codec()
         {
             return CODEC;
         }
 
         @Override
-        protected SewingRecipe makeRecipe(FriendlyByteBuf buffer, String group, NonNullList<Material> materials, Ingredient pattern, Ingredient tool, ItemStack result, boolean showNotification)
+        public StreamCodec<RegistryFriendlyByteBuf, SewingRecipe> streamCodec()
         {
-            return new SewingRecipe(group, materials, pattern, tool, result, showNotification);
+            return STREAM_CODEC;
         }
     }
 
-    public static abstract class SerializerBase<T extends SewingRecipe>
-            implements RecipeSerializer<T>
-    {
-
-        @Override
-        public T fromNetwork(FriendlyByteBuf buffer)
-        {
-            String group = buffer.readUtf(32767);
-            int numMaterials = buffer.readVarInt();
-            NonNullList<Material> materials = NonNullList.create();
-            for (int i = 0; i < numMaterials; i++)
-            {
-                materials.add(Material.read(buffer));
-            }
-            boolean hasPattern = buffer.readBoolean();
-            Ingredient pattern = hasPattern ? Ingredient.fromNetwork(buffer) : null;
-            boolean hasTool = buffer.readBoolean();
-            Ingredient tool = hasTool ? Ingredient.fromNetwork(buffer) : null;
-            ItemStack result = buffer.readItem();
-            boolean showNotification = buffer.readBoolean();
-            return makeRecipe(buffer, group, materials, pattern, tool, result, showNotification);
-        }
-
-        protected abstract T makeRecipe(FriendlyByteBuf buffer, String group, NonNullList<Material> materials, Ingredient pattern, Ingredient tool, ItemStack result, boolean showNotification);
-
-        @Override
-        public void toNetwork(FriendlyByteBuf buffer, SewingRecipe recipe)
-        {
-            buffer.writeUtf(recipe.group);
-            buffer.writeVarInt(recipe.materials.size());
-            for (Material input : recipe.materials)
-            {
-                input.write(buffer);
-            }
-            boolean hasPattern = recipe.pattern != null;
-            buffer.writeBoolean(hasPattern);
-            if (hasPattern)
-                recipe.pattern.toNetwork(buffer);
-            boolean hasTool = recipe.tool != null;
-            buffer.writeBoolean(hasTool);
-            if (hasTool)
-                recipe.tool.toNetwork(buffer);
-            buffer.writeItem(recipe.output);
-            buffer.writeBoolean(recipe.showNotification);
-        }
-    }
-
-    public static class Material implements Predicate<ItemStack>
+    public static record Material(Ingredient ingredient, int count) implements Predicate<ItemStack>
     {
         public static final Codec<Material> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Ingredient.CODEC.fieldOf("ingredient").forGetter(mat -> mat.ingredient),
-            Codec.INT.fieldOf("count").forGetter(mat -> mat.count)
+            Ingredient.CODEC.fieldOf("ingredient").forGetter(Material::ingredient),
+            Codec.INT.fieldOf("count").forGetter(Material::count)
         ).apply(instance, Material::new));
 
-        public final Ingredient ingredient;
-        public final int count;
-
-        private Material(Ingredient ingredient, int count)
-        {
-            this.ingredient = ingredient;
-            this.count = count;
-        }
+        public static final StreamCodec<RegistryFriendlyByteBuf, Material> STREAM_CODEC = StreamCodec.composite(
+                Ingredient.CONTENTS_STREAM_CODEC, Material::ingredient,
+                ByteBufCodecs.INT, Material::count,
+                Material::new
+        );
 
         public static Material of(Ingredient ingredient, int count)
         {
@@ -267,19 +233,6 @@ public class SewingRecipe implements Recipe<Container>
         public boolean test(ItemStack itemStack)
         {
             return ingredient.test(itemStack) && itemStack.getCount() >= count;
-        }
-
-        public void write(FriendlyByteBuf packet)
-        {
-            packet.writeVarInt(count);
-            ingredient.toNetwork(packet);
-        }
-
-        public static Material read(FriendlyByteBuf packet)
-        {
-            int count = packet.readVarInt();
-            Ingredient ingredient = Ingredient.fromNetwork(packet);
-            return new Material(ingredient, count);
         }
     }
 }

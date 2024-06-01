@@ -4,15 +4,15 @@
     {
       "count": 1,
       "ingredient": {
-        "tag": "forge:leather"
+        "tag": "c:leathers"
       }
     }
   ],
   "result": {
     "count": 3,
-    "item": "sewingkit:leather_strip"
+    "id": "sewingkit:leather_strip"
   },
   "tool": {
-    "tag": "forge:shears"
+    "tag": "c:tools/shears"
   }
 }

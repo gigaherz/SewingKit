@@ -2,6 +2,7 @@ package dev.gigaherz.sewingkit.needle;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -26,11 +27,12 @@ public class NeedleItem extends DiggerItem
 
     public NeedleItem(float attackDamageIn, float attackSpeedIn, NeedleMaterial material, Properties builderIn)
     {
-        super(attackDamageIn, attackSpeedIn, material.getTier(), BREAKABLE_NEEDLE, builderIn.durability(material.getUses()));
+        // :thonk: what to do with attackDamageIn, attackSpeedIn ???
+        super(material.getTier(), BREAKABLE_NEEDLE, builderIn.durability(material.getUses()));
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level worldIn, List<Component> tooltip, TooltipFlag flagIn)
+    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flagIn)
     {
         tooltip.add(Component.translatable("text.sewingkit.needle.lore_text").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
     }

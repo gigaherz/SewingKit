@@ -9,9 +9,10 @@
     }
   ],
   "result": {
-    "item": "sewingkit:wool_roll"
+    "count": 1,
+    "id": "sewingkit:wool_roll"
   },
   "tool": {
-    "tag": "forge:shears"
+    "tag": "c:tools/shears"
   }
 }

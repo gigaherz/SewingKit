@@ -18,6 +18,7 @@
     "S S"
   ],
   "result": {
-    "item": "sewingkit:sewing_station"
+    "count": 1,
+    "id": "sewingkit:sewing_station"
   }
 }

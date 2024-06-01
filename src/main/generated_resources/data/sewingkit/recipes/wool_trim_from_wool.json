@@ -10,9 +10,9 @@
   ],
   "result": {
     "count": 8,
-    "item": "sewingkit:wool_trim"
+    "id": "sewingkit:wool_trim"
   },
   "tool": {
-    "tag": "forge:shears"
+    "tag": "c:tools/shears"
   }
 }

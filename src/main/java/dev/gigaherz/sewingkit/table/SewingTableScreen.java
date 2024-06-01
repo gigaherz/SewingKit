@@ -27,6 +27,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RenderTooltipEvent;
@@ -35,14 +36,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Mod.EventBusSubscriber(value = Dist.CLIENT, modid = SewingKitMod.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(value = Dist.CLIENT, modid = SewingKitMod.MODID, bus = EventBusSubscriber.Bus.GAME)
 public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
 {
     private static final ResourceLocation BACKGROUND_TEXTURE = SewingKitMod.location("textures/gui/sewing_station.png");
 
     private static SewingRecipe recipeContext;
 
-    @Mod.EventBusSubscriber(value = Dist.CLIENT, modid = SewingKitMod.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+    @EventBusSubscriber(value = Dist.CLIENT, modid = SewingKitMod.MODID, bus = EventBusSubscriber.Bus.MOD)
     public class ModBusEvent
     {
         @SubscribeEvent
@@ -128,7 +129,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         if (recipe == null)
             return;
 
-        Map<Ingredient, Integer> remaining = recipe.getMaterials().stream().collect(Collectors.toMap(i -> i.ingredient, i -> i.count));
+        Map<Ingredient, Integer> remaining = recipe.getMaterials().stream().collect(Collectors.toMap(SewingRecipe.Material::ingredient, SewingRecipe.Material::count));
 
         var poseStack = graphics.pose();
         poseStack.pushPose();
@@ -218,7 +219,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
                 int xx = x + i * 17 + 4;
 
                 SewingRecipe.Material material = materials.get(i);
-                ItemStack[] stacks = material.ingredient.getItems();
+                ItemStack[] stacks = material.ingredient().getItems();
                 if (stacks.length > 0)
                 {
                     var ticks = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
@@ -235,12 +236,12 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
                     RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
                     graphics.blit(RECIPE_TEXTURE, xx, y, 36, 0, 16, 16, 64, 64);
                 }
-                if (material.count != 1)
+                if (material.count() != 1)
                 {
                     poseStack.pushPose();
                     poseStack.translate(0, 0, 150);
 
-                    String text = String.format("%d", material.count);
+                    String text = String.format("%d", material.count());
                     int w = font.width(text);
                     graphics.drawString(font, text, xx + 17 - w, y + 9, 0xFFFFFF);
 

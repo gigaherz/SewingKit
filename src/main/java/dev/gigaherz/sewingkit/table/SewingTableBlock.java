@@ -5,9 +5,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -93,16 +95,27 @@ public class SewingTableBlock extends Block
     }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult p_60508_)
     {
-        if (worldIn.isClientSide)
-            return InteractionResult.SUCCESS;
+        return use(level, pos, player).result();
+    }
+
+    @Override
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit)
+    {
+        return use(level, pos, player);
+    }
+
+    public ItemInteractionResult use(Level level, BlockPos pos, Player player)
+    {
+        if (level.isClientSide)
+            return ItemInteractionResult.SUCCESS;
 
         player.openMenu(new SimpleMenuProvider(
-                (id, playerInv, p) -> new SewingTableMenu(id, playerInv, ContainerLevelAccess.create(worldIn, pos)),
+                (id, playerInv, p) -> new SewingTableMenu(id, playerInv, ContainerLevelAccess.create(level, pos)),
                 Component.translatable("container.sewingkit.sewing_station")
         ));
 
-        return InteractionResult.SUCCESS;
+        return ItemInteractionResult.SUCCESS;
     }
 }

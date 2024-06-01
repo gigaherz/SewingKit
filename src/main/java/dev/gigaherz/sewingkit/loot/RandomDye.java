@@ -2,10 +2,13 @@ package dev.gigaherz.sewingkit.loot;
 
 import com.google.common.collect.Lists;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.gigaherz.sewingkit.SewingKitMod;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.LootItemConditionalFunction;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
@@ -15,7 +18,7 @@ import java.util.List;
 
 public class RandomDye extends LootItemConditionalFunction
 {
-    public static final Codec<RandomDye> CODEC = RecordCodecBuilder.create(
+    public static final MapCodec<RandomDye> CODEC = RecordCodecBuilder.mapCodec(
             instance -> commonFields(instance)
                     .apply(instance, RandomDye::new)
     );
@@ -31,7 +34,7 @@ public class RandomDye extends LootItemConditionalFunction
     }
 
     @Override
-    public LootItemFunctionType getType()
+    public LootItemFunctionType<RandomDye> getType()
     {
         return SewingKitMod.RANDOM_DYE.get();
     }
@@ -43,7 +46,8 @@ public class RandomDye extends LootItemConditionalFunction
     }
 
     public static ItemStack getRandomDye(ItemStack original, RandomSource rand) {
-        if (original.getItem() instanceof DyeableArmorItem) {
+        if (original.is(ItemTags.DYEABLE))
+        {
             List<DyeItem> list = Lists.newArrayList();
             list.add(getRandomDye(rand));
             if (rand.nextFloat() > 0.7F) {
@@ -54,7 +58,7 @@ public class RandomDye extends LootItemConditionalFunction
                 list.add(getRandomDye(rand));
             }
 
-            original = DyeableLeatherItem.dyeArmor(original, list);
+            original = DyedItemColor.applyDyes(original, list);
         }
 
         return original;

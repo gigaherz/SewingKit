@@ -1,5 +1,5 @@
 package dev.gigaherz.sewingkit.integration;
-
+/*
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import mezz.jei.api.constants.VanillaTypes;
@@ -75,10 +75,10 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
         List<List<ItemStack>> inputLists = new ArrayList<>();
         for (SewingRecipe.Material material : inputs)
         {
-            ItemStack[] stacks = material.ingredient.getItems();
+            ItemStack[] stacks = material.ingredient().getItems();
             List<ItemStack> expandedInput = Arrays.stream(stacks).map(stack -> {
                 ItemStack copy = stack.copy();
-                copy.setCount(material.count);
+                copy.setCount(material.count());
                 return copy;
             }).collect(Collectors.toList());
             inputLists.add(expandedInput);
@@ -120,4 +120,4 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
             53 - 12,
             33 - 12
     };
-}
+}*/

@@ -3,6 +3,7 @@ package dev.gigaherz.sewingkit.table;
 import com.google.common.collect.Lists;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
@@ -109,15 +110,15 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
 
             public void onTake(Player thePlayer, ItemStack stack)
             {
-                if (!thePlayer.level().isClientSide)
+                if (thePlayer instanceof ServerPlayer serverPlayer)
                 {
                     stack.onCraftedBy(thePlayer.level(), thePlayer, stack.getCount());
 
                     List<ItemStack> consumed = new ArrayList<>();
 
                     SewingRecipe recipe = recipes.get(getSelectedRecipe()).value();
-                    Map<Ingredient, Integer> remaining = recipe.getMaterials().stream().collect(Collectors.toMap(i -> i.ingredient, i -> i.count));
-                    if (consumeCraftingMaterials(thePlayer, remaining, consumed))
+                    Map<Ingredient, Integer> remaining = recipe.getMaterials().stream().collect(Collectors.toMap(SewingRecipe.Material::ingredient, SewingRecipe.Material::count));
+                    if (consumeCraftingMaterials(serverPlayer, remaining, consumed))
                     {
                         updateRecipeResultSlot();
                     }
@@ -147,7 +148,7 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
         onInventoryChanged();
     }
 
-    private boolean consumeCraftingMaterials(Player thePlayer, Map<Ingredient, Integer> remaining, List<ItemStack> consumed)
+    private boolean consumeCraftingMaterials(ServerPlayer thePlayer, Map<Ingredient, Integer> remaining, List<ItemStack> consumed)
     {
         boolean needsUpdate = false;
         for (int i = 0; i < 6; i++)
@@ -156,7 +157,7 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
             ItemStack itemstack;
             if (i == 0)
             {
-                slot.getItem().hurtAndBreak(1, thePlayer, player -> {
+                slot.getItem().hurtAndBreak(1, thePlayer.getRandom(), thePlayer, () -> {
                     slot.remove(1);
                 });
                 itemstack = slot.getItem();

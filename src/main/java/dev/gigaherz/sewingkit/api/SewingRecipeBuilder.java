@@ -6,6 +6,7 @@ import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.nbt.CompoundTag;
@@ -30,39 +31,29 @@ public class SewingRecipeBuilder
     private Ingredient tool;
     private Ingredient pattern;
     private final NonNullList<SewingRecipe.Material> materials = NonNullList.create();
-    private final Item result;
-    private final int count;
-    @Nullable
-    private final CompoundTag tag;
+    private final ItemStack result;
     private final Map<String, Criterion<?>> criteria = new LinkedHashMap<>();
     private boolean showNotification = true;
 
     public static SewingRecipeBuilder begin(RecipeCategory cat, Item result)
     {
-        return begin(cat, result, 1, null);
+        return begin(cat, new ItemStack(result));
     }
 
     public static SewingRecipeBuilder begin(RecipeCategory cat, Item result, int count)
     {
-        return begin(cat, result, count, null);
+        return begin(cat, new ItemStack(result, count));
     }
 
-    public static SewingRecipeBuilder begin(RecipeCategory cat, Item result, CompoundTag tag)
+    public static SewingRecipeBuilder begin(RecipeCategory cat, ItemStack result)
     {
-        return begin(cat, result, 1, tag);
+        return new SewingRecipeBuilder(cat, result);
     }
 
-    public static SewingRecipeBuilder begin(RecipeCategory cat, Item result, int count, @Nullable CompoundTag tag)
-    {
-        return new SewingRecipeBuilder(cat, result, count, tag);
-    }
-
-    protected SewingRecipeBuilder(RecipeCategory cat, Item result, int count, @Nullable CompoundTag tag)
+    protected SewingRecipeBuilder(RecipeCategory cat, ItemStack result)
     {
         this.category = cat;
         this.result = result;
-        this.count = count;
-        this.tag = tag;
     }
 
     public SewingRecipeBuilder withTool(ItemLike... tool)
@@ -75,14 +66,9 @@ public class SewingRecipeBuilder
         return withTool(Ingredient.of(tool));
     }
 
-    public SewingRecipeBuilder withTool(ToolAction tool, Tier level)
-    {
-        return withTool(ToolActionIngredient.fromTool(tool, level));
-    }
-
     public SewingRecipeBuilder withTool(ToolAction tool)
     {
-        return withTool(ToolActionIngredient.fromTool(tool, null));
+        return withTool(ToolActionIngredient.fromTool(tool));
     }
 
     public SewingRecipeBuilder withTool(Ingredient tool)
@@ -170,16 +156,13 @@ public class SewingRecipeBuilder
         criteria.forEach(advancementBuilder::addCriterion);
         ResourceLocation advancementId = id.withPrefix("recipes/" + category.getFolderName() + "/" );
 
-        var resultStack = new ItemStack(this.result, this.count);
-        resultStack.setTag(this.tag);
-
         var recipe = new SewingRecipe(
                 Objects.requireNonNullElse(this.group, ""),
                 /*RecipeBuilder.determineBookCategory(this.category),*/
                 this.materials,
                 this.pattern,
                 this.tool,
-                resultStack,
+                this.result,
                 this.showNotification);
 
         consumerIn.accept(

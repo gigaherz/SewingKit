@@ -16,12 +16,13 @@
     {
       "count": 1,
       "ingredient": {
-        "tag": "forge:string"
+        "tag": "c:strings"
       }
     }
   ],
   "result": {
-    "item": "minecraft:leather_chestplate"
+    "count": 1,
+    "id": "minecraft:leather_chestplate"
   },
   "tool": {
     "type": "sewingkit:tool_ingredient",

@@ -4,15 +4,15 @@
     {
       "count": 1,
       "ingredient": {
-        "tag": "forge:leather"
+        "tag": "c:leathers"
       }
     }
   ],
   "result": {
     "count": 4,
-    "item": "sewingkit:leather_sheet"
+    "id": "sewingkit:leather_sheet"
   },
   "tool": {
-    "tag": "forge:shears"
+    "tag": "c:tools/shears"
   }
 }

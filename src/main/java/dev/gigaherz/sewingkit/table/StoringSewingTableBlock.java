@@ -6,6 +6,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -88,23 +89,34 @@ public class StoringSewingTableBlock extends Block implements EntityBlock
     {
         builder.add(FACING);
     }
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult p_60508_)
+    {
+        return use(level, pos, player).result();
+    }
 
     @Override
-    public InteractionResult use(BlockState state, Level worldIn, BlockPos pos, Player player, InteractionHand handIn, BlockHitResult hit)
+    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit)
     {
-        BlockEntity te = worldIn.getBlockEntity(pos);
-        if (!(te instanceof StoringSewingTableBlockEntity table))
-            return InteractionResult.FAIL;
+        return use(level, pos, player);
+    }
 
-        if (worldIn.isClientSide)
-            return InteractionResult.SUCCESS;
+
+    public ItemInteractionResult use(Level level, BlockPos pos, Player player)
+    {
+        BlockEntity te = level.getBlockEntity(pos);
+        if (!(te instanceof StoringSewingTableBlockEntity table))
+            return ItemInteractionResult.FAIL;
+
+        if (level.isClientSide)
+            return ItemInteractionResult.SUCCESS;
 
         player.openMenu(new SimpleMenuProvider(
-                (id, playerInv, p) -> new SewingTableMenu(id, playerInv, ContainerLevelAccess.create(worldIn, pos), table),
+                (id, playerInv, p) -> new SewingTableMenu(id, playerInv, ContainerLevelAccess.create(level, pos), table),
                 Component.translatable("container.sewingkit.storing_sewing_station")
         ));
 
-        return InteractionResult.SUCCESS;
+        return ItemInteractionResult.SUCCESS;
     }
 
     @Nullable

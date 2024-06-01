@@ -2,6 +2,7 @@ package dev.gigaherz.sewingkit.table;
 
 import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Containers;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -39,17 +40,17 @@ public class StoringSewingTableBlockEntity extends BlockEntity implements Invent
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound)
+    protected void saveAdditional(CompoundTag compound, HolderLookup.Provider provider)
     {
-        super.saveAdditional(compound);
-        compound.put("Items", inventory.serializeNBT());
+        super.saveAdditional(compound, provider);
+        compound.put("Items", inventory.serializeNBT(provider));
     }
 
     @Override
-    public void load(CompoundTag nbt)
+    public void loadAdditional(CompoundTag nbt, HolderLookup.Provider provider)
     {
-        super.load(nbt);
-        inventory.deserializeNBT(nbt.getCompound("Items"));
+        super.loadAdditional(nbt, provider);
+        inventory.deserializeNBT(provider, nbt.getCompound("Items"));
     }
 
     private final ListenableHolder listenable = new ListenableHolder();

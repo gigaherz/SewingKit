@@ -1,11 +1,10 @@
 package dev.gigaherz.sewingkit;
 
 import com.google.common.collect.ImmutableSet;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import dev.gigaherz.sewingkit.api.ToolActionIngredient;
-import dev.gigaherz.sewingkit.clothing.ClothArmorItem;
-import dev.gigaherz.sewingkit.clothing.ClothArmorMaterial;
 import dev.gigaherz.sewingkit.file.FileItem;
 import dev.gigaherz.sewingkit.loot.RandomDye;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
@@ -13,15 +12,20 @@ import dev.gigaherz.sewingkit.needle.Needles;
 import dev.gigaherz.sewingkit.patterns.PatternItem;
 import dev.gigaherz.sewingkit.structure.TailorShopProcessor;
 import dev.gigaherz.sewingkit.table.*;
+import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import net.minecraft.Util;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
@@ -35,6 +39,7 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
@@ -50,18 +55,19 @@ import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.fml.event.lifecycle.FMLConstructModEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.common.*;
 import net.neoforged.neoforge.common.crafting.IngredientType;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.village.VillagerTradesEvent;
 import net.neoforged.neoforge.registries.*;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -73,10 +79,8 @@ public class SewingKitMod
 
     public static final String MODID = "sewingkit";
 
-    public static final TagKey<Block> BONE_TAG = TagKey.create(Registries.BLOCK, new ResourceLocation("sewingkit:needs_bone_tool"));
-    public static final Tier BONE_TIER = TierSortingRegistry.registerTier(
-            new SimpleTier(Tiers.STONE.getLevel(), 100, 1.0f, 0.0f, 0, BONE_TAG, () -> Ingredient.of(Tags.Items.BONES)),
-            new ResourceLocation("sewingkit:bone"), List.of(Tiers.WOOD), List.of(Tiers.IRON));
+    public static final TagKey<Block> INCORRECT_BONE_TAG = TagKey.create(Registries.BLOCK, new ResourceLocation("sewingkit:incorrect_for_bone_tool"));
+    public static final Tier BONE_TIER = new SimpleTier(INCORRECT_BONE_TAG, 100, 1.0f, 0.0f, 0, () -> Ingredient.of(Tags.Items.BONES));
 
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
     private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
@@ -87,9 +91,10 @@ public class SewingKitMod
     private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(BuiltInRegistries.RECIPE_SERIALIZER, MODID);
     private static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(BuiltInRegistries.MENU, MODID);
     private static final DeferredRegister<StructureProcessorType<?>> STRUCTURE_PROCESSORS = DeferredRegister.create(BuiltInRegistries.STRUCTURE_PROCESSOR, MODID);
-    private static final DeferredRegister<LootItemFunctionType> LOOT_FUNCTIONS = DeferredRegister.create(BuiltInRegistries.LOOT_FUNCTION_TYPE, MODID);
+    private static final DeferredRegister<LootItemFunctionType<?>> LOOT_FUNCTIONS = DeferredRegister.create(BuiltInRegistries.LOOT_FUNCTION_TYPE, MODID);
     private static final DeferredRegister<CreativeModeTab> CREATIVE_TABS = DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB, MODID);
     private static final DeferredRegister<IngredientType<?>> INGREDIENT_TYPE = DeferredRegister.create(NeoForgeRegistries.INGREDIENT_TYPES, MODID);
+    private static final DeferredRegister<ArmorMaterial> ARMOR_MATERIALS = DeferredRegister.create(BuiltInRegistries.ARMOR_MATERIAL, MODID);
 
     public static final DeferredItem<Item> LEATHER_STRIP = ITEMS.register("leather_strip",
             () -> new Item(new Item.Properties().stacksTo(64))
@@ -155,20 +160,30 @@ public class SewingKitMod
             () -> BlockEntityType.Builder.of(StoringSewingTableBlockEntity::new, STORING_SEWING_STATION_BLOCK.get()).build(null)
     );
 
+    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> WOOL = ARMOR_MATERIALS.register("wool", () ->
+            new ArmorMaterial(Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
+                map.put(ArmorItem.Type.BOOTS, 0);
+                map.put(ArmorItem.Type.LEGGINGS, 0);
+                map.put(ArmorItem.Type.CHESTPLATE, 0);
+                map.put(ArmorItem.Type.HELMET, 0);
+                map.put(ArmorItem.Type.BODY, 0);
+            }), 25, SoundEvents.ARMOR_EQUIP_GENERIC, () -> Ingredient.of(ItemTags.WOOL), List.of(new ArmorMaterial.Layer(location("wool"))), 0.0F, 0.01F));
+
     public static final DeferredItem<Item> WOOL_HAT = ITEMS.register("wool_hat",
-            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, ArmorItem.Type.HELMET, new Item.Properties())
+            () ->
+                    new ArmorItem(WOOL, ArmorItem.Type.HELMET, new Item.Properties())
     );
 
     public static final DeferredItem<Item> WOOL_SHIRT = ITEMS.register("wool_shirt",
-            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, ArmorItem.Type.CHESTPLATE, new Item.Properties())
+            () -> new ArmorItem(WOOL, ArmorItem.Type.CHESTPLATE, new Item.Properties())
     );
 
     public static final DeferredItem<Item> WOOL_PANTS = ITEMS.register("wool_pants",
-            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, ArmorItem.Type.LEGGINGS, new Item.Properties())
+            () -> new ArmorItem(WOOL, ArmorItem.Type.LEGGINGS, new Item.Properties())
     );
 
     public static final DeferredItem<Item> WOOL_SHOES = ITEMS.register("wool_shoes",
-            () -> new ClothArmorItem(ClothArmorMaterial.WOOL, ArmorItem.Type.BOOTS, new Item.Properties())
+            () -> new ArmorItem(WOOL, ArmorItem.Type.BOOTS, new Item.Properties())
     );
 
     public static final DeferredItem<Item> COMMON_PATTERN = ITEMS.register("common_pattern",
@@ -187,44 +202,45 @@ public class SewingKitMod
             () -> new PatternItem(new Item.Properties().rarity(Rarity.EPIC))
     );
 
-    public static final DeferredItem<Item> FILE = ITEMS.register("file",
-            () -> new FileItem(new Item.Properties().durability(354))
-    );
+    public static final DeferredItem<Item>
+            FILE = ITEMS.register("file", () -> new FileItem(new Item.Properties().durability(354)));
 
-    public static final DeferredHolder<PoiType, PoiType> TABLE_POI = POI_TYPES.register("tailor",
-            () -> new PoiType(Stream.concat(
+    public static final DeferredHolder<PoiType, PoiType>
+            TABLE_POI = POI_TYPES.register("tailor", () -> new PoiType(Stream.concat(
                     SEWING_STATION_BLOCK.get().getStateDefinition().getPossibleStates().stream(),
                     STORING_SEWING_STATION_BLOCK.get().getStateDefinition().getPossibleStates().stream()
-            ).collect(Collectors.toUnmodifiableSet()), 1, 1)
-    );
+            ).collect(Collectors.toUnmodifiableSet()), 1, 1));
 
-    public static final DeferredHolder<VillagerProfession, VillagerProfession> TAILOR = PROFESSIONS.register("tailor",
-            () -> {
+    public static final DeferredHolder<VillagerProfession, VillagerProfession>
+            TAILOR = PROFESSIONS.register("tailor", () -> {
                 var key = Objects.requireNonNull(TABLE_POI.getKey());
                 return new VillagerProfession("tailor",
                         holder -> holder.is(key),
                         holder -> holder.is(key),
                         Arrays.stream(Needles.values()).map(Needles::getNeedle).collect(ImmutableSet.toImmutableSet()),
                         ImmutableSet.of(), null);
-            }
-    );
+            });
 
-    public static final DeferredHolder<RecipeType<?>, RecipeType<SewingRecipe>> SEWING = RECIPE_TYPES.register("sewing", RecipeType::simple);
+    public static final DeferredHolder<RecipeType<?>, RecipeType<SewingRecipe>>
+            SEWING = RECIPE_TYPES.register("sewing", RecipeType::simple);
 
-    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<SewingRecipe>> SEWING_RECIPE = RECIPE_SERIALIZERS.register("sewing", SewingRecipe.Serializer::new);
+    public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<SewingRecipe>>
+            SEWING_RECIPE = RECIPE_SERIALIZERS.register("sewing", SewingRecipe.Serializer::new);
 
-    public static final DeferredHolder<MenuType<?>, MenuType<SewingTableMenu>> SEWING_STATION_MENU = MENU_TYPES.register("sewing_station", () -> new MenuType<>(SewingTableMenu::new, FeatureFlags.DEFAULT_FLAGS));
+    public static final DeferredHolder<MenuType<?>, MenuType<SewingTableMenu>>
+            SEWING_STATION_MENU = MENU_TYPES.register("sewing_station", () -> new MenuType<>(SewingTableMenu::new, FeatureFlags.DEFAULT_FLAGS));
 
-    public static final DeferredHolder<LootItemFunctionType, LootItemFunctionType> RANDOM_DYE =
-            LOOT_FUNCTIONS.register("random_dye", () -> new LootItemFunctionType(RandomDye.CODEC));
+    public static final DeferredHolder<LootItemFunctionType<?>, LootItemFunctionType<RandomDye>>
+            RANDOM_DYE = LOOT_FUNCTIONS.register("random_dye", () -> new LootItemFunctionType<>(RandomDye.CODEC));
 
-    public static final DeferredHolder<StructureProcessorType<?>, StructureProcessorType<TailorShopProcessor>> TAILOR_SHOP_PROCESSOR =
-            STRUCTURE_PROCESSORS.register("tailor_shop_processor", () -> TailorShopProcessor::codec);
+    public static final DeferredHolder<StructureProcessorType<?>, StructureProcessorType<TailorShopProcessor>>
+            TAILOR_SHOP_PROCESSOR = STRUCTURE_PROCESSORS.register("tailor_shop_processor", () -> TailorShopProcessor::codec);
 
-    private static final ResourceKey<StructureProcessorList> TAILOR_SHOP_PROCESSOR_LIST_KEY =
-            ResourceKey.create(Registries.PROCESSOR_LIST, location("tailor_shop_processors"));
+    private static final ResourceKey<StructureProcessorList>
+            TAILOR_SHOP_PROCESSOR_LIST_KEY = ResourceKey.create(Registries.PROCESSOR_LIST, location("tailor_shop_processors"));
 
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> SEWING_KIT_TAB = CREATIVE_TABS.register("sewing_kit", () -> new CreativeModeTab.Builder(CreativeModeTab.Row.TOP,0)
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab>
+            SEWING_KIT_TAB = CREATIVE_TABS.register("sewing_kit", () -> new CreativeModeTab.Builder(CreativeModeTab.Row.TOP,0)
                     .icon(() -> new ItemStack(WOOD_SEWING_NEEDLE.get()))
                     .title(Component.translatable("tab.sewing_kit"))
                     .displayItems((featureFlags, output) -> {
@@ -253,12 +269,14 @@ public class SewingKitMod
                     }).build()
         );
 
-    public static final DeferredHolder<IngredientType<?>, IngredientType<ToolActionIngredient>> TOOL_ACTION_INGREDIENT = INGREDIENT_TYPE.register("tool_ingredient", () -> new IngredientType<>(ToolActionIngredient.CODEC));
+    public static final DeferredHolder<IngredientType<?>, IngredientType<ToolActionIngredient>>
+            TOOL_ACTION_INGREDIENT = INGREDIENT_TYPE.register("tool_ingredient", () -> new IngredientType<>(ToolActionIngredient.CODEC, ToolActionIngredient.STREAM_CODEC));
 
     public SewingKitMod(IEventBus modBus)
     {
         modBus.addListener(this::gatherData);
 
+        ARMOR_MATERIALS.register(modBus);
         ITEMS.register(modBus);
         BLOCKS.register(modBus);
         POI_TYPES.register(modBus);
@@ -429,7 +447,7 @@ public class SewingKitMod
             return BuiltInRegistries.ITEM.getTag(tagSource)
                     .flatMap(tag -> tag.getRandomElement(rand))
                     .map(itemHolder -> new MerchantOffer(
-                            new ItemStack(Items.EMERALD, price),
+                            new ItemCost(Items.EMERALD, price),
                             new ItemStack(itemHolder, quantity), this.maxUses, this.xp, this.priceMultiplier))
                     .orElse(null);
         }
@@ -445,23 +463,53 @@ public class SewingKitMod
         return new ResourceLocation(MODID, path);
     }
 
-    @Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+    @SuppressWarnings("SameParameterValue")
+    public static <B extends ByteBuf, V> StreamCodec<B, @Nullable V> nullable(StreamCodec<B, V> streamCodec)
+    {
+        return new StreamCodec<>()
+        {
+            @Override
+            public V decode(B buff)
+            {
+                var present = buff.readBoolean();
+                //noinspection DataFlowIssue
+                return present ? streamCodec.decode(buff) : null;
+            }
+
+            @Override
+            public void encode(B buff, @Nullable V value)
+            {
+                buff.writeBoolean(value != null);
+                if (value != null)
+                {
+                    streamCodec.encode(buff, value);
+                }
+            }
+        };
+    }
+
+
+    @EventBusSubscriber(value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
     public static class ClientModBus
     {
         @SubscribeEvent
-        public static void clientSetup(final FMLClientSetupEvent event)
+        public static void registerMenuScreens(final RegisterMenuScreensEvent event)
         {
-            event.enqueueWork(() -> {
-                MenuScreens.register(SEWING_STATION_MENU.get(), SewingTableScreen::new);
-            });
+            event.register(SEWING_STATION_MENU.get(), SewingTableScreen::new);
         }
 
         @SubscribeEvent
         public static void itemColors(final RegisterColorHandlersEvent.Item event)
         {
             event.register(
-                    (stack, color) -> color > 0 ? -1 : ((DyeableLeatherItem) stack.getItem()).getColor(stack),
+                    (stack, color) -> color > 0 ? -1 : (0xFF000000 | getColor(stack)),
                     WOOL_HAT.get(), WOOL_SHIRT.get(), WOOL_PANTS.get(), WOOL_SHOES.get());
+        }
+
+        private static int getColor(ItemStack stack)
+        {
+            var colorData = stack.get(DataComponents.DYED_COLOR);
+            return colorData != null ? colorData.rgb() : -1;
         }
     }
 }

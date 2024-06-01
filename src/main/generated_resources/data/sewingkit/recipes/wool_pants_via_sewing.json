@@ -16,12 +16,13 @@
     {
       "count": 1,
       "ingredient": {
-        "tag": "forge:string"
+        "tag": "c:strings"
       }
     }
   ],
   "result": {
-    "item": "sewingkit:wool_pants"
+    "count": 1,
+    "id": "sewingkit:wool_pants"
   },
   "tool": {
     "type": "sewingkit:tool_ingredient",
