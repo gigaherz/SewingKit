@@ -1,10 +1,8 @@
 package dev.gigaherz.sewingkit;
 
 import com.google.common.collect.ImmutableSet;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
-import dev.gigaherz.sewingkit.api.ToolActionIngredient;
 import dev.gigaherz.sewingkit.file.FileItem;
 import dev.gigaherz.sewingkit.loot.RandomDye;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
@@ -15,7 +13,6 @@ import dev.gigaherz.sewingkit.table.*;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.Util;
-import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
@@ -57,7 +54,6 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.common.*;
@@ -67,7 +63,6 @@ import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.village.VillagerTradesEvent;
 import net.neoforged.neoforge.registries.*;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Quaternionf;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -269,8 +264,11 @@ public class SewingKitMod
                     }).build()
         );
 
-    public static final DeferredHolder<IngredientType<?>, IngredientType<ToolActionIngredient>>
-            TOOL_ACTION_INGREDIENT = INGREDIENT_TYPE.register("tool_ingredient", () -> new IngredientType<>(ToolActionIngredient.CODEC, ToolActionIngredient.STREAM_CODEC));
+    public static final TagKey<Item> WOOD_OR_HIGHER = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/wood_or_higher"));
+    public static final TagKey<Item> BONE_OR_HIGHER = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/bone_or_higher"));
+    public static final TagKey<Item> IRON_OR_HIGHER = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/iron_or_higher"));
+    public static final TagKey<Item> DIAMOND_OR_HIGHER = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/diamond_or_higher"));
+    public static final TagKey<Item> NETHERITE_OR_HIGHER = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/netherite_or_higher"));
 
     public SewingKitMod(IEventBus modBus)
     {

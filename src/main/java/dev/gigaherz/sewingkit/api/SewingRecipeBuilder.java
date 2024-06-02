@@ -66,11 +66,6 @@ public class SewingRecipeBuilder
         return withTool(Ingredient.of(tool));
     }
 
-    public SewingRecipeBuilder withTool(ToolAction tool)
-    {
-        return withTool(ToolActionIngredient.fromTool(tool));
-    }
-
     public SewingRecipeBuilder withTool(Ingredient tool)
     {
         this.tool = tool;
@@ -156,7 +151,7 @@ public class SewingRecipeBuilder
         criteria.forEach(advancementBuilder::addCriterion);
         ResourceLocation advancementId = id.withPrefix("recipes/" + category.getFolderName() + "/" );
 
-        var recipe = new SewingRecipe(
+        var recipe = build(
                 Objects.requireNonNullElse(this.group, ""),
                 /*RecipeBuilder.determineBookCategory(this.category),*/
                 this.materials,
@@ -169,6 +164,11 @@ public class SewingRecipeBuilder
                 id,
                 recipe,
                 advancementBuilder.build(advancementId));
+    }
+
+    protected SewingRecipe build(String group, NonNullList<SewingRecipe.Material> materials, Ingredient pattern, Ingredient tool, ItemStack result, boolean showNotification)
+    {
+        return new SewingRecipe(group, materials, pattern, tool, result, showNotification);
     }
 
     private void validate(ResourceLocation id)

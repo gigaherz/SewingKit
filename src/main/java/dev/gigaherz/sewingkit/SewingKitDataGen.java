@@ -1,5 +1,6 @@
 package dev.gigaherz.sewingkit;
 
+import com.mojang.datafixers.util.Pair;
 import dev.gigaherz.sewingkit.api.SewingRecipeBuilder;
 import dev.gigaherz.sewingkit.loot.RandomDye;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
@@ -270,7 +271,7 @@ public class SewingKitDataGen
                     .save(consumer, SewingKitMod.location("leather_strip_from_leather"));
 
             SewingRecipeBuilder.begin(RecipeCategory.MISC, Items.LEATHER_BOOTS)
-                    .withTool(NeedleItem.SEW)
+                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 2)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get())
                     .addMaterial(Tags.Items.STRINGS)
@@ -278,7 +279,7 @@ public class SewingKitDataGen
                     .save(consumer, SewingKitMod.location("leather_boots_via_sewing"));
 
             SewingRecipeBuilder.begin(RecipeCategory.MISC, Items.LEATHER_LEGGINGS)
-                    .withTool(NeedleItem.SEW)
+                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 4)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 3)
                     .addMaterial(Tags.Items.STRINGS)
@@ -286,7 +287,7 @@ public class SewingKitDataGen
                     .save(consumer, SewingKitMod.location("leather_leggings_via_sewing"));
 
             SewingRecipeBuilder.begin(RecipeCategory.MISC, Items.LEATHER_CHESTPLATE)
-                    .withTool(NeedleItem.SEW)
+                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 8)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 2)
                     .addMaterial(Tags.Items.STRINGS)
@@ -294,7 +295,7 @@ public class SewingKitDataGen
                     .save(consumer, SewingKitMod.location("leather_chestplate_via_sewing"));
 
             SewingRecipeBuilder.begin(RecipeCategory.MISC, Items.LEATHER_HELMET)
-                    .withTool(NeedleItem.SEW)
+                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 2)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get())
                     .addMaterial(Tags.Items.STRINGS)
@@ -302,7 +303,7 @@ public class SewingKitDataGen
                     .save(consumer, SewingKitMod.location("leather_helmet_via_sewing"));
 
             SewingRecipeBuilder.begin(RecipeCategory.MISC, Items.LEATHER_HORSE_ARMOR)
-                    .withTool(SewingKitMod.NETHERITE_SEWING_NEEDLE.get())
+                    .withTool(SewingKitMod.NETHERITE_OR_HIGHER)
                     .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 12)
                     .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 6)
                     .addMaterial(Tags.Items.STRINGS, 8)
@@ -335,7 +336,7 @@ public class SewingKitDataGen
                     .save(consumer, SewingKitMod.location("wool_trim_from_carpet"));
 
             SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_SHOES.get())
-                    .withTool(NeedleItem.SEW)
+                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
                     .addMaterial(SewingKitMod.WOOL_ROLL.get(), 1)
                     .addMaterial(SewingKitMod.WOOL_TRIM.get(), 2)
                     .addMaterial(Tags.Items.STRINGS)
@@ -343,7 +344,7 @@ public class SewingKitDataGen
                     .save(consumer, SewingKitMod.location("wool_shoes_via_sewing"));
 
             SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_PANTS.get())
-                    .withTool(NeedleItem.SEW)
+                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
                     .addMaterial(SewingKitMod.WOOL_ROLL.get(), 2)
                     .addMaterial(SewingKitMod.WOOL_TRIM.get(), 4)
                     .addMaterial(Tags.Items.STRINGS)
@@ -351,7 +352,7 @@ public class SewingKitDataGen
                     .save(consumer, SewingKitMod.location("wool_pants_via_sewing"));
 
             SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_SHIRT.get())
-                    .withTool(NeedleItem.SEW)
+                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
                     .addMaterial(SewingKitMod.WOOL_ROLL.get(), 3)
                     .addMaterial(SewingKitMod.WOOL_TRIM.get(), 3)
                     .addMaterial(Tags.Items.STRINGS)
@@ -359,7 +360,7 @@ public class SewingKitDataGen
                     .save(consumer, SewingKitMod.location("wool_shirt_via_sewing"));
 
             SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_HAT.get())
-                    .withTool(NeedleItem.SEW)
+                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
                     .addMaterial(SewingKitMod.WOOL_ROLL.get(), 1)
                     .addMaterial(SewingKitMod.WOOL_TRIM.get(), 1)
                     .addMaterial(Tags.Items.STRINGS)
@@ -466,6 +467,31 @@ public class SewingKitDataGen
                     .add(SewingKitMod.WOOL_SHIRT.get())
                     .add(SewingKitMod.WOOL_PANTS.get())
                     .add(SewingKitMod.WOOL_SHOES.get());
+
+            var list = List.of(
+                    Pair.of(SewingKitMod.WOOD_OR_HIGHER, List.of(SewingKitMod.WOOD_SEWING_NEEDLE.get(), SewingKitMod.GOLD_SEWING_NEEDLE.get())),
+                    Pair.of(SewingKitMod.BONE_OR_HIGHER, List.of(SewingKitMod.BONE_SEWING_NEEDLE.get(), SewingKitMod.STONE_SEWING_NEEDLE.get())),
+                    Pair.of(SewingKitMod.IRON_OR_HIGHER, List.of(SewingKitMod.IRON_SEWING_NEEDLE.get())),
+                    Pair.of(SewingKitMod.DIAMOND_OR_HIGHER, List.of(SewingKitMod.DIAMOND_SEWING_NEEDLE.get())),
+                    Pair.of(SewingKitMod.NETHERITE_OR_HIGHER, List.of(SewingKitMod.NETHERITE_SEWING_NEEDLE.get()))
+            );
+
+            for(int i=0;i<list.size();i++)
+            {
+                var entry = list.get(i);
+                var tag = entry.getFirst();
+                var items = entry.getSecond();
+
+                var tagBuilder = tag(tag);
+                for(var item : items)
+                    tagBuilder.add(item);
+
+                int j = i+1;
+                if (j < list.size())
+                {
+                    tagBuilder.addTag(list.get(j).getFirst());
+                }
+            }
         }
     }
 
@@ -476,8 +502,6 @@ public class SewingKitDataGen
             super(packOutput, Registries.BLOCK, CompletableFuture.supplyAsync(VanillaRegistries::createLookup, Util.backgroundExecutor()),
                     (block) -> BuiltInRegistries.BLOCK.getResourceKey(block).orElseThrow(), SewingKitMod.MODID, existingFileHelper);
         }
-
-        public static final TagKey<Block> BONE_TAG = TagKey.create(Registries.BLOCK, new ResourceLocation("sewingkit:needs_bone_tool"));
 
         @Override
         protected void addTags(HolderLookup.Provider lookup)

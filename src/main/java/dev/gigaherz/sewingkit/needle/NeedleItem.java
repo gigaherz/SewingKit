@@ -21,8 +21,6 @@ import java.util.Set;
 
 public class NeedleItem extends DiggerItem
 {
-    public static final ToolAction SEW = ToolAction.get("sewingkit_sew");
-
     public static final TagKey<Block> BREAKABLE_NEEDLE = TagKey.create(Registries.BLOCK, new ResourceLocation("toolbelt:breakable_needle"));
 
     public NeedleItem(float attackDamageIn, float attackSpeedIn, NeedleMaterial material, Properties builderIn)
@@ -35,13 +33,5 @@ public class NeedleItem extends DiggerItem
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flagIn)
     {
         tooltip.add(Component.translatable("text.sewingkit.needle.lore_text").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
-    }
-
-    private static final Set<ToolAction> actions = Set.of(SEW);
-
-    @Override
-    public boolean canPerformAction(ItemStack stack, ToolAction toolAction)
-    {
-        return actions.contains(toolAction);
     }
 }

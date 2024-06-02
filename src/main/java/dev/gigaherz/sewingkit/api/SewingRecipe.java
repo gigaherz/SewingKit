@@ -113,7 +113,14 @@ public class SewingRecipe implements Recipe<Container>
     public boolean matches(Container inv, Level worldIn)
     {
         ItemStack toolStack = inv.getItem(0);
+        var hasTool = tool != null ? toolStack.getCount() > 0 && tool.test(toolStack) : toolStack.getCount() == 0;
+        if (!hasTool)
+            return false;
+
         ItemStack patternStack = inv.getItem(1);
+        var hasPattern = pattern != null ? patternStack.getCount() > 0 && pattern.test(patternStack) : patternStack.getCount() == 0;
+        if (!hasPattern)
+            return false;
 
         Map<Ingredient, Integer> missing = materials.stream().collect(Collectors.toMap(i -> i.ingredient, i -> i.count));
         for (int i = 0; i < 4; i++)
@@ -131,9 +138,8 @@ public class SewingRecipe implements Recipe<Container>
             }
         }
 
-        return missing.values().stream().noneMatch(v -> v > 0)
-                && (pattern != null ? patternStack.getCount() > 0 && pattern.test(patternStack) : patternStack.getCount() == 0)
-                && (tool != null ? toolStack.getCount() > 0 && tool.test(toolStack) : toolStack.getCount() == 0);
+        var hasMaterials = missing.values().stream().noneMatch(v -> v > 0);
+        return hasMaterials;
     }
 
     @Override

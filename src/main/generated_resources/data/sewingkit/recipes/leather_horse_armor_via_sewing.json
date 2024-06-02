@@ -25,6 +25,6 @@
     "id": "minecraft:leather_horse_armor"
   },
   "tool": {
-    "item": "sewingkit:netherite_sewing_needle"
+    "tag": "sewingkit:needles/netherite_or_higher"
   }
 }

@@ -25,7 +25,6 @@
     "id": "minecraft:leather_leggings"
   },
   "tool": {
-    "type": "sewingkit:tool_ingredient",
-    "tool_type": "sewingkit_sew"
+    "tag": "sewingkit:needles/wood_or_higher"
   }
 }
