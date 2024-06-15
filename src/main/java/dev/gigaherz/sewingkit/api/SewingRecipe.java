@@ -5,6 +5,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.gigaherz.sewingkit.SewingKitMod;
+import dev.gigaherz.sewingkit.table.SewingInput;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -26,7 +27,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-public class SewingRecipe implements Recipe<Container>
+public class SewingRecipe implements Recipe<SewingInput>
 {
     public static <T extends SewingRecipe> Products.P6<RecordCodecBuilder.Mu<T>, String, NonNullList<Material>, Optional<Ingredient>, Optional<Ingredient>, ItemStack, Boolean>
     defaultSewingFields(RecordCodecBuilder.Instance<T> instance)
@@ -110,14 +111,14 @@ public class SewingRecipe implements Recipe<Container>
     }
 
     @Override
-    public boolean matches(Container inv, Level worldIn)
+    public boolean matches(SewingInput input, Level worldIn)
     {
-        ItemStack toolStack = inv.getItem(0);
+        ItemStack toolStack = input.getTool();
         var hasTool = tool != null ? toolStack.getCount() > 0 && tool.test(toolStack) : toolStack.getCount() == 0;
         if (!hasTool)
             return false;
 
-        ItemStack patternStack = inv.getItem(1);
+        ItemStack patternStack = input.getPattern();
         var hasPattern = pattern != null ? patternStack.getCount() > 0 && pattern.test(patternStack) : patternStack.getCount() == 0;
         if (!hasPattern)
             return false;
@@ -129,7 +130,7 @@ public class SewingRecipe implements Recipe<Container>
             {
                 Ingredient ing = mat.getKey();
                 int value = mat.getValue();
-                ItemStack stack = inv.getItem(i + 2);
+                ItemStack stack = input.getMaterial(i);
                 if (ing.test(stack))
                 {
                     int remaining = Math.max(0, value - stack.getCount());
@@ -143,7 +144,7 @@ public class SewingRecipe implements Recipe<Container>
     }
 
     @Override
-    public ItemStack assemble(Container container, HolderLookup.Provider provider)
+    public ItemStack assemble(SewingInput container, HolderLookup.Provider provider)
     {
         return getResultItem(provider).copy();
     }

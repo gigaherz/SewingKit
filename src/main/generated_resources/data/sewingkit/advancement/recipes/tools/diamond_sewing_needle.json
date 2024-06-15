@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": "#forge:ingots/netherite"
+            "items": "#c:gems/diamond"
           }
         ]
       },
@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "sewingkit:netherite_sewing_needle"
+        "recipe": "sewingkit:diamond_sewing_needle"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
@@ -26,7 +26,7 @@
   ],
   "rewards": {
     "recipes": [
-      "sewingkit:netherite_sewing_needle"
+      "sewingkit:diamond_sewing_needle"
     ]
   }
 }

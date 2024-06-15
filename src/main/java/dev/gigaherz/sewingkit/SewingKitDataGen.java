@@ -3,7 +3,6 @@ package dev.gigaherz.sewingkit;
 import com.mojang.datafixers.util.Pair;
 import dev.gigaherz.sewingkit.api.SewingRecipeBuilder;
 import dev.gigaherz.sewingkit.loot.RandomDye;
-import dev.gigaherz.sewingkit.needle.NeedleItem;
 import dev.gigaherz.sewingkit.needle.Needles;
 import net.minecraft.Util;
 import net.minecraft.core.HolderLookup;
@@ -20,14 +19,11 @@ import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.Tiers;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -390,9 +386,9 @@ public class SewingKitDataGen
 
         public static class BlockTables extends BlockLootSubProvider
         {
-            protected BlockTables()
+            protected BlockTables(HolderLookup.Provider provider)
             {
-                super(Set.of(), FeatureFlags.REGISTRY.allFlags());
+                super(Set.of(), FeatureFlags.REGISTRY.allFlags(), provider);
             }
 
             @Override
@@ -414,8 +410,12 @@ public class SewingKitDataGen
 
         public static class ChestTables implements LootTableSubProvider
         {
+            public ChestTables(HolderLookup.Provider provider)
+            {
+            }
+
             @Override
-            public void generate(HolderLookup.Provider lookup, BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer)
+            public void generate(BiConsumer<ResourceKey<LootTable>, LootTable.Builder> consumer)
             {
                 consumer.accept(ResourceKey.create(Registries.LOOT_TABLE, SewingKitMod.location("chest/tailor_shop_upper_floor")), LootTable.lootTable()
                         // armor

@@ -74,7 +74,7 @@ public class SewingKitMod
 
     public static final String MODID = "sewingkit";
 
-    public static final TagKey<Block> INCORRECT_BONE_TAG = TagKey.create(Registries.BLOCK, new ResourceLocation("sewingkit:incorrect_for_bone_tool"));
+    public static final TagKey<Block> INCORRECT_BONE_TAG = TagKey.create(Registries.BLOCK, location("incorrect_for_bone_tool"));
     public static final Tier BONE_TIER = new SimpleTier(INCORRECT_BONE_TAG, 100, 1.0f, 0.0f, 0, () -> Ingredient.of(Tags.Items.BONES));
 
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
@@ -162,7 +162,8 @@ public class SewingKitMod
                 map.put(ArmorItem.Type.CHESTPLATE, 0);
                 map.put(ArmorItem.Type.HELMET, 0);
                 map.put(ArmorItem.Type.BODY, 0);
-            }), 25, SoundEvents.ARMOR_EQUIP_GENERIC, () -> Ingredient.of(ItemTags.WOOL), List.of(new ArmorMaterial.Layer(location("wool"))), 0.0F, 0.01F));
+            }), 25, SoundEvents.ARMOR_EQUIP_GENERIC, () -> Ingredient.of(ItemTags.WOOL),
+                    List.of(new ArmorMaterial.Layer(location("wool"), "", true)), 0.0F, 0.01F));
 
     public static final DeferredItem<Item> WOOL_HAT = ITEMS.register("wool_hat",
             () ->
@@ -299,23 +300,23 @@ public class SewingKitMod
         // Adds our piece to all village houses pool
         // Note, the resourcelocation is getting the pool files from the data folder. Not assets folder.
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
-                new ResourceLocation("minecraft:village/plains/houses"),
+                ResourceLocation.parse("minecraft:village/plains/houses"),
                 "sewingkit:tailor_shop", 5);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
-                new ResourceLocation("minecraft:village/snowy/houses"),
+                ResourceLocation.parse("minecraft:village/snowy/houses"),
                 "sewingkit:tailor_shop", 5);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
-                new ResourceLocation("minecraft:village/savanna/houses"),
+                ResourceLocation.parse("minecraft:village/savanna/houses"),
                 "sewingkit:tailor_shop", 5);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
-                new ResourceLocation("minecraft:village/taiga/houses"),
+                ResourceLocation.parse("minecraft:village/taiga/houses"),
                 "sewingkit:tailor_shop", 5);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
-                new ResourceLocation("minecraft:village/desert/houses"),
+                ResourceLocation.parse("minecraft:village/desert/houses"),
                 "sewingkit:tailor_shop", 5);
     }
 
@@ -458,7 +459,7 @@ public class SewingKitMod
 
     public static ResourceLocation location(String path)
     {
-        return new ResourceLocation(MODID, path);
+        return ResourceLocation.fromNamespaceAndPath(MODID, path);
     }
 
     @SuppressWarnings("SameParameterValue")

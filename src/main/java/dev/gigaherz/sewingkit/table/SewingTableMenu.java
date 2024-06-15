@@ -3,6 +3,7 @@ package dev.gigaherz.sewingkit.table;
 import com.google.common.collect.Lists;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -31,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class SewingTableMenu extends RecipeBookMenu<Container>
+public class SewingTableMenu extends RecipeBookMenu<SewingInput, SewingRecipe>
 {
     private static final int NUM_INPUTS = 6;
     private static final int NUM_OUTPUTS = 1;
@@ -148,7 +149,7 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
         onInventoryChanged();
     }
 
-    private boolean consumeCraftingMaterials(ServerPlayer thePlayer, Map<Ingredient, Integer> remaining, List<ItemStack> consumed)
+    private boolean consumeCraftingMaterials(ServerPlayer serverPlayer, Map<Ingredient, Integer> remaining, List<ItemStack> consumed)
     {
         boolean needsUpdate = false;
         for (int i = 0; i < 6; i++)
@@ -157,8 +158,8 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
             ItemStack itemstack;
             if (i == 0)
             {
-                slot.getItem().hurtAndBreak(1, thePlayer.getRandom(), thePlayer, () -> {
-                    slot.remove(1);
+                slot.getItem().hurtAndBreak(1, (ServerLevel)serverPlayer.level(), serverPlayer, item -> {
+                    slot.set(ItemStack.EMPTY);
                 });
                 itemstack = slot.getItem();
             }
@@ -302,7 +303,8 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
         this.slots.get(OUTPUTS_START).set(ItemStack.EMPTY);
         if (hasItemsinInputSlots())
         {
-            this.recipes = this.world.getRecipeManager().getRecipesFor(SewingKitMod.SEWING.get(), inventoryIn, this.world);
+            var input = SewingInput.ofSewingTableInventory(inventoryIn);
+            this.recipes = this.world.getRecipeManager().getRecipesFor(SewingKitMod.SEWING.get(), input, this.world);
         }
         if (recipes.size() > 0 && recipe != null)
         {
@@ -321,7 +323,8 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
         {
             var stonecuttingrecipe = this.recipes.get(this.selectedRecipe.get());
             this.inventory.setRecipeUsed(stonecuttingrecipe);
-            this.slots.get(OUTPUTS_START).set(stonecuttingrecipe.value().assemble(new RecipeWrapper(this.inputInventory), world.registryAccess()));
+            var input = SewingInput.ofSewingTableInventory(inputInventory);
+            this.slots.get(OUTPUTS_START).set(stonecuttingrecipe.value().assemble(input, world.registryAccess()));
         }
         else
         {
@@ -436,7 +439,7 @@ public class SewingTableMenu extends RecipeBookMenu<Container>
     }
 
     @Override
-    public boolean recipeMatches(RecipeHolder<? extends Recipe<Container>> p_301144_)
+    public boolean recipeMatches(RecipeHolder<SewingRecipe> pRecipe)
     {
         return false; // TODO
     }
