@@ -83,7 +83,7 @@ public class ToolActionIngredient extends Ingredient
 
         private boolean checkTier(ItemStack stack)
         {
-            if (tier == null)
+            if (this.tier == null)
             {
                 return true;
             }
@@ -92,7 +92,7 @@ public class ToolActionIngredient extends Ingredient
             {
                 var tier = tieredItem.getTier();
                 if (tier == this.tier) return true;
-                return TierSortingRegistry.getTiersLowerThan(tier).contains(tier);
+                return TierSortingRegistry.getTiersLowerThan(tier).contains(this.tier);
             }
 
             return false;
