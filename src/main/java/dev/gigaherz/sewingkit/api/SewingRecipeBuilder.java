@@ -17,6 +17,7 @@ import net.minecraft.world.item.Tier;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.neoforge.common.ToolAction;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nullable;
 import java.util.LinkedHashMap;
@@ -173,7 +174,7 @@ public class SewingRecipeBuilder
         var resultStack = new ItemStack(this.result, this.count);
         resultStack.setTag(this.tag);
 
-        var recipe = new SewingRecipe(
+        var recipe = build(
                 Objects.requireNonNullElse(this.group, ""),
                 /*RecipeBuilder.determineBookCategory(this.category),*/
                 this.materials,
@@ -186,6 +187,12 @@ public class SewingRecipeBuilder
                 id,
                 recipe,
                 advancementBuilder.build(advancementId));
+    }
+
+    @ApiStatus.OverrideOnly
+    protected SewingRecipe build(String group, NonNullList<SewingRecipe.Material> materials, Ingredient pattern, Ingredient tool, ItemStack resultStack, boolean showNotification)
+    {
+        return new SewingRecipe(group, materials, pattern, tool, resultStack, showNotification);
     }
 
     private void validate(ResourceLocation id)
