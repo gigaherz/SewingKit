@@ -1,5 +1,5 @@
 package dev.gigaherz.sewingkit.integration;
-/*
+
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import mezz.jei.api.IModPlugin;
@@ -45,4 +45,4 @@ public class JEIPlugin implements IModPlugin
 
         registration.addRecipes(SewingCategory.SEWING, SewingRecipe.getAllRecipes(world).stream().map(RecipeHolder::value).toList());
     }
-}*/
+}
