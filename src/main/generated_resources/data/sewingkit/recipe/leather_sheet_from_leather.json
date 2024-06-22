@@ -13,6 +13,6 @@
     "id": "sewingkit:leather_sheet"
   },
   "tool": {
-    "tag": "c:tools/shears"
+    "tag": "c:tools/shear"
   }
 }

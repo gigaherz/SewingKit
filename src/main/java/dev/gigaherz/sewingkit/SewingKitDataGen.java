@@ -249,19 +249,19 @@ public class SewingKitDataGen
 
             // Sewing recipes: leather
             SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.LEATHER_SHEET.get(), 4)
-                    .withTool(Tags.Items.TOOLS_SHEARS)
+                    .withTool(Tags.Items.TOOLS_SHEAR)
                     .addMaterial(Tags.Items.LEATHERS)
                     .addCriterion("has_leather", has(Tags.Items.LEATHERS))
                     .save(consumer, SewingKitMod.location("leather_sheet_from_leather"));
 
             SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.LEATHER_SHEET.get(), 1)
-                    .withTool(Tags.Items.TOOLS_SHEARS)
+                    .withTool(Tags.Items.TOOLS_SHEAR)
                     .addMaterial(Items.RABBIT_HIDE)
                     .addCriterion("has_leather", has(Items.RABBIT_HIDE))
                     .save(consumer, SewingKitMod.location("leather_sheet_from_rabbit_hide"));
 
             SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.LEATHER_STRIP.get(), 3)
-                    .withTool(Tags.Items.TOOLS_SHEARS)
+                    .withTool(Tags.Items.TOOLS_SHEAR)
                     .addMaterial(Tags.Items.LEATHERS)
                     .addCriterion("has_leather", has(Tags.Items.LEATHERS))
                     .save(consumer, SewingKitMod.location("leather_strip_from_leather"));
@@ -308,25 +308,25 @@ public class SewingKitDataGen
 
             // Sewing recipes: wool
             SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_ROLL.get(), 4)
-                    .withTool(Tags.Items.TOOLS_SHEARS)
+                    .withTool(Tags.Items.TOOLS_SHEAR)
                     .addMaterial(ItemTags.WOOL)
                     .addCriterion("has_wool", has(ItemTags.WOOL))
                     .save(consumer, SewingKitMod.location("wool_roll_from_wool"));
 
             SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_ROLL.get(), 1)
-                    .withTool(Tags.Items.TOOLS_SHEARS)
+                    .withTool(Tags.Items.TOOLS_SHEAR)
                     .addMaterial(ItemTags.WOOL_CARPETS)
                     .addCriterion("has_wool", has(ItemTags.WOOL_CARPETS))
                     .save(consumer, SewingKitMod.location("wool_roll_from_carpet"));
 
             SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_TRIM.get(), 8)
-                    .withTool(Tags.Items.TOOLS_SHEARS)
+                    .withTool(Tags.Items.TOOLS_SHEAR)
                     .addMaterial(ItemTags.WOOL)
                     .addCriterion("has_wool", has(ItemTags.WOOL))
                     .save(consumer, SewingKitMod.location("wool_trim_from_wool"));
 
             SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_TRIM.get(), 3)
-                    .withTool(Tags.Items.TOOLS_SHEARS)
+                    .withTool(Tags.Items.TOOLS_SHEAR)
                     .addMaterial(ItemTags.WOOL_CARPETS)
                     .addCriterion("has_wool", has(ItemTags.WOOL_CARPETS))
                     .save(consumer, SewingKitMod.location("wool_trim_from_carpet"));

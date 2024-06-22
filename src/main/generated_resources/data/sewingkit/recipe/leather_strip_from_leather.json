@@ -13,6 +13,6 @@
     "id": "sewingkit:leather_strip"
   },
   "tool": {
-    "tag": "c:tools/shears"
+    "tag": "c:tools/shear"
   }
 }

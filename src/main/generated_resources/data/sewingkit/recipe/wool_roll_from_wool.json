@@ -13,6 +13,6 @@
     "id": "sewingkit:wool_roll"
   },
   "tool": {
-    "tag": "c:tools/shears"
+    "tag": "c:tools/shear"
   }
 }

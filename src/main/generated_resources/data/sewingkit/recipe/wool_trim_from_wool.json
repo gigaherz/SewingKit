@@ -13,6 +13,6 @@
     "id": "sewingkit:wool_trim"
   },
   "tool": {
-    "tag": "c:tools/shears"
+    "tag": "c:tools/shear"
   }
 }
