@@ -15,7 +15,6 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -24,7 +23,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.SlotItemHandler;
-import net.neoforged.neoforge.items.wrapper.RecipeWrapper;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,7 +56,7 @@ public class SewingTableMenu extends RecipeBookMenu<SewingInput, SewingRecipe>
     private Runnable inventoryUpdateListener = () -> {
     };
 
-    public final IItemHandlerModifiable inputInventory;
+    public IItemHandlerModifiable inputInventory;
     /**
      * The inventory that stores the output of the crafting recipe.
      */
@@ -211,7 +209,7 @@ public class SewingTableMenu extends RecipeBookMenu<SewingInput, SewingRecipe>
 
     public void onInventoryChanged()
     {
-        slotsChanged(new RecipeWrapper(inputInventory));
+        slotsChanged(null);
         inventoryUpdateListener.run();
     }
 
@@ -232,6 +230,7 @@ public class SewingTableMenu extends RecipeBookMenu<SewingInput, SewingRecipe>
 
     public boolean hasItemsinInputSlots()
     {
+        if (inputInventory == null) return false;
         return slots.stream().skip(2).limit(4).anyMatch(Slot::hasItem);
     }
 
@@ -278,9 +277,10 @@ public class SewingTableMenu extends RecipeBookMenu<SewingInput, SewingRecipe>
     }
 
     @Override
-    public void slotsChanged(Container inventoryIn)
+    public void slotsChanged(Container unused)
     {
-        super.slotsChanged(inventoryIn);
+        super.slotsChanged(unused);
+
         boolean anyChanged = false;
         for (int i = 0; i < 6; i++)
         {
@@ -292,10 +292,10 @@ public class SewingTableMenu extends RecipeBookMenu<SewingInput, SewingRecipe>
             }
         }
         if (anyChanged)
-            this.updateAvailableRecipes(inventoryIn);
+            this.updateAvailableRecipes();
     }
 
-    private void updateAvailableRecipes(Container inventoryIn)
+    private void updateAvailableRecipes()
     {
         SewingRecipe recipe = getSelectedRecipe() >= 0 && recipes.size() > 0 ? recipes.get(getSelectedRecipe()).value() : null;
         this.recipes.clear();
@@ -303,7 +303,7 @@ public class SewingTableMenu extends RecipeBookMenu<SewingInput, SewingRecipe>
         this.slots.get(OUTPUTS_START).set(ItemStack.EMPTY);
         if (hasItemsinInputSlots())
         {
-            var input = SewingInput.ofSewingTableInventory(inventoryIn);
+            var input = SewingInput.ofSewingTableInventory(inputInventory);
             this.recipes = this.world.getRecipeManager().getRecipesFor(SewingKitMod.SEWING.get(), input, this.world);
         }
         if (recipes.size() > 0 && recipe != null)
@@ -319,6 +319,7 @@ public class SewingTableMenu extends RecipeBookMenu<SewingInput, SewingRecipe>
 
     private void updateRecipeResultSlot()
     {
+        if (inputInventory == null) return;
         if (!this.recipes.isEmpty() && this.isValidRecipeIndex(this.selectedRecipe.get()))
         {
             var stonecuttingrecipe = this.recipes.get(this.selectedRecipe.get());
@@ -421,8 +422,25 @@ public class SewingTableMenu extends RecipeBookMenu<SewingInput, SewingRecipe>
         this.inventory.removeItemNoUpdate(0);
         if (inventoryProvider.isDummy())
         {
-            this.openedFrom.execute((world, pos) -> this.clearContainer(playerIn, new RecipeWrapper(this.inputInventory)));
+            this.openedFrom.execute((world, pos) -> this.returnAllItemsToPlayer(playerIn));
         }
+    }
+
+    protected void returnAllItemsToPlayer(Player pPlayer) {
+        if (inputInventory == null) return;
+        if (!pPlayer.isAlive() || pPlayer instanceof ServerPlayer && ((ServerPlayer)pPlayer).hasDisconnected()) {
+            for (int j = 0; j < inputInventory.getSlots(); j++) {
+                pPlayer.drop(inputInventory.getStackInSlot(j), false);
+            }
+        } else {
+            for (int i = 0; i < inputInventory.getSlots(); i++) {
+                Inventory inventory = pPlayer.getInventory();
+                if (inventory.player instanceof ServerPlayer) {
+                    inventory.placeItemBackInInventory(inputInventory.getStackInSlot(i));
+                }
+            }
+        }
+        inputInventory = null;
     }
 
     // ======================== Recipebook stuff

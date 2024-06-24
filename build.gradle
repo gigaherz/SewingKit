@@ -6,7 +6,7 @@ plugins {
     id 'net.neoforged.gradle.userdev' version '7.0.145'
 }
 
-version = '2.0.3'
+version = '2.0.5'
 group = 'dev.gigaherz.sewingkit'
 
 Provider<String> minecraftVersion(Transformer<String, String> mapper) {
@@ -75,12 +75,12 @@ runs {
 }
 
 dependencies {
-    implementation 'net.neoforged:neoforge:21.0.21-beta'
+    implementation 'net.neoforged:neoforge:21.0.31-beta'
 
-    compileOnly "mezz.jei:jei-1.21-common-api:19.0.0.9"
-    runtimeOnly "mezz.jei:jei-1.21-common:19.0.0.9"
-    compileOnly "mezz.jei:jei-1.21-neoforge-api:19.0.0.9"
-    runtimeOnly "mezz.jei:jei-1.21-neoforge:19.0.0.9"
+    compileOnly "mezz.jei:jei-1.21-common-api:19.0.0.11"
+    runtimeOnly "mezz.jei:jei-1.21-common:19.0.0.11"
+    compileOnly "mezz.jei:jei-1.21-neoforge-api:19.0.0.11"
+    runtimeOnly "mezz.jei:jei-1.21-neoforge:19.0.0.11"
 
     //compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19.2-5.1.1.0")
     //runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19.2-5.1.1.0")

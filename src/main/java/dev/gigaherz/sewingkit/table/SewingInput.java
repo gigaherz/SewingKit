@@ -1,6 +1,5 @@
 package dev.gigaherz.sewingkit.table;
 
-import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeInput;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -9,19 +8,6 @@ import java.util.List;
 
 public class SewingInput implements RecipeInput
 {
-    public static SewingInput ofSewingTableInventory(Container inv)
-    {
-        var tool = inv.getItem(0);
-        var pattern = inv.getItem(1);
-        var materials = List.of(
-                inv.getItem(1),
-                inv.getItem(2),
-                inv.getItem(3),
-                inv.getItem(4)
-        );
-        return new SewingInput(materials, tool, pattern);
-    }
-
     public static SewingInput ofSewingTableInventory(IItemHandler inv)
     {
         var tool = inv.getStackInSlot(0);
