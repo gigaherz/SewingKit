@@ -174,7 +174,7 @@ public class SewingRecipe implements IRecipe<IInventory>
             {
                 materials.add(Material.deserialize(materialsJson.get(i).getAsJsonObject()));
             }
-            Ingredient pattern = json.has("pattern") ? CraftingHelper.getIngredient(json.get("ingredient")) : null;
+            Ingredient pattern = json.has("pattern") ? CraftingHelper.getIngredient(json.get("pattern")) : null;
             Ingredient tool = json.has("tool") ? CraftingHelper.getIngredient(json.get("tool")) : null;
             ItemStack result = CraftingHelper.getItemStack(JSONUtils.getAsJsonObject(json, "result"), true);
             return createRecipe(recipeId, group, materials, pattern, tool, result);
