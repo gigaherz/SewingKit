@@ -3,7 +3,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.145'
+    id 'net.neoforged.gradle.userdev' version '7.0.153'
 }
 
 version = '2.0.6'
@@ -43,8 +43,8 @@ repositories {
 
 subsystems {
     parchment {
-        minecraftVersion="1.20.6"
-        mappingsVersion="2024.05.01"
+        minecraftVersion="1.21"
+        mappingsVersion="2024.07.07"
     }
 }
 
@@ -77,12 +77,12 @@ runs {
 }
 
 dependencies {
-    implementation 'net.neoforged:neoforge:21.0.42-beta'
+    implementation 'net.neoforged:neoforge:21.0.86-beta'
 
-    compileOnly "mezz.jei:jei-1.21-common-api:19.0.0.11"
-    runtimeOnly "mezz.jei:jei-1.21-common:19.0.0.11"
-    compileOnly "mezz.jei:jei-1.21-neoforge-api:19.0.0.11"
-    runtimeOnly "mezz.jei:jei-1.21-neoforge:19.0.0.11"
+    compileOnly "mezz.jei:jei-1.21-common-api:19.3.1.25"
+    runtimeOnly "mezz.jei:jei-1.21-common:19.3.1.25"
+    compileOnly "mezz.jei:jei-1.21-neoforge-api:19.3.1.25"
+    runtimeOnly "mezz.jei:jei-1.21-neoforge:19.3.1.25"
 
     //compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19.2-5.1.1.0")
     //runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19.2-5.1.1.0")
