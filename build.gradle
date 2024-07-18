@@ -6,7 +6,7 @@ plugins {
     id 'net.neoforged.gradle.userdev' version '7.0.153'
 }
 
-version = '2.0.6'
+version = '2.0.7'
 group = 'dev.gigaherz.sewingkit'
 
 Provider<String> minecraftVersion(Transformer<String, String> mapper) {
