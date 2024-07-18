@@ -68,14 +68,6 @@ public class SewingTableScreen extends ContainerScreen<SewingTableContainer>
         this.drawRecipesItems(l, i1, j1);
     }
 
-    @Override
-    protected void renderLabels(MatrixStack matrixStack, int x, int y)
-    {
-        super.renderLabels(matrixStack, x, y);
-
-        drawString(matrixStack, this.font, "This is a string, can also be a text component instead", 0, 0, -1);
-    }
-
     protected void renderTooltip(MatrixStack matrixStack, int x, int y)
     {
         super.renderTooltip(matrixStack, x, y);
