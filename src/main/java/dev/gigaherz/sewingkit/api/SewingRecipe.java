@@ -54,6 +54,15 @@ public class SewingRecipe implements Recipe<SewingInput>
             SewingRecipe::new
     );
 
+    // TODO start using instead of Optional<> next breaking change cycle
+    private static <T> MapCodec<@Nullable T> nullableFieldOf(Codec<T> codec, String name)
+    {
+        return codec.optionalFieldOf(name).xmap(
+                a -> a.orElse(null),
+                Optional::ofNullable
+        );
+    }
+
     private final String group;
 
     private final NonNullList<Material> materials;

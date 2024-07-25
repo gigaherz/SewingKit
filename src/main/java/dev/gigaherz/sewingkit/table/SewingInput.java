@@ -13,10 +13,10 @@ public class SewingInput implements RecipeInput
         var tool = inv.getStackInSlot(0);
         var pattern = inv.getStackInSlot(1);
         var materials = List.of(
-                inv.getStackInSlot(1),
                 inv.getStackInSlot(2),
                 inv.getStackInSlot(3),
-                inv.getStackInSlot(4)
+                inv.getStackInSlot(4),
+                inv.getStackInSlot(5)
         );
         return new SewingInput(materials, tool, pattern);
     }
