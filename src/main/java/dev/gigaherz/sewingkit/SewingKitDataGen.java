@@ -113,6 +113,9 @@ public class SewingKitDataGen
             add("entity.minecraft.villager.sewingkit.tailor", "Tailor");
 
             add("text.sewingkit.recipe", "Required materials:");
+
+            add("text.sewingkit.pattern.wip", "This feature is not implemented yet.");
+            add("text.sewingkit.pattern.may_be_removed", "This item may be removed in the future.");
         }
     }
 

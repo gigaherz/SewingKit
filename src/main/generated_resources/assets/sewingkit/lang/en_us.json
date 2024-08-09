@@ -27,5 +27,7 @@
   "jei.category.sewingkit.sewing": "Sewing",
   "tab.sewing_kit": "Sewing Kit",
   "text.sewingkit.needle.lore_text": "\"Ouch!\"",
+  "text.sewingkit.pattern.may_be_removed": "This item may be removed in the future.",
+  "text.sewingkit.pattern.wip": "This feature is not implemented yet.",
   "text.sewingkit.recipe": "Required materials:"
 }

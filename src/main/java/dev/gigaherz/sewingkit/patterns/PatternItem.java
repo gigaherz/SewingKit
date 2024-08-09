@@ -23,7 +23,7 @@ public class PatternItem extends Item
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flagIn)
     {
-        tooltip.add(Component.translatable("This feature is not implemented yet.").withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD));
-        tooltip.add(Component.translatable("This item may be removed in the future.").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
+        tooltip.add(Component.translatable("text.sewingkit.pattern.wip").withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD));
+        tooltip.add(Component.translatable("text.sewingkit.pattern.may_be_removed").withStyle(ChatFormatting.RED, ChatFormatting.BOLD));
     }
 }
