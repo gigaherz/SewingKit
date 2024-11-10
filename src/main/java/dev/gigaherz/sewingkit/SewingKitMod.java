@@ -148,7 +148,7 @@ public class SewingKitMod
     );
 
     public static final DeferredItem<Item> SEWING_STATION_ITEM = ITEMS.registerItem("sewing_station",
-            props -> new BlockItem(SEWING_STATION_BLOCK.get(), props)
+            props -> new BlockItem(SEWING_STATION_BLOCK.get(), props.useBlockDescriptionPrefix())
     );
 
     public static final DeferredBlock<Block> STORING_SEWING_STATION_BLOCK = BLOCKS.registerBlock("storing_sewing_station",
@@ -156,7 +156,7 @@ public class SewingKitMod
     );
 
     public static final DeferredItem<Item> STORING_SEWING_STATION_ITEM = ITEMS.registerItem("storing_sewing_station",
-            props -> new BlockItem(STORING_SEWING_STATION_BLOCK.get(), props)
+            props -> new BlockItem(STORING_SEWING_STATION_BLOCK.get(), props.useBlockDescriptionPrefix())
     );
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<StoringSewingTableBlockEntity>>
