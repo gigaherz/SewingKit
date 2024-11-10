@@ -5,7 +5,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -17,7 +16,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -33,7 +32,7 @@ public class SewingTableBlock extends Block
 {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    public static DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+    public static EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     public SewingTableBlock(Properties properties)
     {
@@ -97,25 +96,25 @@ public class SewingTableBlock extends Block
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult p_60508_)
     {
-        return use(level, pos, player).result();
+        return use(level, pos, player);
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit)
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit)
     {
         return use(level, pos, player);
     }
 
-    public ItemInteractionResult use(Level level, BlockPos pos, Player player)
+    public InteractionResult use(Level level, BlockPos pos, Player player)
     {
         if (level.isClientSide)
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
 
         player.openMenu(new SimpleMenuProvider(
                 (id, playerInv, p) -> new SewingTableMenu(id, playerInv, ContainerLevelAccess.create(level, pos)),
                 Component.translatable("container.sewingkit.sewing_station")
         ));
 
-        return ItemInteractionResult.SUCCESS;
+        return InteractionResult.SUCCESS;
     }
 }

@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "P": {
-      "tag": "minecraft:planks"
-    },
-    "S": {
-      "item": "minecraft:stick"
-    },
-    "x": {
-      "tag": "minecraft:wooden_slabs"
-    }
+    "P": "#minecraft:planks",
+    "S": "minecraft:stick",
+    "x": "#minecraft:wooden_slabs"
   },
   "pattern": [
     "xxx",

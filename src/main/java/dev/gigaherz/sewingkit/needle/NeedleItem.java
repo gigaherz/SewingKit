@@ -19,8 +19,7 @@ public class NeedleItem extends DiggerItem
 
     public NeedleItem(float attackDamageIn, float attackSpeedIn, NeedleMaterial material, Properties builderIn)
     {
-        // :thonk: what to do with attackDamageIn, attackSpeedIn ???
-        super(material.getTier(), BREAKABLE_NEEDLE, builderIn.durability(material.getUses()));
+        super(material.getToolMaterial(), BREAKABLE_NEEDLE, attackDamageIn, attackSpeedIn, builderIn.durability(material.getUses()));
     }
 
     @Override

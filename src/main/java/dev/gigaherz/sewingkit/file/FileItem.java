@@ -10,21 +10,8 @@ public class FileItem extends Item
         super(properties);
     }
 
-    @Deprecated
     @Override
-    public boolean hasCraftingRemainingItem()
-    {
-        return true;
-    }
-
-    @Override
-    public boolean hasCraftingRemainingItem(ItemStack stack)
-    {
-        return stack.getDamageValue() < stack.getMaxDamage();
-    }
-
-    @Override
-    public ItemStack getCraftingRemainingItem(ItemStack itemStack)
+    public ItemStack getCraftingRemainder(ItemStack itemStack)
     {
         if (itemStack.getDamageValue() < itemStack.getMaxDamage())
         {

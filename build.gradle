@@ -3,15 +3,15 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.157'
+    id 'net.neoforged.moddev' version '2.0.42-beta'
 }
 
-version = '2.0.9'
+version = '2.1.0'
 group = 'dev.gigaherz.sewingkit'
 
-var  minecraftVersion = project.userDevRuntime.runtimes.map(r -> r.values().first().specification.minecraftVersion)
+var minecraftVersionResolver = project.neoForge.version.map { "1." + (it =~ /^(\d+(?:\.[1-9]\d*|))\./)[0][1] }
 base {
-    archivesName = minecraftVersion.map { "SewingKit-${it}" }
+    archivesName = minecraftVersionResolver.map { "SewingKit-${it}" }
 }
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -38,48 +38,49 @@ repositories {
     }
 }
 
-subsystems {
+neoForge {
+    version = "21.3.17-beta"
+
+    runs {
+        // applies to all the run configs below
+        configureEach {
+            gameDirectory = project.file('run')
+            logLevel = org.slf4j.event.Level.DEBUG
+            //jvmArgument "-Dmixin.debug.export=true"
+            //jvmArgument "-Dmixin.debug.verbose=true"
+        }
+
+        client {
+            client()
+        }
+
+        server {
+            server()
+        }
+
+        data {
+            data()
+            programArguments.addAll '--mod', 'sewingkit', '--all', '--output', file('src/main/generated_resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        }
+    }
+
+    mods {
+        thismod {
+            sourceSet(sourceSets.main)
+        }
+    }
+
     parchment {
-        minecraftVersion="1.21"
-        mappingsVersion="2024.07.07"
-    }
-}
-
-minecraft.accessTransformers.file rootProject.file('src/main/resources/META-INF/accesstransformer.cfg')
-
-runs {
-    // applies to all the run configs below
-    configureEach {
-        systemProperty 'forge.logging.markers', '' // 'REGISTRIES'
-        systemProperty 'forge.logging.console.level', 'debug'
-
-        //ideaModule "${project.name}.main"
-
-        workingDirectory project.file('run')
-
-        //programArguments.addAll "--mixin=jsonthings.mixins.json"
-
-        modSource project.sourceSets.main
-    }
-
-    client {
-    }
-
-    server {
-    }
-
-    data {
-        programArguments.addAll '--mod', 'sewingkit', '--all', '--output', file('src/main/generated_resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+        minecraftVersion = "1.21"
+        mappingsVersion = "2024.07.07"
     }
 }
 
 dependencies {
-    implementation 'net.neoforged:neoforge:21.1.4'
-
-    compileOnly "mezz.jei:jei-1.21-common-api:19.8.2.99"
-    runtimeOnly "mezz.jei:jei-1.21-common:19.8.2.99"
-    compileOnly "mezz.jei:jei-1.21-neoforge-api:19.8.2.99"
-    runtimeOnly "mezz.jei:jei-1.21-neoforge:19.8.2.99"
+    //compileOnly "mezz.jei:jei-1.21-common-api:19.5.0.56"
+    //runtimeOnly "mezz.jei:jei-1.21-common:19.5.0.56"
+    //compileOnly "mezz.jei:jei-1.21-neoforge-api:19.5.0.56"
+    //runtimeOnly "mezz.jei:jei-1.21-neoforge:19.5.0.56"
 
     //compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19.2-5.1.1.0")
     //runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19.2-5.1.1.0")
@@ -98,8 +99,8 @@ jar {
             "Implementation-Title": "sewingkit",
             "Implementation-Version": project.version,
             "Implementation-Vendor" :"gigaherz",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-            "Automatic-Module-Name": "dev.gigaherz.sewingkit"
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")/*,
+            "Automatic-Module-Name": "dev.gigaherz.sewingkit"*/
         ])
     }
 }
@@ -136,5 +137,17 @@ project.afterEvaluate {
                 }
             }
         }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
     }
 }

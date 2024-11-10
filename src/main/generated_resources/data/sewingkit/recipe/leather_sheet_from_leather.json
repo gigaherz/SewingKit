@@ -1,18 +1,15 @@
 {
   "type": "sewingkit:sewing",
+  "category": "sewingkit:sewing_misc",
   "materials": [
     {
       "count": 1,
-      "ingredient": {
-        "tag": "c:leathers"
-      }
+      "ingredient": "#c:leathers"
     }
   ],
   "result": {
     "count": 4,
     "id": "sewingkit:leather_sheet"
   },
-  "tool": {
-    "tag": "c:tools/shear"
-  }
+  "tool": "#c:tools/shear"
 }

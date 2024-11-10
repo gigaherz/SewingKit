@@ -6,34 +6,31 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.table.SewingInput;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.ExtraCodecs;
-import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class SewingRecipe implements Recipe<SewingInput>
 {
-    public static <T extends SewingRecipe> Products.P6<RecordCodecBuilder.Mu<T>, String, NonNullList<Material>, Optional<Ingredient>, Optional<Ingredient>, ItemStack, Boolean>
+    public static <T extends SewingRecipe> Products.P7<RecordCodecBuilder.Mu<T>, String, RecipeBookCategory,
+            NonNullList<Material>, Optional<Ingredient>, Optional<Ingredient>, ItemStack, Boolean>
     defaultSewingFields(RecordCodecBuilder.Instance<T> instance)
     {
         return instance.group(
-                Codec.STRING.optionalFieldOf("group", "").forGetter(SewingRecipe::getGroup),
+                Codec.STRING.optionalFieldOf("group", "").forGetter(SewingRecipe::group),
+                BuiltInRegistries.RECIPE_BOOK_CATEGORY.byNameCodec().fieldOf("category").forGetter(SewingRecipe::recipeBookCategory),
                 NonNullList.codecOf(Material.CODEC).fieldOf("materials").forGetter(SewingRecipe::getMaterials),
                 Ingredient.CODEC.optionalFieldOf("pattern").forGetter(SewingRecipe::getPattern),
                 Ingredient.CODEC.optionalFieldOf("tool").forGetter(SewingRecipe::getTool),
@@ -45,7 +42,8 @@ public class SewingRecipe implements Recipe<SewingInput>
     public static final MapCodec<SewingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> defaultSewingFields(instance).apply(instance, SewingRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SewingRecipe> STREAM_CODEC = StreamCodec.composite(
-            SewingKitMod.nullable(ByteBufCodecs.STRING_UTF8), SewingRecipe::getGroup,
+            SewingKitMod.nullable(ByteBufCodecs.STRING_UTF8), SewingRecipe::group,
+            ByteBufCodecs.registry(Registries.RECIPE_BOOK_CATEGORY), SewingRecipe::recipeBookCategory,
             ByteBufCodecs.collection(NonNullList::createWithCapacity, Material.STREAM_CODEC), SewingRecipe::getMaterials,
             ByteBufCodecs.optional(Ingredient.CONTENTS_STREAM_CODEC), SewingRecipe::getPattern,
             ByteBufCodecs.optional(Ingredient.CONTENTS_STREAM_CODEC), SewingRecipe::getTool,
@@ -64,59 +62,51 @@ public class SewingRecipe implements Recipe<SewingInput>
     }
 
     private final String group;
-
+    private final RecipeBookCategory recipeBookCategory;
     private final NonNullList<Material> materials;
     @Nullable
     private final Ingredient pattern;
     @Nullable
     private final Ingredient tool;
-
     private final ItemStack output;
-
     private final boolean showNotification;
 
+    private PlacementInfo placementInfo;
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    protected SewingRecipe(String group, NonNullList<Material> materials, Optional<Ingredient> pattern, Optional<Ingredient> tool, ItemStack output, boolean showNotification)
+    protected SewingRecipe(String group, RecipeBookCategory recipeBookCategory, NonNullList<Material> materials, Optional<Ingredient> pattern, Optional<Ingredient> tool, ItemStack output, boolean showNotification)
     {
-        this(group, materials, pattern.orElse(null), tool.orElse(null), output, showNotification);
+        this(group, recipeBookCategory, materials, pattern.orElse(null), tool.orElse(null), output, showNotification);
     }
 
-    public SewingRecipe(String group, NonNullList<Material> materials, @Nullable Ingredient pattern, @Nullable Ingredient tool, ItemStack output, boolean showNotification)
+    public SewingRecipe(String group, RecipeBookCategory recipeBookCategory, NonNullList<Material> materials, @Nullable Ingredient pattern, @Nullable Ingredient tool, ItemStack output, boolean showNotification)
     {
         this.group = group;
+        this.recipeBookCategory = recipeBookCategory;
         this.materials = materials;
         this.pattern = pattern;
         this.tool = tool;
         this.output = output;
         this.showNotification = showNotification;
-    }
 
-    public static Collection<RecipeHolder<SewingRecipe>> getAllRecipes(Level world)
-    {
-        return world.getRecipeManager().getAllRecipesFor(SewingKitMod.SEWING.get());
     }
 
     @Override
-    public String getGroup()
+    public String group()
     {
         return group;
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height)
+    public RecipeSerializer<? extends Recipe<SewingInput>> getSerializer()
     {
-        return width * height >= 4;
+        return SewingKitMod.SEWING_RECIPE.get();
     }
 
     @Override
-    public NonNullList<Ingredient> getIngredients()
+    public RecipeType<? extends Recipe<SewingInput>> getType()
     {
-        NonNullList<Ingredient> allIngredients = NonNullList.create();
-        allIngredients.add(pattern != null ? pattern : Ingredient.EMPTY);
-        allIngredients.add(tool != null ? tool : Ingredient.EMPTY);
-        materials.stream().map(m -> m.ingredient).forEach(allIngredients::add);
-        return allIngredients;
+        return SewingKitMod.SEWING.get();
     }
 
     @Override
@@ -155,18 +145,7 @@ public class SewingRecipe implements Recipe<SewingInput>
     @Override
     public ItemStack assemble(SewingInput container, HolderLookup.Provider provider)
     {
-        return getResultItem(provider).copy();
-    }
-
-    @Override
-    public ItemStack getResultItem(HolderLookup.Provider provider)
-    {
-        return output;
-    }
-
-    public ItemStack getResultItem()
-    {
-        return output;
+        return output.copy();
     }
 
     public NonNullList<Material> getMaterials()
@@ -175,21 +154,24 @@ public class SewingRecipe implements Recipe<SewingInput>
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer()
+    public PlacementInfo placementInfo()
     {
-        return SewingKitMod.SEWING_RECIPE.get();
+        if (placementInfo == null)
+        {
+            List<Optional<Ingredient>> ingredients = new ArrayList<>();
+            ingredients.add(Optional.ofNullable(pattern));
+            ingredients.add(Optional.ofNullable(tool));
+            materials.stream().map(m -> Optional.of(m.ingredient)).forEach(ingredients::add);
+
+            placementInfo = PlacementInfo.createFromOptionals(ingredients);
+        }
+        return placementInfo;
     }
 
     @Override
-    public RecipeType<?> getType()
+    public RecipeBookCategory recipeBookCategory()
     {
-        return SewingKitMod.SEWING.get();
-    }
-
-    @Override
-    public ItemStack getToastSymbol()
-    {
-        return new ItemStack(SewingKitMod.WOOD_SEWING_NEEDLE.get());
+        return recipeBookCategory;
     }
 
     public Optional<Ingredient> getTool()

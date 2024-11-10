@@ -1,18 +1,26 @@
 package dev.gigaherz.sewingkit.api;
 
+import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.level.ItemLike;
 
 import java.util.LinkedHashMap;
@@ -22,6 +30,7 @@ import java.util.Objects;
 public class SewingRecipeBuilder
 {
     private final RecipeCategory category;
+    private final HolderLookup.RegistryLookup<Item> items;
     private String group;
     private Ingredient tool;
     private Ingredient pattern;
@@ -30,23 +39,24 @@ public class SewingRecipeBuilder
     private final Map<String, Criterion<?>> criteria = new LinkedHashMap<>();
     private boolean showNotification = true;
 
-    public static SewingRecipeBuilder begin(RecipeCategory cat, Item result)
+    public static SewingRecipeBuilder begin(HolderLookup.RegistryLookup<Item> items, RecipeCategory cat, Item result)
     {
-        return begin(cat, new ItemStack(result));
+        return begin(items, cat, new ItemStack(result));
     }
 
-    public static SewingRecipeBuilder begin(RecipeCategory cat, Item result, int count)
+    public static SewingRecipeBuilder begin(HolderLookup.RegistryLookup<Item> items, RecipeCategory cat, Item result, int count)
     {
-        return begin(cat, new ItemStack(result, count));
+        return begin(items, cat, new ItemStack(result, count));
     }
 
-    public static SewingRecipeBuilder begin(RecipeCategory cat, ItemStack result)
+    public static SewingRecipeBuilder begin(HolderLookup.RegistryLookup<Item> items, RecipeCategory cat, ItemStack result)
     {
-        return new SewingRecipeBuilder(cat, result);
+        return new SewingRecipeBuilder(items, cat, result);
     }
 
-    protected SewingRecipeBuilder(RecipeCategory cat, ItemStack result)
+    protected SewingRecipeBuilder(HolderLookup.RegistryLookup<Item> items, RecipeCategory cat, ItemStack result)
     {
+        this.items = items;
         this.category = cat;
         this.result = result;
     }
@@ -58,13 +68,23 @@ public class SewingRecipeBuilder
 
     public SewingRecipeBuilder withTool(TagKey<Item> tool)
     {
-        return withTool(Ingredient.of(tool));
+        return withTool(Ingredient.of(this.items.getOrThrow(tool)));
     }
 
     public SewingRecipeBuilder withTool(Ingredient tool)
     {
         this.tool = tool;
         return this;
+    }
+
+    public SewingRecipeBuilder withPattern(ItemLike... pattern)
+    {
+        return withPattern(Ingredient.of(pattern));
+    }
+
+    public SewingRecipeBuilder withPattern(TagKey<Item> pattern)
+    {
+        return withPattern(Ingredient.of(this.items.getOrThrow(pattern)));
     }
 
     public SewingRecipeBuilder withPattern(Ingredient pattern)
@@ -85,7 +105,7 @@ public class SewingRecipeBuilder
 
     public SewingRecipeBuilder addMaterial(TagKey<Item> x, int count)
     {
-        return addMaterial(Ingredient.of(x), 1);
+        return addMaterial(Ingredient.of(this.items.getOrThrow(x)), 1);
     }
 
     public SewingRecipeBuilder addMaterial(ItemLike... x)
@@ -95,7 +115,7 @@ public class SewingRecipeBuilder
 
     public SewingRecipeBuilder addMaterial(TagKey<Item> x)
     {
-        return addMaterial(Ingredient.of(x), 1);
+        return addMaterial(Ingredient.of(this.items.getOrThrow(x)), 1);
     }
 
     public SewingRecipeBuilder addMaterial(Ingredient x)
@@ -138,17 +158,19 @@ public class SewingRecipeBuilder
     {
         this.validate(id);
 
+        var key = ResourceKey.create(Registries.RECIPE, id);
+
         var advancementBuilder = Advancement.Builder.advancement();
         advancementBuilder
-                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(id))
-                .rewards(AdvancementRewards.Builder.recipe(id))
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(key))
+                .rewards(AdvancementRewards.Builder.recipe(key))
                 .requirements(AdvancementRequirements.Strategy.OR);
         criteria.forEach(advancementBuilder::addCriterion);
         ResourceLocation advancementId = id.withPrefix("recipes/" + category.getFolderName() + "/" );
 
         var recipe = build(
                 Objects.requireNonNullElse(this.group, ""),
-                /*RecipeBuilder.determineBookCategory(this.category),*/
+                determineBookCategory(this.category),
                 this.materials,
                 this.pattern,
                 this.tool,
@@ -156,14 +178,22 @@ public class SewingRecipeBuilder
                 this.showNotification);
 
         consumerIn.accept(
-                id,
+                key,
                 recipe,
                 advancementBuilder.build(advancementId));
     }
 
-    protected SewingRecipe build(String group, NonNullList<SewingRecipe.Material> materials, Ingredient pattern, Ingredient tool, ItemStack result, boolean showNotification)
+
+    static RecipeBookCategory determineBookCategory(RecipeCategory category) {
+        //noinspection SwitchStatementWithTooFewBranches
+        return switch (category) {
+            default -> SewingKitMod.SEWING_MISC.get();
+        };
+    }
+
+    protected SewingRecipe build(String group, RecipeBookCategory category, NonNullList<SewingRecipe.Material> materials, Ingredient pattern, Ingredient tool, ItemStack result, boolean showNotification)
     {
-        return new SewingRecipe(group, materials, pattern, tool, result, showNotification);
+        return new SewingRecipe(group, category, materials, pattern, tool, result, showNotification);
     }
 
     private void validate(ResourceLocation id)

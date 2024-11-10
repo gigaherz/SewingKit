@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "sewingkit:sewing_station"
-    },
-    {
-      "tag": "c:chests/wooden"
-    }
+    "sewingkit:sewing_station",
+    "#c:chests/wooden"
   ],
   "result": {
     "count": 1,

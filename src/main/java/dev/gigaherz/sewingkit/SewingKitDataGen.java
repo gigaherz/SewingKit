@@ -15,6 +15,7 @@ import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.data.loot.LootTableSubProvider;
 import net.minecraft.data.models.model.ModelLocationUtils;
 import net.minecraft.data.recipes.*;
+import net.minecraft.data.recipes.packs.VanillaRecipeProvider;
 import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
 import net.minecraft.resources.ResourceKey;
@@ -218,162 +219,178 @@ public class SewingKitDataGen
         }
     }
 
-    private static class Recipes extends RecipeProvider
+    private static class Recipes extends RecipeProvider.Runner
     {
-        public Recipes(PackOutput gen, CompletableFuture<HolderLookup.Provider> lookup)
+        public Recipes(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider)
         {
-            super(gen, lookup);
+            super(output, lookupProvider);
         }
 
         @Override
-        protected void buildRecipes(RecipeOutput consumer)
+        protected RecipeProvider createRecipeProvider(HolderLookup.Provider lookup, RecipeOutput output)
         {
-            Arrays.stream(Needles.values()).forEach(needle -> ShapelessRecipeBuilder.shapeless(RecipeCategory.TOOLS, needle.getNeedle())
-                    .requires(SewingKitMod.FILE.get())
-                    .requires(needle.getTier().getRepairIngredient())
-                    .unlockedBy("has_material", has(needle.getMaterial()))
-                    .save(consumer));
+            return new VanillaRecipeProvider(lookup, output)
+            {
 
-            ShapedRecipeBuilder.shaped(RecipeCategory.MISC, SewingKitMod.SEWING_STATION_ITEM.get())
-                    .pattern("xxx")
-                    .pattern("P P")
-                    .pattern("S S")
-                    .define('x', ItemTags.WOODEN_SLABS)
-                    .define('P', ItemTags.PLANKS)
-                    .define('S', Items.STICK)
-                    .unlockedBy("has_wood", has(ItemTags.PLANKS))
-                    .save(consumer);
+                @Override
+                protected void buildRecipes()
+                {
+                    var items = lookup.lookupOrThrow(Registries.ITEM);
 
-            ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, SewingKitMod.STORING_SEWING_STATION_ITEM.get())
-                    .requires(SewingKitMod.SEWING_STATION_ITEM.get())
-                    .requires(Tags.Items.CHESTS_WOODEN)
-                    .unlockedBy("has_station", has(SewingKitMod.SEWING_STATION_ITEM.get()))
-                    .save(consumer);
+                    shaped(RecipeCategory.MISC, SewingKitMod.FILE.get())
+                            .pattern("  I")
+                            .pattern(" I ")
+                            .pattern("P  ")
+                            .define('I', Tags.Items.INGOTS_IRON)
+                            .define('P', ItemTags.PLANKS)
+                            .unlockedBy("has_iron", has(Tags.Items.INGOTS_IRON))
+                            .save(output);
 
-            // Sewing recipes: leather
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.LEATHER_SHEET.get(), 4)
-                    .withTool(Tags.Items.TOOLS_SHEAR)
-                    .addMaterial(Tags.Items.LEATHERS)
-                    .addCriterion("has_leather", has(Tags.Items.LEATHERS))
-                    .save(consumer, SewingKitMod.location("leather_sheet_from_leather"));
+                    Arrays.stream(Needles.values()).forEach(needle -> shapeless(RecipeCategory.TOOLS, needle.getNeedle())
+                            .requires(SewingKitMod.FILE.get())
+                            .requires(needle.getToolMaterial().repairItems())
+                            .unlockedBy("has_material", has(needle.getMaterial()))
+                            .save(output));
 
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.LEATHER_SHEET.get(), 1)
-                    .withTool(Tags.Items.TOOLS_SHEAR)
-                    .addMaterial(Items.RABBIT_HIDE)
-                    .addCriterion("has_leather", has(Items.RABBIT_HIDE))
-                    .save(consumer, SewingKitMod.location("leather_sheet_from_rabbit_hide"));
+                    shaped(RecipeCategory.MISC, SewingKitMod.SEWING_STATION_ITEM.get())
+                            .pattern("xxx")
+                            .pattern("P P")
+                            .pattern("S S")
+                            .define('x', ItemTags.WOODEN_SLABS)
+                            .define('P', ItemTags.PLANKS)
+                            .define('S', Items.STICK)
+                            .unlockedBy("has_wood", has(ItemTags.PLANKS))
+                            .save(output);
 
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.LEATHER_STRIP.get(), 3)
-                    .withTool(Tags.Items.TOOLS_SHEAR)
-                    .addMaterial(Tags.Items.LEATHERS)
-                    .addCriterion("has_leather", has(Tags.Items.LEATHERS))
-                    .save(consumer, SewingKitMod.location("leather_strip_from_leather"));
+                    shapeless(RecipeCategory.MISC, SewingKitMod.STORING_SEWING_STATION_ITEM.get())
+                            .requires(SewingKitMod.SEWING_STATION_ITEM.get())
+                            .requires(Tags.Items.CHESTS_WOODEN)
+                            .unlockedBy("has_station", has(SewingKitMod.SEWING_STATION_ITEM.get()))
+                            .save(output);
 
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, Items.LEATHER_BOOTS)
-                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
-                    .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 2)
-                    .addMaterial(SewingKitMod.LEATHER_STRIP.get())
-                    .addMaterial(Tags.Items.STRINGS)
-                    .addCriterion("has_leather", has(Tags.Items.LEATHERS))
-                    .save(consumer, SewingKitMod.location("leather_boots_via_sewing"));
+                    // Sewing recipes: leather
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.LEATHER_SHEET.get(), 4)
+                            .withTool(Tags.Items.TOOLS_SHEAR)
+                            .addMaterial(Tags.Items.LEATHERS)
+                            .addCriterion("has_leather", has(Tags.Items.LEATHERS))
+                            .save(output, SewingKitMod.location("leather_sheet_from_leather"));
 
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, Items.LEATHER_LEGGINGS)
-                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
-                    .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 4)
-                    .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 3)
-                    .addMaterial(Tags.Items.STRINGS)
-                    .addCriterion("has_leather", has(Tags.Items.LEATHERS))
-                    .save(consumer, SewingKitMod.location("leather_leggings_via_sewing"));
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.LEATHER_SHEET.get(), 1)
+                            .withTool(Tags.Items.TOOLS_SHEAR)
+                            .addMaterial(Items.RABBIT_HIDE)
+                            .addCriterion("has_leather", has(Items.RABBIT_HIDE))
+                            .save(output, SewingKitMod.location("leather_sheet_from_rabbit_hide"));
 
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, Items.LEATHER_CHESTPLATE)
-                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
-                    .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 8)
-                    .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 2)
-                    .addMaterial(Tags.Items.STRINGS)
-                    .addCriterion("has_leather", has(Tags.Items.LEATHERS))
-                    .save(consumer, SewingKitMod.location("leather_chestplate_via_sewing"));
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.LEATHER_STRIP.get(), 3)
+                            .withTool(Tags.Items.TOOLS_SHEAR)
+                            .addMaterial(Tags.Items.LEATHERS)
+                            .addCriterion("has_leather", has(Tags.Items.LEATHERS))
+                            .save(output, SewingKitMod.location("leather_strip_from_leather"));
 
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, Items.LEATHER_HELMET)
-                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
-                    .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 2)
-                    .addMaterial(SewingKitMod.LEATHER_STRIP.get())
-                    .addMaterial(Tags.Items.STRINGS)
-                    .addCriterion("has_leather", has(Tags.Items.LEATHERS))
-                    .save(consumer, SewingKitMod.location("leather_helmet_via_sewing"));
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, Items.LEATHER_BOOTS)
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 2)
+                            .addMaterial(SewingKitMod.LEATHER_STRIP.get())
+                            .addMaterial(Tags.Items.STRINGS)
+                            .addCriterion("has_leather", has(Tags.Items.LEATHERS))
+                            .save(output, SewingKitMod.location("leather_boots_via_sewing"));
 
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, Items.LEATHER_HORSE_ARMOR)
-                    .withTool(SewingKitMod.NETHERITE_OR_HIGHER)
-                    .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 12)
-                    .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 6)
-                    .addMaterial(Tags.Items.STRINGS, 8)
-                    .addCriterion("has_leather", has(Tags.Items.LEATHERS))
-                    .save(consumer, SewingKitMod.location("leather_horse_armor_via_sewing"));
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, Items.LEATHER_LEGGINGS)
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 4)
+                            .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 3)
+                            .addMaterial(Tags.Items.STRINGS)
+                            .addCriterion("has_leather", has(Tags.Items.LEATHERS))
+                            .save(output, SewingKitMod.location("leather_leggings_via_sewing"));
 
-            // Sewing recipes: wool
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_ROLL.get(), 4)
-                    .withTool(Tags.Items.TOOLS_SHEAR)
-                    .addMaterial(ItemTags.WOOL)
-                    .addCriterion("has_wool", has(ItemTags.WOOL))
-                    .save(consumer, SewingKitMod.location("wool_roll_from_wool"));
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, Items.LEATHER_CHESTPLATE)
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 8)
+                            .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 2)
+                            .addMaterial(Tags.Items.STRINGS)
+                            .addCriterion("has_leather", has(Tags.Items.LEATHERS))
+                            .save(output, SewingKitMod.location("leather_chestplate_via_sewing"));
 
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_ROLL.get(), 1)
-                    .withTool(Tags.Items.TOOLS_SHEAR)
-                    .addMaterial(ItemTags.WOOL_CARPETS)
-                    .addCriterion("has_wool", has(ItemTags.WOOL_CARPETS))
-                    .save(consumer, SewingKitMod.location("wool_roll_from_carpet"));
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, Items.LEATHER_HELMET)
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 2)
+                            .addMaterial(SewingKitMod.LEATHER_STRIP.get())
+                            .addMaterial(Tags.Items.STRINGS)
+                            .addCriterion("has_leather", has(Tags.Items.LEATHERS))
+                            .save(output, SewingKitMod.location("leather_helmet_via_sewing"));
 
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_TRIM.get(), 8)
-                    .withTool(Tags.Items.TOOLS_SHEAR)
-                    .addMaterial(ItemTags.WOOL)
-                    .addCriterion("has_wool", has(ItemTags.WOOL))
-                    .save(consumer, SewingKitMod.location("wool_trim_from_wool"));
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, Items.LEATHER_HORSE_ARMOR)
+                            .withTool(SewingKitMod.NETHERITE_OR_HIGHER)
+                            .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 12)
+                            .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 6)
+                            .addMaterial(Tags.Items.STRINGS, 8)
+                            .addCriterion("has_leather", has(Tags.Items.LEATHERS))
+                            .save(output, SewingKitMod.location("leather_horse_armor_via_sewing"));
 
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_TRIM.get(), 3)
-                    .withTool(Tags.Items.TOOLS_SHEAR)
-                    .addMaterial(ItemTags.WOOL_CARPETS)
-                    .addCriterion("has_wool", has(ItemTags.WOOL_CARPETS))
-                    .save(consumer, SewingKitMod.location("wool_trim_from_carpet"));
+                    // Sewing recipes: wool
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.WOOL_ROLL.get(), 4)
+                            .withTool(Tags.Items.TOOLS_SHEAR)
+                            .addMaterial(ItemTags.WOOL)
+                            .addCriterion("has_wool", has(ItemTags.WOOL))
+                            .save(output, SewingKitMod.location("wool_roll_from_wool"));
 
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_SHOES.get())
-                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
-                    .addMaterial(SewingKitMod.WOOL_ROLL.get(), 1)
-                    .addMaterial(SewingKitMod.WOOL_TRIM.get(), 2)
-                    .addMaterial(Tags.Items.STRINGS)
-                    .addCriterion("has_wool", has(ItemTags.WOOL))
-                    .save(consumer, SewingKitMod.location("wool_shoes_via_sewing"));
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.WOOL_ROLL.get(), 1)
+                            .withTool(Tags.Items.TOOLS_SHEAR)
+                            .addMaterial(ItemTags.WOOL_CARPETS)
+                            .addCriterion("has_wool", has(ItemTags.WOOL_CARPETS))
+                            .save(output, SewingKitMod.location("wool_roll_from_carpet"));
 
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_PANTS.get())
-                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
-                    .addMaterial(SewingKitMod.WOOL_ROLL.get(), 2)
-                    .addMaterial(SewingKitMod.WOOL_TRIM.get(), 4)
-                    .addMaterial(Tags.Items.STRINGS)
-                    .addCriterion("has_wool", has(ItemTags.WOOL))
-                    .save(consumer, SewingKitMod.location("wool_pants_via_sewing"));
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.WOOL_TRIM.get(), 8)
+                            .withTool(Tags.Items.TOOLS_SHEAR)
+                            .addMaterial(ItemTags.WOOL)
+                            .addCriterion("has_wool", has(ItemTags.WOOL))
+                            .save(output, SewingKitMod.location("wool_trim_from_wool"));
 
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_SHIRT.get())
-                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
-                    .addMaterial(SewingKitMod.WOOL_ROLL.get(), 3)
-                    .addMaterial(SewingKitMod.WOOL_TRIM.get(), 3)
-                    .addMaterial(Tags.Items.STRINGS)
-                    .addCriterion("has_wool", has(ItemTags.WOOL))
-                    .save(consumer, SewingKitMod.location("wool_shirt_via_sewing"));
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.WOOL_TRIM.get(), 3)
+                            .withTool(Tags.Items.TOOLS_SHEAR)
+                            .addMaterial(ItemTags.WOOL_CARPETS)
+                            .addCriterion("has_wool", has(ItemTags.WOOL_CARPETS))
+                            .save(output, SewingKitMod.location("wool_trim_from_carpet"));
 
-            SewingRecipeBuilder.begin(RecipeCategory.MISC, SewingKitMod.WOOL_HAT.get())
-                    .withTool(SewingKitMod.WOOD_OR_HIGHER)
-                    .addMaterial(SewingKitMod.WOOL_ROLL.get(), 1)
-                    .addMaterial(SewingKitMod.WOOL_TRIM.get(), 1)
-                    .addMaterial(Tags.Items.STRINGS)
-                    .addCriterion("has_wool", has(ItemTags.WOOL))
-                    .save(consumer, SewingKitMod.location("wool_hat_via_sewing"));
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.WOOL_SHOES.get())
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .addMaterial(SewingKitMod.WOOL_ROLL.get(), 1)
+                            .addMaterial(SewingKitMod.WOOL_TRIM.get(), 2)
+                            .addMaterial(Tags.Items.STRINGS)
+                            .addCriterion("has_wool", has(ItemTags.WOOL))
+                            .save(output, SewingKitMod.location("wool_shoes_via_sewing"));
 
-            ShapedRecipeBuilder.shaped(RecipeCategory.MISC, SewingKitMod.FILE.get())
-                    .pattern("  I")
-                    .pattern(" I ")
-                    .pattern("P  ")
-                    .define('I', Tags.Items.INGOTS_IRON)
-                    .define('P', ItemTags.PLANKS)
-                    .unlockedBy("has_iron", has(Tags.Items.INGOTS_IRON))
-                    .save(consumer);
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.WOOL_PANTS.get())
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .addMaterial(SewingKitMod.WOOL_ROLL.get(), 2)
+                            .addMaterial(SewingKitMod.WOOL_TRIM.get(), 4)
+                            .addMaterial(Tags.Items.STRINGS)
+                            .addCriterion("has_wool", has(ItemTags.WOOL))
+                            .save(output, SewingKitMod.location("wool_pants_via_sewing"));
+
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.WOOL_SHIRT.get())
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .addMaterial(SewingKitMod.WOOL_ROLL.get(), 3)
+                            .addMaterial(SewingKitMod.WOOL_TRIM.get(), 3)
+                            .addMaterial(Tags.Items.STRINGS)
+                            .addCriterion("has_wool", has(ItemTags.WOOL))
+                            .save(output, SewingKitMod.location("wool_shirt_via_sewing"));
+
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.WOOL_HAT.get())
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .addMaterial(SewingKitMod.WOOL_ROLL.get(), 1)
+                            .addMaterial(SewingKitMod.WOOL_TRIM.get(), 1)
+                            .addMaterial(Tags.Items.STRINGS)
+                            .addCriterion("has_wool", has(ItemTags.WOOL))
+                            .save(output, SewingKitMod.location("wool_hat_via_sewing"));
+                }
+            };
+        }
+
+        @Override
+        public String getName()
+        {
+            return "Recipes";
         }
     }
 

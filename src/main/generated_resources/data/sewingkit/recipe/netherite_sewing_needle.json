@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shapeless",
   "category": "equipment",
   "ingredients": [
-    {
-      "item": "sewingkit:file"
-    },
-    {
-      "item": "minecraft:netherite_ingot"
-    }
+    "sewingkit:file",
+    "#minecraft:netherite_tool_materials"
   ],
   "result": {
     "count": 1,

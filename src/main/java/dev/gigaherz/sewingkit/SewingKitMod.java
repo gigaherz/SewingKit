@@ -3,10 +3,12 @@ package dev.gigaherz.sewingkit;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
+import dev.gigaherz.sewingkit.api.SewingRecipeAccessor;
 import dev.gigaherz.sewingkit.file.FileItem;
 import dev.gigaherz.sewingkit.loot.RandomDye;
 import dev.gigaherz.sewingkit.needle.NeedleItem;
 import dev.gigaherz.sewingkit.needle.Needles;
+import dev.gigaherz.sewingkit.network.SyncSewingRecipes;
 import dev.gigaherz.sewingkit.patterns.PatternItem;
 import dev.gigaherz.sewingkit.structure.TailorShopProcessor;
 import dev.gigaherz.sewingkit.table.*;
@@ -33,9 +35,11 @@ import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.*;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.equipment.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.ItemLike;
@@ -59,9 +63,14 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.common.*;
 import net.neoforged.neoforge.common.crafting.IngredientType;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.village.VillagerTradesEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.*;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -71,11 +80,10 @@ import java.util.stream.Stream;
 @Mod(SewingKitMod.MODID)
 public class SewingKitMod
 {
-
     public static final String MODID = "sewingkit";
 
     public static final TagKey<Block> INCORRECT_BONE_TAG = TagKey.create(Registries.BLOCK, location("incorrect_for_bone_tool"));
-    public static final Tier BONE_TIER = new SimpleTier(INCORRECT_BONE_TAG, 100, 1.0f, 0.0f, 0, () -> Ingredient.of(Tags.Items.BONES));
+    public static final ToolMaterial BONE_TIER = new ToolMaterial(INCORRECT_BONE_TAG, 100, 1.0f, 0.0f, 12, Tags.Items.BONES);
 
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
     private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
@@ -89,117 +97,117 @@ public class SewingKitMod
     private static final DeferredRegister<LootItemFunctionType<?>> LOOT_FUNCTIONS = DeferredRegister.create(BuiltInRegistries.LOOT_FUNCTION_TYPE, MODID);
     private static final DeferredRegister<CreativeModeTab> CREATIVE_TABS = DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB, MODID);
     private static final DeferredRegister<IngredientType<?>> INGREDIENT_TYPE = DeferredRegister.create(NeoForgeRegistries.INGREDIENT_TYPES, MODID);
-    private static final DeferredRegister<ArmorMaterial> ARMOR_MATERIALS = DeferredRegister.create(BuiltInRegistries.ARMOR_MATERIAL, MODID);
+    private static final DeferredRegister<RecipeBookCategory> RECIPE_BOOK_CATEGORY = DeferredRegister.create(BuiltInRegistries.RECIPE_BOOK_CATEGORY, MODID);
 
-    public static final DeferredItem<Item> LEATHER_STRIP = ITEMS.register("leather_strip",
-            () -> new Item(new Item.Properties().stacksTo(64))
+    public static final DeferredItem<Item> LEATHER_STRIP = ITEMS.registerItem("leather_strip",
+            props -> new Item(props.stacksTo(64))
     );
 
-    public static final DeferredItem<Item> LEATHER_SHEET = ITEMS.register("leather_sheet",
-            () -> new Item(new Item.Properties().stacksTo(64))
+    public static final DeferredItem<Item> LEATHER_SHEET = ITEMS.registerItem("leather_sheet",
+            props -> new Item(props.stacksTo(64))
     );
 
-    public static final DeferredItem<Item> WOOL_ROLL = ITEMS.register("wool_roll",
-            () -> new Item(new Item.Properties().stacksTo(64))
+    public static final DeferredItem<Item> WOOL_ROLL = ITEMS.registerItem("wool_roll",
+            props -> new Item(props.stacksTo(64))
     );
 
-    public static final DeferredItem<Item> WOOL_TRIM = ITEMS.register("wool_trim",
-            () -> new Item(new Item.Properties().stacksTo(64))
+    public static final DeferredItem<Item> WOOL_TRIM = ITEMS.registerItem("wool_trim",
+            props -> new Item(props.stacksTo(64))
     );
 
-    public static final DeferredItem<NeedleItem> WOOD_SEWING_NEEDLE = ITEMS.register("wood_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.WOOD, new Item.Properties())
+    public static final DeferredItem<NeedleItem> WOOD_SEWING_NEEDLE = ITEMS.registerItem("wood_sewing_needle",
+            props -> new NeedleItem(0, 1, Needles.WOOD, props)
     );
 
-    public static final DeferredItem<NeedleItem> STONE_SEWING_NEEDLE = ITEMS.register("stone_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.STONE, new Item.Properties())
+    public static final DeferredItem<NeedleItem> STONE_SEWING_NEEDLE = ITEMS.registerItem("stone_sewing_needle",
+            props -> new NeedleItem(0, 1, Needles.STONE, props)
     );
 
-    public static final DeferredItem<NeedleItem> BONE_SEWING_NEEDLE = ITEMS.register("bone_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.BONE, new Item.Properties())
+    public static final DeferredItem<NeedleItem> BONE_SEWING_NEEDLE = ITEMS.registerItem("bone_sewing_needle",
+            props -> new NeedleItem(0, 1, Needles.BONE, props)
     );
 
-    public static final DeferredItem<NeedleItem> GOLD_SEWING_NEEDLE = ITEMS.register("gold_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.GOLD, new Item.Properties())
+    public static final DeferredItem<NeedleItem> GOLD_SEWING_NEEDLE = ITEMS.registerItem("gold_sewing_needle",
+            props -> new NeedleItem(0, 1, Needles.GOLD, props)
     );
 
-    public static final DeferredItem<NeedleItem> IRON_SEWING_NEEDLE = ITEMS.register("iron_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.IRON, new Item.Properties())
+    public static final DeferredItem<NeedleItem> IRON_SEWING_NEEDLE = ITEMS.registerItem("iron_sewing_needle",
+            props -> new NeedleItem(0, 1, Needles.IRON, props)
     );
 
-    public static final DeferredItem<NeedleItem> DIAMOND_SEWING_NEEDLE = ITEMS.register("diamond_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.DIAMOND, new Item.Properties())
+    public static final DeferredItem<NeedleItem> DIAMOND_SEWING_NEEDLE = ITEMS.registerItem("diamond_sewing_needle",
+            props -> new NeedleItem(0, 1, Needles.DIAMOND, props)
     );
 
-    public static final DeferredItem<NeedleItem> NETHERITE_SEWING_NEEDLE = ITEMS.register("netherite_sewing_needle",
-            () -> new NeedleItem(0, 1, Needles.NETHERITE, new Item.Properties())
+    public static final DeferredItem<NeedleItem> NETHERITE_SEWING_NEEDLE = ITEMS.registerItem("netherite_sewing_needle",
+            props -> new NeedleItem(0, 1, Needles.NETHERITE, props)
     );
 
-    public static final DeferredBlock<Block> SEWING_STATION_BLOCK = BLOCKS.register("sewing_station",
-            () -> new SewingTableBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.5F))
+    public static final DeferredBlock<Block> SEWING_STATION_BLOCK = BLOCKS.registerBlock("sewing_station",
+            props -> new SewingTableBlock(props.mapColor(MapColor.WOOD).strength(2.5F))
     );
 
-    public static final DeferredItem<Item> SEWING_STATION_ITEM = ITEMS.register("sewing_station",
-            () -> new BlockItem(SEWING_STATION_BLOCK.get(), new Item.Properties())
+    public static final DeferredItem<Item> SEWING_STATION_ITEM = ITEMS.registerItem("sewing_station",
+            props -> new BlockItem(SEWING_STATION_BLOCK.get(), props)
     );
 
-    public static final DeferredBlock<Block> STORING_SEWING_STATION_BLOCK = BLOCKS.register("storing_sewing_station",
-            () -> new StoringSewingTableBlock(BlockBehaviour.Properties.of().mapColor(MapColor.WOOD).strength(2.5F))
+    public static final DeferredBlock<Block> STORING_SEWING_STATION_BLOCK = BLOCKS.registerBlock("storing_sewing_station",
+            props -> new StoringSewingTableBlock(props.mapColor(MapColor.WOOD).strength(2.5F))
     );
 
-    public static final DeferredItem<Item> STORING_SEWING_STATION_ITEM = ITEMS.register("storing_sewing_station",
-            () -> new BlockItem(STORING_SEWING_STATION_BLOCK.get(), new Item.Properties())
+    public static final DeferredItem<Item> STORING_SEWING_STATION_ITEM = ITEMS.registerItem("storing_sewing_station",
+            props -> new BlockItem(STORING_SEWING_STATION_BLOCK.get(), props)
     );
 
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<StoringSewingTableBlockEntity>> STORING_SEWING_STATION_BLOCK_ENTITY = BLOCK_ENTITIES.register("storing_sewing_station",
-            () -> BlockEntityType.Builder.of(StoringSewingTableBlockEntity::new, STORING_SEWING_STATION_BLOCK.get()).build(null)
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<StoringSewingTableBlockEntity>>
+            STORING_SEWING_STATION_BLOCK_ENTITY = BLOCK_ENTITIES.register("storing_sewing_station",
+            () -> new BlockEntityType<>(StoringSewingTableBlockEntity::new, STORING_SEWING_STATION_BLOCK.get())
     );
 
-    public static final DeferredHolder<ArmorMaterial, ArmorMaterial> WOOL = ARMOR_MATERIALS.register("wool", () ->
-            new ArmorMaterial(Util.make(new EnumMap<>(ArmorItem.Type.class), map -> {
-                map.put(ArmorItem.Type.BOOTS, 0);
-                map.put(ArmorItem.Type.LEGGINGS, 0);
-                map.put(ArmorItem.Type.CHESTPLATE, 0);
-                map.put(ArmorItem.Type.HELMET, 0);
-                map.put(ArmorItem.Type.BODY, 0);
-            }), 25, SoundEvents.ARMOR_EQUIP_GENERIC, () -> Ingredient.of(ItemTags.WOOL),
-                    List.of(new ArmorMaterial.Layer(location("wool"), "", true)), 0.0F, 0.01F));
+    private static final EnumMap<ArmorType, Integer> woolArmorValues = Util.make(new EnumMap<>(ArmorType.class), map -> {
+        map.put(ArmorType.BOOTS, 0);
+        map.put(ArmorType.LEGGINGS, 0);
+        map.put(ArmorType.CHESTPLATE, 0);
+        map.put(ArmorType.HELMET, 0);
+        map.put(ArmorType.BODY, 0);
+    });
+    public static final ArmorMaterial WOOL = new ArmorMaterial(25, woolArmorValues, 25, SoundEvents.ARMOR_EQUIP_GENERIC,
+                     0.0F, 0.01F,  ItemTags.WOOL, location("wool"));
 
-    public static final DeferredItem<Item> WOOL_HAT = ITEMS.register("wool_hat",
-            () ->
-                    new ArmorItem(WOOL, ArmorItem.Type.HELMET, new Item.Properties())
+    public static final DeferredItem<Item> WOOL_HAT = ITEMS.registerItem("wool_hat",
+            props -> new ArmorItem(WOOL, ArmorType.HELMET, props)
     );
 
-    public static final DeferredItem<Item> WOOL_SHIRT = ITEMS.register("wool_shirt",
-            () -> new ArmorItem(WOOL, ArmorItem.Type.CHESTPLATE, new Item.Properties())
+    public static final DeferredItem<Item> WOOL_SHIRT = ITEMS.registerItem("wool_shirt",
+            props -> new ArmorItem(WOOL, ArmorType.CHESTPLATE, props)
     );
 
-    public static final DeferredItem<Item> WOOL_PANTS = ITEMS.register("wool_pants",
-            () -> new ArmorItem(WOOL, ArmorItem.Type.LEGGINGS, new Item.Properties())
+    public static final DeferredItem<Item> WOOL_PANTS = ITEMS.registerItem("wool_pants",
+            props -> new ArmorItem(WOOL, ArmorType.LEGGINGS, props)
     );
 
-    public static final DeferredItem<Item> WOOL_SHOES = ITEMS.register("wool_shoes",
-            () -> new ArmorItem(WOOL, ArmorItem.Type.BOOTS, new Item.Properties())
+    public static final DeferredItem<Item> WOOL_SHOES = ITEMS.registerItem("wool_shoes",
+            props -> new ArmorItem(WOOL, ArmorType.BOOTS, props)
     );
 
-    public static final DeferredItem<Item> COMMON_PATTERN = ITEMS.register("common_pattern",
-            () -> new PatternItem(new Item.Properties().rarity(Rarity.COMMON))
+    public static final DeferredItem<Item> COMMON_PATTERN = ITEMS.registerItem("common_pattern",
+            props -> new PatternItem(props.rarity(Rarity.COMMON))
     );
 
-    public static final DeferredItem<Item> UNCOMMON_PATTERN = ITEMS.register("uncommon_pattern",
-            () -> new PatternItem(new Item.Properties().rarity(Rarity.UNCOMMON))
+    public static final DeferredItem<Item> UNCOMMON_PATTERN = ITEMS.registerItem("uncommon_pattern",
+            props -> new PatternItem(props.rarity(Rarity.UNCOMMON))
     );
 
-    public static final DeferredItem<Item> RARE_PATTERN = ITEMS.register("rare_pattern",
-            () -> new PatternItem(new Item.Properties().rarity(Rarity.RARE))
+    public static final DeferredItem<Item> RARE_PATTERN = ITEMS.registerItem("rare_pattern",
+            props -> new PatternItem(props.rarity(Rarity.RARE))
     );
 
-    public static final DeferredItem<Item> LEGENDARY_PATTERN = ITEMS.register("legendary_pattern",
-            () -> new PatternItem(new Item.Properties().rarity(Rarity.EPIC))
+    public static final DeferredItem<Item> LEGENDARY_PATTERN = ITEMS.registerItem("legendary_pattern",
+            props -> new PatternItem(props.rarity(Rarity.EPIC))
     );
 
     public static final DeferredItem<Item>
-            FILE = ITEMS.register("file", () -> new FileItem(new Item.Properties().durability(354)));
+            FILE = ITEMS.registerItem("file", props -> new FileItem(props.durability(354)));
 
     public static final DeferredHolder<PoiType, PoiType>
             TABLE_POI = POI_TYPES.register("tailor", () -> new PoiType(Stream.concat(
@@ -216,6 +224,9 @@ public class SewingKitMod
                         Arrays.stream(Needles.values()).map(Needles::getNeedle).collect(ImmutableSet.toImmutableSet()),
                         ImmutableSet.of(), null);
             });
+
+    public static final DeferredHolder<RecipeBookCategory, RecipeBookCategory>
+            SEWING_MISC = RECIPE_BOOK_CATEGORY.register("sewing_misc", RecipeBookCategory::new);
 
     public static final DeferredHolder<RecipeType<?>, RecipeType<SewingRecipe>>
             SEWING = RECIPE_TYPES.register("sewing", RecipeType::simple);
@@ -275,7 +286,6 @@ public class SewingKitMod
     {
         modBus.addListener(this::gatherData);
 
-        ARMOR_MATERIALS.register(modBus);
         ITEMS.register(modBus);
         BLOCKS.register(modBus);
         POI_TYPES.register(modBus);
@@ -288,14 +298,40 @@ public class SewingKitMod
         STRUCTURE_PROCESSORS.register(modBus);
         CREATIVE_TABS.register(modBus);
         INGREDIENT_TYPE.register(modBus);
+        RECIPE_BOOK_CATEGORY.register(modBus);
+
+        modBus.addListener(this::networkSetup);
 
         NeoForge.EVENT_BUS.addListener(this::villagerTrades);
         NeoForge.EVENT_BUS.addListener(this::addBuildingToVillages);
+        NeoForge.EVENT_BUS.addListener(this::dataSync);
+    }
+
+    private void networkSetup(RegisterPayloadHandlersEvent event)
+    {
+        final PayloadRegistrar registrar = event.registrar(MODID).versioned("1.0");
+        registrar.playToClient(SyncSewingRecipes.TYPE, SyncSewingRecipes.STREAM_CODEC, SyncSewingRecipes::handle);
+    }
+
+    private void dataSync(OnDatapackSyncEvent event)
+    {
+        var server = ServerLifecycleHooks.getCurrentServer();
+        if (server == null) return;
+
+        var recipeManager = server.getRecipeManager();
+        var featureFlags = server.getWorldData().enabledFeatures();
+
+        var serverRecipes = SewingRecipeAccessor.handleServerRecipes(featureFlags, recipeManager);
+
+        var payload = new SyncSewingRecipes(serverRecipes);
+
+        event.getRelevantPlayers()
+                .forEach(player -> PacketDistributor.sendToPlayer(player, payload));
     }
 
     public void addBuildingToVillages(final ServerAboutToStartEvent event) {
-        Registry<StructureTemplatePool> templatePoolRegistry = event.getServer().registryAccess().registry(Registries.TEMPLATE_POOL).orElseThrow();
-        Registry<StructureProcessorList> processorListRegistry = event.getServer().registryAccess().registry(Registries.PROCESSOR_LIST).orElseThrow();
+        Registry<StructureTemplatePool> templatePoolRegistry = event.getServer().registryAccess().lookupOrThrow(Registries.TEMPLATE_POOL);
+        Registry<StructureProcessorList> processorListRegistry = event.getServer().registryAccess().lookupOrThrow(Registries.PROCESSOR_LIST);
 
         // Adds our piece to all village houses pool
         // Note, the resourcelocation is getting the pool files from the data folder. Not assets folder.
@@ -326,9 +362,9 @@ public class SewingKitMod
                                           String nbtPieceRL,
                                           int weight)
     {
-        Holder<StructureProcessorList> emptyProcessorList = processorListRegistry.getHolderOrThrow(TAILOR_SHOP_PROCESSOR_LIST_KEY);
+        Holder<StructureProcessorList> emptyProcessorList = processorListRegistry.getOrThrow(TAILOR_SHOP_PROCESSOR_LIST_KEY);
 
-        StructureTemplatePool pool = templatePoolRegistry.get(poolRL);
+        StructureTemplatePool pool = templatePoolRegistry.getOptional(poolRL).orElse(null);
         if (pool == null) return;
 
         SinglePoolElement piece = SinglePoolElement.single(nbtPieceRL, emptyProcessorList).apply(StructureTemplatePool.Projection.RIGID);
@@ -443,8 +479,7 @@ public class SewingKitMod
         @Override
         public MerchantOffer getOffer(Entity p_219693_, RandomSource rand)
         {
-            return BuiltInRegistries.ITEM.getTag(tagSource)
-                    .flatMap(tag -> tag.getRandomElement(rand))
+            return BuiltInRegistries.ITEM.getRandomElementOf(tagSource, rand)
                     .map(itemHolder -> new MerchantOffer(
                             new ItemCost(Items.EMERALD, price),
                             new ItemStack(itemHolder, quantity), this.maxUses, this.xp, this.priceMultiplier))

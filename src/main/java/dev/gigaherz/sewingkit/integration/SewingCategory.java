@@ -1,5 +1,5 @@
 package dev.gigaherz.sewingkit.integration;
-
+/*
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import mezz.jei.api.constants.VanillaTypes;
@@ -120,4 +120,4 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
             53 - 12,
             33 - 12
     };
-}
+}*/

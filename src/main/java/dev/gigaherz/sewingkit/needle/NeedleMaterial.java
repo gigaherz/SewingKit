@@ -2,7 +2,7 @@ package dev.gigaherz.sewingkit.needle;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.ToolMaterial;
 
 public interface NeedleMaterial
 {
@@ -14,5 +14,5 @@ public interface NeedleMaterial
 
     int getUses();
 
-    Tier getTier();
+    ToolMaterial getToolMaterial();
 }

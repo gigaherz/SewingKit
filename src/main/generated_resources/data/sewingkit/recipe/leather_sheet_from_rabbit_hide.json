@@ -1,18 +1,15 @@
 {
   "type": "sewingkit:sewing",
+  "category": "sewingkit:sewing_misc",
   "materials": [
     {
       "count": 1,
-      "ingredient": {
-        "item": "minecraft:rabbit_hide"
-      }
+      "ingredient": "minecraft:rabbit_hide"
     }
   ],
   "result": {
     "count": 1,
     "id": "sewingkit:leather_sheet"
   },
-  "tool": {
-    "tag": "c:tools/shear"
-  }
+  "tool": "#c:tools/shear"
 }

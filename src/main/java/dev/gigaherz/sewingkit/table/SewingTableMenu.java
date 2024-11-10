@@ -3,6 +3,7 @@ package dev.gigaherz.sewingkit.table;
 import com.google.common.collect.Lists;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
+import dev.gigaherz.sewingkit.api.SewingRecipeAccessor;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -11,6 +12,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.StackedContents;
+import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -30,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class SewingTableMenu extends RecipeBookMenu<SewingInput, SewingRecipe>
+public class SewingTableMenu extends AbstractContainerMenu
 {
     private static final int NUM_INPUTS = 6;
     private static final int NUM_OUTPUTS = 1;
@@ -298,13 +300,13 @@ public class SewingTableMenu extends RecipeBookMenu<SewingInput, SewingRecipe>
     private void updateAvailableRecipes()
     {
         SewingRecipe recipe = getSelectedRecipe() >= 0 && recipes.size() > 0 ? recipes.get(getSelectedRecipe()).value() : null;
-        this.recipes.clear();
+        this.recipes = Lists.newArrayList();
         this.selectedRecipe.set(-1);
         this.slots.get(OUTPUTS_START).set(ItemStack.EMPTY);
         if (hasItemsinInputSlots())
         {
             var input = SewingInput.ofSewingTableInventory(inputInventory);
-            this.recipes = this.world.getRecipeManager().getRecipesFor(SewingKitMod.SEWING.get(), input, this.world);
+            this.recipes = SewingRecipeAccessor.getRecipes(this.world, input);
         }
         if (recipes.size() > 0 && recipe != null)
         {
@@ -441,60 +443,5 @@ public class SewingTableMenu extends RecipeBookMenu<SewingInput, SewingRecipe>
             }
         }
         inputInventory = null;
-    }
-
-    // ======================== Recipebook stuff
-    @Override
-    public void fillCraftSlotsStackedContents(StackedContents p_40117_)
-    {
-        //inventoryProvider.getInventory()
-    }
-
-    @Override
-    public void clearCraftingContent()
-    {
-
-    }
-
-    @Override
-    public boolean recipeMatches(RecipeHolder<SewingRecipe> pRecipe)
-    {
-        return false; // TODO
-    }
-
-    @Override
-    public int getResultSlotIndex()
-    {
-        return 0;
-    }
-
-    @Override
-    public int getGridWidth()
-    {
-        return 0;
-    }
-
-    @Override
-    public int getGridHeight()
-    {
-        return 0;
-    }
-
-    @Override
-    public int getSize()
-    {
-        return 0;
-    }
-
-    @Override
-    public RecipeBookType getRecipeBookType()
-    {
-        return null;
-    }
-
-    @Override
-    public boolean shouldMoveToInventory(int p_150635_)
-    {
-        return false;
     }
 }
