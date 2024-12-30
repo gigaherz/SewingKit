@@ -66,7 +66,6 @@ public class SewingKitDataGen
 
         gen.addProvider(true, new BlockTagGen(gen.getPackOutput()));
         gen.addProvider(true, new ItemTagGen(gen.getPackOutput()));
-        //gen.addProvider(new ItemTags(gen, blockTags));
         gen.addProvider(true, new Recipes(gen.getPackOutput(), event.getLookupProvider()));
         gen.addProvider(true, Loot.create(gen.getPackOutput(), event.getLookupProvider()));
     }

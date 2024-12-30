@@ -5,6 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Either;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
+import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -177,6 +178,9 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         private final SewingRecipe recipe;
         private final Component label;
 
+        private SewingRecipe cachedIngredientRecipe = null;
+        private Map<SewingRecipe.Material, List<ItemStack>> cachedIngredientLists = null;
+
         public ClientRecipeTooltipComponent(RecipeTooltipComponent component)
         {
             this.recipe = component.recipe();
@@ -213,17 +217,29 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
 
             y += font.lineHeight;
 
+            if(cachedIngredientRecipe != recipe) {
+                cachedIngredientRecipe = recipe;
+                cachedIngredientLists = new Reference2ObjectOpenHashMap<>();
+                var materials = recipe.getMaterials();
+                for (int i = 0; i < materials.size(); i++)
+                {
+                    SewingRecipe.Material material = materials.get(i);
+                    var stacks = material.ingredient().items().map(ItemStack::new).toList();
+                    cachedIngredientLists.put(material, stacks);
+                }
+            }
+
             NonNullList<SewingRecipe.Material> materials = recipe.getMaterials();
             for (int i = 0; i < materials.size(); i++)
             {
                 int xx = x + i * 17 + 4;
 
                 SewingRecipe.Material material = materials.get(i);
-                HolderSet<Item> stacks = material.ingredient().getValues();
+                var stacks = cachedIngredientLists.get(material);
                 if (stacks.size() > 0)
                 {
                     var ticks = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
-                    ItemStack stack = stacks.get((int) ((ticks / 32) % stacks.size())).value().getDefaultInstance();
+                    ItemStack stack = stacks.get((int) ((ticks / 32) % stacks.size()));
                     poseStack.pushPose();
                     poseStack.translate(0,0,-50);
                     graphics.renderItem(stack, xx, y);
