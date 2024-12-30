@@ -5,6 +5,18 @@ import dev.gigaherz.sewingkit.api.SewingRecipeBuilder;
 import dev.gigaherz.sewingkit.loot.RandomDye;
 import dev.gigaherz.sewingkit.needle.Needles;
 import net.minecraft.Util;
+import net.minecraft.client.color.item.Dye;
+import net.minecraft.client.data.models.BlockModelGenerators;
+import net.minecraft.client.data.models.EquipmentAssetProvider;
+import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.ModelProvider;
+import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
+import net.minecraft.client.data.models.blockstates.Variant;
+import net.minecraft.client.data.models.blockstates.VariantProperties;
+import net.minecraft.client.data.models.model.ItemModelUtils;
+import net.minecraft.client.data.models.model.ModelLocationUtils;
+import net.minecraft.client.data.models.model.ModelTemplates;
+import net.minecraft.client.resources.model.EquipmentClientInfo;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -13,7 +25,6 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.data.loot.LootTableSubProvider;
-import net.minecraft.data.models.model.ModelLocationUtils;
 import net.minecraft.data.recipes.*;
 import net.minecraft.data.recipes.packs.VanillaRecipeProvider;
 import net.minecraft.data.registries.VanillaRegistries;
@@ -25,6 +36,7 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -32,40 +44,31 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
-import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.common.Tags;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.registries.DeferredItem;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 public class SewingKitDataGen
 {
-    public static void gatherData(GatherDataEvent event)
+    public static void gatherData(GatherDataEvent.Client event)
     {
         DataGenerator gen = event.getGenerator();
 
-        gen.addProvider(event.includeClient(), new Lang(gen));
-        // Let blockstate provider see generated item models by passing its existing file helper
-        ItemModelProvider itemModels = new ItemModels(gen, event.getExistingFileHelper());
-        gen.addProvider(event.includeClient(), itemModels);
-        gen.addProvider(event.includeClient(), new BlockStates(gen, itemModels.existingFileHelper));
+        gen.addProvider(true, new Lang(gen));
+        gen.addProvider(true, new EquipmentAsses(gen.getPackOutput()));
+        gen.addProvider(true, new ModelsAndClientItems(gen.getPackOutput()));
 
-        gen.addProvider(event.includeServer(), new BlockTagGen(gen.getPackOutput(), event.getExistingFileHelper()));
-        gen.addProvider(event.includeServer(), new ItemTagGen(gen.getPackOutput(), event.getExistingFileHelper()));
+        gen.addProvider(true, new BlockTagGen(gen.getPackOutput()));
+        gen.addProvider(true, new ItemTagGen(gen.getPackOutput()));
         //gen.addProvider(new ItemTags(gen, blockTags));
-        gen.addProvider(event.includeServer(), new Recipes(gen.getPackOutput(), event.getLookupProvider()));
-        gen.addProvider(event.includeServer(), Loot.create(gen.getPackOutput(), event.getLookupProvider()));
+        gen.addProvider(true, new Recipes(gen.getPackOutput(), event.getLookupProvider()));
+        gen.addProvider(true, Loot.create(gen.getPackOutput(), event.getLookupProvider()));
     }
 
     public static class Lang extends LanguageProvider
@@ -120,102 +123,123 @@ public class SewingKitDataGen
         }
     }
 
-    public static class BlockStates extends BlockStateProvider
+    private static class EquipmentAsses extends EquipmentAssetProvider
     {
-
-        public BlockStates(DataGenerator gen, ExistingFileHelper exFileHelper)
+        public EquipmentAsses(PackOutput output)
         {
-            super(gen.getPackOutput(), SewingKitMod.MODID, exFileHelper);
+            super(output);
         }
 
         @Override
-        protected void registerStatesAndModels()
+        protected void registerModels(BiConsumer<ResourceKey<EquipmentAsset>, EquipmentClientInfo> output)
         {
-            {
-                Block block = SewingKitMod.SEWING_STATION_BLOCK.get();
-                horizontalBlock(block, models().getExistingFile(ModelLocationUtils.getModelLocation(block)));
-            }
-            {
-                Block block = SewingKitMod.STORING_SEWING_STATION_BLOCK.get();
-                horizontalBlock(block, models().getExistingFile(ModelLocationUtils.getModelLocation(block)));
-            }
+            ResourceLocation textureId = SewingKitMod.location("wool");
+            output.accept(SewingKitMod.WOOL_ASSET, EquipmentClientInfo.builder()
+                    .addLayers(EquipmentClientInfo.LayerType.HUMANOID_LEGGINGS, whiteDefaultDyeable(textureId))
+                    .addLayers(EquipmentClientInfo.LayerType.HUMANOID, whiteDefaultDyeable(textureId))
+                .build());
+        }
+
+        public static EquipmentClientInfo.Layer whiteDefaultDyeable(ResourceLocation textureId) {
+            return new EquipmentClientInfo.Layer(
+                    textureId, Optional.of(new EquipmentClientInfo.Dyeable(Optional.of(-1))), false
+            );
         }
     }
 
-    public static class ItemModels extends ItemModelProvider
+    private static class ModelsAndClientItems extends ModelProvider
     {
-        public ItemModels(DataGenerator gen, ExistingFileHelper existingFileHelper)
+        public ModelsAndClientItems(PackOutput output)
         {
-            super(gen.getPackOutput(), SewingKitMod.MODID, existingFileHelper);
+            super(output, SewingKitMod.MODID);
         }
 
         @Override
-        protected void registerModels()
+        protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels)
         {
-            basicIcon(SewingKitMod.LEATHER_STRIP.getId());
-            basicIcon(SewingKitMod.LEATHER_SHEET.getId());
-            Arrays.stream(Needles.values()).forEach(needle -> basicIcon(needle.getId()));
+            horizontalWithExistingModel(blockModels, SewingKitMod.SEWING_STATION_BLOCK.get());
+            horizontalWithExistingModel(blockModels, SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
 
-            basicIcon(SewingKitMod.WOOL_HAT.getId());
-            basicIcon(SewingKitMod.WOOL_SHIRT.getId());
-            basicIcon(SewingKitMod.WOOL_PANTS.getId());
-            basicIcon(SewingKitMod.WOOL_SHOES.getId());
+            itemModels.createFlatItemModel(SewingKitMod.LEATHER_STRIP.get(), ModelTemplates.FLAT_ITEM);
+            itemModels.createFlatItemModel(SewingKitMod.LEATHER_SHEET.get(), ModelTemplates.FLAT_ITEM);
+            for (Needles needle : Needles.values())
+            {
+                itemModels.createFlatItemModel(needle.getNeedle(), ModelTemplates.FLAT_ITEM);
+            }
 
-            basicIcon(SewingKitMod.WOOL_ROLL.getId());
-            basicIcon(SewingKitMod.WOOL_TRIM.getId());
+            armorItem(itemModels, SewingKitMod.WOOL_HAT);
+            armorItem(itemModels, SewingKitMod.WOOL_SHIRT);
+            armorItem(itemModels, SewingKitMod.WOOL_PANTS);
+            armorItem(itemModels, SewingKitMod.WOOL_SHOES);
 
-            basicIcon(SewingKitMod.COMMON_PATTERN.getId());
-            basicIcon(SewingKitMod.UNCOMMON_PATTERN.getId());
-            basicIcon(SewingKitMod.RARE_PATTERN.getId());
-            basicIcon(SewingKitMod.LEGENDARY_PATTERN.getId());
+            itemModels.createFlatItemModel(SewingKitMod.WOOL_ROLL.get(), ModelTemplates.FLAT_ITEM);
+            itemModels.createFlatItemModel(SewingKitMod.WOOL_TRIM.get(), ModelTemplates.FLAT_ITEM);
 
-            basicIcon(SewingKitMod.FILE.getId())
-                    .transforms()
-                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                    .rotation(62, 180 - 33, 40)
-                    .translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
-                    .end()
-                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    .rotation(45, -33, -55)
-                    .translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
-                    .end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                    .rotation(-54, 99, 136)
-                    .translation(1.13f, 5f, 1.13f)
-                    .scale(0.68f)
-                    .end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(136, -99, 54)
-                    .translation(1.13f, 5f, 1.13f)
-                    .scale(0.68f)
-                    .end()
-                    .transform(ItemDisplayContext.GROUND)
-                    .translation(0, 2, 0)
-                    .scale(0.5f)
-                    .end()
-                    .transform(ItemDisplayContext.HEAD)
-                    .rotation(-4, 44, 4)
-                    .translation(-7.25f, 6.75f, 0.75f)
-                    .end()
-                    .transform(ItemDisplayContext.FIXED)
-                    .rotation(0, 180, 0)
-                    .end()
-                    .end();
+            itemModels.createFlatItemModel(SewingKitMod.COMMON_PATTERN.get(), ModelTemplates.FLAT_ITEM);
+            itemModels.createFlatItemModel(SewingKitMod.UNCOMMON_PATTERN.get(), ModelTemplates.FLAT_ITEM);
+            itemModels.createFlatItemModel(SewingKitMod.RARE_PATTERN.get(), ModelTemplates.FLAT_ITEM);
+            itemModels.createFlatItemModel(SewingKitMod.LEGENDARY_PATTERN.get(), ModelTemplates.FLAT_ITEM);
 
-            getBuilder(SewingKitMod.SEWING_STATION_ITEM.getId().getPath())
-                    .parent(getExistingFile(ModelLocationUtils
-                            .getModelLocation(SewingKitMod.SEWING_STATION_BLOCK.get())));
+            itemModels.createFlatItemModel(SewingKitMod.FILE.get(), ModelTemplates.FLAT_ITEM.extend()
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, b -> b
+                            .rotation(62, 180 - 33, 40).translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
+                    )
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND, b -> b
+                            .rotation(45, -33, -55).translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
+                    )
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, b -> b
+                            .rotation(-54, 99, 136).translation(1.13f, 5f, 1.13f).scale(0.68f)
+                    )
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND, b -> b
+                            .rotation(136, -99, 54).translation(1.13f, 5f, 1.13f).scale(0.68f)
+                    )
+                    .transform(ItemDisplayContext.GROUND, b -> b
+                            .translation(0, 2, 0).scale(0.5f)
+                    )
+                    .transform(ItemDisplayContext.HEAD, b -> b
+                            .rotation(-4, 44, 4).translation(-7.25f, 6.75f, 0.75f)
+                    )
+                    .transform(ItemDisplayContext.FIXED, b -> b
+                            .rotation(0, 180, 0)
+                    )
+                    .build());
 
-            getBuilder(SewingKitMod.STORING_SEWING_STATION_ITEM.getId().getPath())
-                    .parent(getExistingFile(ModelLocationUtils
-                            .getModelLocation(SewingKitMod.STORING_SEWING_STATION_BLOCK.get())));
+            justClientItemPlease(itemModels, SewingKitMod.LEATHER_STRIP);
+            justClientItemPlease(itemModels, SewingKitMod.LEATHER_SHEET);
+            justClientItemPlease(itemModels, SewingKitMod.WOOL_ROLL);
+            justClientItemPlease(itemModels, SewingKitMod.WOOL_TRIM);
+            justClientItemPlease(itemModels, SewingKitMod.WOOD_SEWING_NEEDLE);
+            justClientItemPlease(itemModels, SewingKitMod.STONE_SEWING_NEEDLE);
+            justClientItemPlease(itemModels, SewingKitMod.BONE_SEWING_NEEDLE);
+            justClientItemPlease(itemModels, SewingKitMod.GOLD_SEWING_NEEDLE);
+            justClientItemPlease(itemModels, SewingKitMod.IRON_SEWING_NEEDLE);
+            justClientItemPlease(itemModels, SewingKitMod.DIAMOND_SEWING_NEEDLE);
+            justClientItemPlease(itemModels, SewingKitMod.NETHERITE_SEWING_NEEDLE);
+            justClientItemPlease(itemModels, SewingKitMod.COMMON_PATTERN);
+            justClientItemPlease(itemModels, SewingKitMod.UNCOMMON_PATTERN);
+            justClientItemPlease(itemModels, SewingKitMod.RARE_PATTERN);
+            justClientItemPlease(itemModels, SewingKitMod.LEGENDARY_PATTERN);
+            justClientItemPlease(itemModels, SewingKitMod.FILE);
         }
 
-        private ItemModelBuilder basicIcon(ResourceLocation item)
+        private void justClientItemPlease(ItemModelGenerators itemModels, DeferredItem<? extends Item> item)
         {
-            return getBuilder(item.getPath())
-                    .parent(new ModelFile.UncheckedModelFile("item/generated"))
-                    .texture("layer0", SewingKitMod.location("item/" + item.getPath()));
+            itemModels.itemModelOutput.accept(item.get(),
+                    ItemModelUtils.plainModel(ModelLocationUtils.getModelLocation(item.get())));
+        }
+
+        private static void armorItem(ItemModelGenerators itemModels, DeferredItem<Item> item)
+        {
+            itemModels.createFlatItemModel(item.get(), ModelTemplates.FLAT_ITEM);
+            itemModels.itemModelOutput.accept(item.get(),
+                    ItemModelUtils.tintedModel(ModelLocationUtils.getModelLocation(item.get()), new Dye(-1)));
+        }
+
+        private static void horizontalWithExistingModel(BlockModelGenerators blockModels, Block block)
+        {
+            blockModels.blockStateOutput.accept(MultiVariantGenerator.multiVariant(block, Variant.variant()
+                            .with(VariantProperties.MODEL, ModelLocationUtils.getModelLocation(block)))
+                            .with(BlockModelGenerators.createHorizontalFacingDispatch()));
         }
     }
 
@@ -473,10 +497,10 @@ public class SewingKitDataGen
 
     private static class ItemTagGen extends IntrinsicHolderTagsProvider<Item>
     {
-        public ItemTagGen(PackOutput packOutput, ExistingFileHelper existingFileHelper)
+        public ItemTagGen(PackOutput packOutput)
         {
             super(packOutput, Registries.ITEM, CompletableFuture.supplyAsync(VanillaRegistries::createLookup, Util.backgroundExecutor()),
-                    (item) -> BuiltInRegistries.ITEM.getResourceKey(item).orElseThrow(), SewingKitMod.MODID, existingFileHelper);
+                    (item) -> BuiltInRegistries.ITEM.getResourceKey(item).orElseThrow(), SewingKitMod.MODID);
         }
 
         @Override
@@ -517,10 +541,10 @@ public class SewingKitDataGen
 
     private static class BlockTagGen extends IntrinsicHolderTagsProvider<Block>
     {
-        public BlockTagGen(PackOutput packOutput, ExistingFileHelper existingFileHelper)
+        public BlockTagGen(PackOutput packOutput)
         {
             super(packOutput, Registries.BLOCK, CompletableFuture.supplyAsync(VanillaRegistries::createLookup, Util.backgroundExecutor()),
-                    (block) -> BuiltInRegistries.BLOCK.getResourceKey(block).orElseThrow(), SewingKitMod.MODID, existingFileHelper);
+                    (block) -> BuiltInRegistries.BLOCK.getResourceKey(block).orElseThrow(), SewingKitMod.MODID);
         }
 
         @Override

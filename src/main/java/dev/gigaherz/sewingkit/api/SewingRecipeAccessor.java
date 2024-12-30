@@ -71,6 +71,6 @@ public class SewingRecipeAccessor
 
     private static boolean isIngredientEnabled(FeatureFlagSet flags, Ingredient ingredient)
     {
-        return ingredient.items().stream().allMatch(itemHolder -> itemHolder.value().isEnabled(flags));
+        return ingredient.items().allMatch(itemHolder -> itemHolder.value().isEnabled(flags));
     }
 }

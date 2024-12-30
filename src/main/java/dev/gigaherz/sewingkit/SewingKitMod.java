@@ -40,6 +40,8 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.equipment.ArmorType;
+import net.minecraft.world.item.equipment.EquipmentAsset;
+import net.minecraft.world.item.equipment.EquipmentAssets;
 import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.ItemLike;
@@ -164,6 +166,7 @@ public class SewingKitMod
             () -> new BlockEntityType<>(StoringSewingTableBlockEntity::new, STORING_SEWING_STATION_BLOCK.get())
     );
 
+    public static final ResourceKey<EquipmentAsset> WOOL_ASSET = ResourceKey.create(EquipmentAssets.ROOT_ID, location("wool"));
     private static final EnumMap<ArmorType, Integer> woolArmorValues = Util.make(new EnumMap<>(ArmorType.class), map -> {
         map.put(ArmorType.BOOTS, 0);
         map.put(ArmorType.LEGGINGS, 0);
@@ -172,7 +175,7 @@ public class SewingKitMod
         map.put(ArmorType.BODY, 0);
     });
     public static final ArmorMaterial WOOL = new ArmorMaterial(25, woolArmorValues, 25, SoundEvents.ARMOR_EQUIP_GENERIC,
-                     0.0F, 0.01F,  ItemTags.WOOL, location("wool"));
+                     0.0F, 0.01F,  ItemTags.WOOL, WOOL_ASSET);
 
     public static final DeferredItem<Item> WOOL_HAT = ITEMS.registerItem("wool_hat",
             props -> new ArmorItem(WOOL, ArmorType.HELMET, props)
@@ -487,7 +490,7 @@ public class SewingKitMod
         }
     }
 
-    private void gatherData(GatherDataEvent event)
+    private void gatherData(GatherDataEvent.Client event)
     {
         SewingKitDataGen.gatherData(event);
     }
@@ -530,20 +533,6 @@ public class SewingKitMod
         public static void registerMenuScreens(final RegisterMenuScreensEvent event)
         {
             event.register(SEWING_STATION_MENU.get(), SewingTableScreen::new);
-        }
-
-        @SubscribeEvent
-        public static void itemColors(final RegisterColorHandlersEvent.Item event)
-        {
-            event.register(
-                    (stack, color) -> color > 0 ? -1 : (0xFF000000 | getColor(stack)),
-                    WOOL_HAT.get(), WOOL_SHIRT.get(), WOOL_PANTS.get(), WOOL_SHOES.get());
-        }
-
-        private static int getColor(ItemStack stack)
-        {
-            var colorData = stack.get(DataComponents.DYED_COLOR);
-            return colorData != null ? colorData.rgb() : -1;
         }
     }
 }

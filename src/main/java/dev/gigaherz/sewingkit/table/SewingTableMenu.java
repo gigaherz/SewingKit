@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import dev.gigaherz.sewingkit.api.SewingRecipeAccessor;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -86,13 +87,13 @@ public class SewingTableMenu extends AbstractContainerMenu
         this.addSlot(new SlotItemHandler(this.inputInventory, 0, 8, 15)
         {
             {
-                this.setBackground(InventoryMenu.BLOCK_ATLAS, SewingKitMod.location("gui/needle_slot_background"));
+                this.setBackground(SewingKitMod.location("needle_slot_background"));
             }
         });
         this.addSlot(new SlotItemHandler(this.inputInventory, 1, 30, 15)
         {
             {
-                this.setBackground(InventoryMenu.BLOCK_ATLAS, SewingKitMod.location("gui/pattern_slot_background"));
+                this.setBackground(SewingKitMod.location("pattern_slot_background"));
             }
         });
         this.addSlot(new SlotItemHandler(this.inputInventory, 2, 10, 35));

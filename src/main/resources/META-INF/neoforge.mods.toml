@@ -18,13 +18,13 @@ Sewing Kit is a base mod for anything that wants to add sewing features, such as
 [[dependencies.sewingkit]]
     modId="neoforge"
     type="required"
-    versionRange="[21.0.31-beta,)"
+    versionRange="[21.4.47-beta,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.sewingkit]]
     modId="minecraft"
     type="required"
-    versionRange="[1.21,1.22)"
+    versionRange="[1.21.4,1.22)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.sewingkit]]
