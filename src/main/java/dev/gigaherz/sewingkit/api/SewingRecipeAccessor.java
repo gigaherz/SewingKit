@@ -4,7 +4,10 @@ import com.mojang.logging.LogUtils;
 import dev.gigaherz.sewingkit.network.SyncSewingRecipes;
 import dev.gigaherz.sewingkit.table.SewingInput;
 import net.minecraft.world.flag.FeatureFlagSet;
-import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
 import net.minecraft.world.level.Level;
 import org.slf4j.Logger;
 
@@ -42,14 +45,18 @@ public class SewingRecipeAccessor
         List<RecipeHolder<SewingRecipe>> recipes = new ArrayList<>();
         access.getRecipes().forEach(recipeHolder -> {
             Recipe<?> recipe = recipeHolder.value();
-            if (!recipe.isSpecial() && recipe.placementInfo().isImpossibleToPlace()) {
+            if (!recipe.isSpecial() && recipe.placementInfo().isImpossibleToPlace())
+            {
                 LOGGER.warn("Recipe {} can't be placed due to empty ingredients and will be ignored", recipeHolder.id().location());
-            } else {
+            }
+            else
+            {
                 if (recipe instanceof SewingRecipe sewingRecipe
                         && isIngredientEnabled(flags, sewingRecipe.getTool())
                         && isIngredientEnabled(flags, sewingRecipe.getPattern())
                         && sewingRecipe.getMaterials().stream().allMatch(mat -> isIngredientEnabled(flags, mat))
-                        && sewingRecipe.getOutput().isItemEnabled(flags)) {
+                        && sewingRecipe.getOutput().isItemEnabled(flags))
+                {
                     //noinspection unchecked
                     recipes.add((RecipeHolder<SewingRecipe>) recipeHolder);
                 }

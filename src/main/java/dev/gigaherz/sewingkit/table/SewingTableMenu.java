@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import dev.gigaherz.sewingkit.api.SewingRecipeAccessor;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -12,8 +11,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.StackedContents;
-import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -159,7 +156,7 @@ public class SewingTableMenu extends AbstractContainerMenu
             ItemStack itemstack;
             if (i == 0)
             {
-                slot.getItem().hurtAndBreak(1, (ServerLevel)serverPlayer.level(), serverPlayer, item -> {
+                slot.getItem().hurtAndBreak(1, (ServerLevel) serverPlayer.level(), serverPlayer, item -> {
                     slot.set(ItemStack.EMPTY);
                 });
                 itemstack = slot.getItem();
@@ -429,16 +426,23 @@ public class SewingTableMenu extends AbstractContainerMenu
         }
     }
 
-    protected void returnAllItemsToPlayer(Player pPlayer) {
+    protected void returnAllItemsToPlayer(Player pPlayer)
+    {
         if (inputInventory == null) return;
-        if (!pPlayer.isAlive() || pPlayer instanceof ServerPlayer && ((ServerPlayer)pPlayer).hasDisconnected()) {
-            for (int j = 0; j < inputInventory.getSlots(); j++) {
+        if (!pPlayer.isAlive() || pPlayer instanceof ServerPlayer && ((ServerPlayer) pPlayer).hasDisconnected())
+        {
+            for (int j = 0; j < inputInventory.getSlots(); j++)
+            {
                 pPlayer.drop(inputInventory.getStackInSlot(j), false);
             }
-        } else {
-            for (int i = 0; i < inputInventory.getSlots(); i++) {
+        }
+        else
+        {
+            for (int i = 0; i < inputInventory.getSlots(); i++)
+            {
                 Inventory inventory = pPlayer.getInventory();
-                if (inventory.player instanceof ServerPlayer) {
+                if (inventory.player instanceof ServerPlayer)
+                {
                     inventory.placeItemBackInInventory(inputInventory.getStackInSlot(i));
                 }
             }

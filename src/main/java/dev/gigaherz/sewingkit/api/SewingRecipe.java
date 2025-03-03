@@ -18,7 +18,10 @@ import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -88,7 +91,6 @@ public class SewingRecipe implements Recipe<SewingInput>
         this.tool = tool;
         this.output = output;
         this.showNotification = showNotification;
-
     }
 
     @Override
@@ -190,7 +192,8 @@ public class SewingRecipe implements Recipe<SewingInput>
     }
 
     @Override
-    public boolean showNotification() {
+    public boolean showNotification()
+    {
         return this.showNotification;
     }
 
@@ -212,8 +215,8 @@ public class SewingRecipe implements Recipe<SewingInput>
     public static record Material(Ingredient ingredient, int count) implements Predicate<ItemStack>
     {
         public static final Codec<Material> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Ingredient.CODEC.fieldOf("ingredient").forGetter(Material::ingredient),
-            Codec.INT.fieldOf("count").forGetter(Material::count)
+                Ingredient.CODEC.fieldOf("ingredient").forGetter(Material::ingredient),
+                Codec.INT.fieldOf("count").forGetter(Material::count)
         ).apply(instance, Material::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, Material> STREAM_CODEC = StreamCodec.composite(

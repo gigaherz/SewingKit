@@ -25,7 +25,9 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.data.loot.LootTableSubProvider;
-import net.minecraft.data.recipes.*;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.packs.VanillaRecipeProvider;
 import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
@@ -136,10 +138,11 @@ public class SewingKitDataGen
             output.accept(SewingKitMod.WOOL_ASSET, EquipmentClientInfo.builder()
                     .addLayers(EquipmentClientInfo.LayerType.HUMANOID_LEGGINGS, whiteDefaultDyeable(textureId))
                     .addLayers(EquipmentClientInfo.LayerType.HUMANOID, whiteDefaultDyeable(textureId))
-                .build());
+                    .build());
         }
 
-        public static EquipmentClientInfo.Layer whiteDefaultDyeable(ResourceLocation textureId) {
+        public static EquipmentClientInfo.Layer whiteDefaultDyeable(ResourceLocation textureId)
+        {
             return new EquipmentClientInfo.Layer(
                     textureId, Optional.of(new EquipmentClientInfo.Dyeable(Optional.of(-1))), false
             );
@@ -159,11 +162,11 @@ public class SewingKitDataGen
             horizontalWithExistingModel(blockModels, SewingKitMod.SEWING_STATION_BLOCK.get());
             horizontalWithExistingModel(blockModels, SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
 
-            itemModels.createFlatItemModel(SewingKitMod.LEATHER_STRIP.get(), ModelTemplates.FLAT_ITEM);
-            itemModels.createFlatItemModel(SewingKitMod.LEATHER_SHEET.get(), ModelTemplates.FLAT_ITEM);
+            itemModels.generateFlatItem(SewingKitMod.LEATHER_STRIP.get(), ModelTemplates.FLAT_ITEM);
+            itemModels.generateFlatItem(SewingKitMod.LEATHER_SHEET.get(), ModelTemplates.FLAT_ITEM);
             for (Needles needle : Needles.values())
             {
-                itemModels.createFlatItemModel(needle.getNeedle(), ModelTemplates.FLAT_ITEM);
+                itemModels.generateFlatItem(needle.getNeedle(), ModelTemplates.FLAT_ITEM);
             }
 
             armorItem(itemModels, SewingKitMod.WOOL_HAT);
@@ -171,15 +174,15 @@ public class SewingKitDataGen
             armorItem(itemModels, SewingKitMod.WOOL_PANTS);
             armorItem(itemModels, SewingKitMod.WOOL_SHOES);
 
-            itemModels.createFlatItemModel(SewingKitMod.WOOL_ROLL.get(), ModelTemplates.FLAT_ITEM);
-            itemModels.createFlatItemModel(SewingKitMod.WOOL_TRIM.get(), ModelTemplates.FLAT_ITEM);
+            itemModels.generateFlatItem(SewingKitMod.WOOL_ROLL.get(), ModelTemplates.FLAT_ITEM);
+            itemModels.generateFlatItem(SewingKitMod.WOOL_TRIM.get(), ModelTemplates.FLAT_ITEM);
 
-            itemModels.createFlatItemModel(SewingKitMod.COMMON_PATTERN.get(), ModelTemplates.FLAT_ITEM);
-            itemModels.createFlatItemModel(SewingKitMod.UNCOMMON_PATTERN.get(), ModelTemplates.FLAT_ITEM);
-            itemModels.createFlatItemModel(SewingKitMod.RARE_PATTERN.get(), ModelTemplates.FLAT_ITEM);
-            itemModels.createFlatItemModel(SewingKitMod.LEGENDARY_PATTERN.get(), ModelTemplates.FLAT_ITEM);
+            itemModels.generateFlatItem(SewingKitMod.COMMON_PATTERN.get(), ModelTemplates.FLAT_ITEM);
+            itemModels.generateFlatItem(SewingKitMod.UNCOMMON_PATTERN.get(), ModelTemplates.FLAT_ITEM);
+            itemModels.generateFlatItem(SewingKitMod.RARE_PATTERN.get(), ModelTemplates.FLAT_ITEM);
+            itemModels.generateFlatItem(SewingKitMod.LEGENDARY_PATTERN.get(), ModelTemplates.FLAT_ITEM);
 
-            itemModels.createFlatItemModel(SewingKitMod.FILE.get(), ModelTemplates.FLAT_ITEM.extend()
+            itemModels.generateFlatItem(SewingKitMod.FILE.get(), ModelTemplates.FLAT_ITEM.extend()
                     .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, b -> b
                             .rotation(62, 180 - 33, 40).translation(-2.25f, 1.5f, -0.25f).scale(0.48f)
                     )
@@ -202,29 +205,6 @@ public class SewingKitDataGen
                             .rotation(0, 180, 0)
                     )
                     .build());
-
-            justClientItemPlease(itemModels, SewingKitMod.LEATHER_STRIP);
-            justClientItemPlease(itemModels, SewingKitMod.LEATHER_SHEET);
-            justClientItemPlease(itemModels, SewingKitMod.WOOL_ROLL);
-            justClientItemPlease(itemModels, SewingKitMod.WOOL_TRIM);
-            justClientItemPlease(itemModels, SewingKitMod.WOOD_SEWING_NEEDLE);
-            justClientItemPlease(itemModels, SewingKitMod.STONE_SEWING_NEEDLE);
-            justClientItemPlease(itemModels, SewingKitMod.BONE_SEWING_NEEDLE);
-            justClientItemPlease(itemModels, SewingKitMod.GOLD_SEWING_NEEDLE);
-            justClientItemPlease(itemModels, SewingKitMod.IRON_SEWING_NEEDLE);
-            justClientItemPlease(itemModels, SewingKitMod.DIAMOND_SEWING_NEEDLE);
-            justClientItemPlease(itemModels, SewingKitMod.NETHERITE_SEWING_NEEDLE);
-            justClientItemPlease(itemModels, SewingKitMod.COMMON_PATTERN);
-            justClientItemPlease(itemModels, SewingKitMod.UNCOMMON_PATTERN);
-            justClientItemPlease(itemModels, SewingKitMod.RARE_PATTERN);
-            justClientItemPlease(itemModels, SewingKitMod.LEGENDARY_PATTERN);
-            justClientItemPlease(itemModels, SewingKitMod.FILE);
-        }
-
-        private void justClientItemPlease(ItemModelGenerators itemModels, DeferredItem<? extends Item> item)
-        {
-            itemModels.itemModelOutput.accept(item.get(),
-                    ItemModelUtils.plainModel(ModelLocationUtils.getModelLocation(item.get())));
         }
 
         private static void armorItem(ItemModelGenerators itemModels, DeferredItem<Item> item)
@@ -238,7 +218,7 @@ public class SewingKitDataGen
         {
             blockModels.blockStateOutput.accept(MultiVariantGenerator.multiVariant(block, Variant.variant()
                             .with(VariantProperties.MODEL, ModelLocationUtils.getModelLocation(block)))
-                            .with(BlockModelGenerators.createHorizontalFacingDispatch()));
+                    .with(BlockModelGenerators.createHorizontalFacingDispatch()));
         }
     }
 
@@ -462,7 +442,7 @@ public class SewingKitDataGen
             {
                 consumer.accept(ResourceKey.create(Registries.LOOT_TABLE, SewingKitMod.location("chest/tailor_shop_upper_floor")), LootTable.lootTable()
                         // armor
-                        .withPool(LootPool.lootPool().setRolls(UniformGenerator.between(0,2))
+                        .withPool(LootPool.lootPool().setRolls(UniformGenerator.between(0, 2))
                                 .add(LootItem.lootTableItem(SewingKitMod.WOOL_HAT.get()).setWeight(1).apply(RandomDye.builder()))
                                 .add(LootItem.lootTableItem(SewingKitMod.WOOL_SHIRT.get()).setWeight(1).apply(RandomDye.builder()))
                                 .add(LootItem.lootTableItem(SewingKitMod.WOOL_PANTS.get()).setWeight(1).apply(RandomDye.builder()))
@@ -519,17 +499,17 @@ public class SewingKitDataGen
                     Pair.of(SewingKitMod.NETHERITE_OR_HIGHER, List.of(SewingKitMod.NETHERITE_SEWING_NEEDLE.get()))
             );
 
-            for(int i=0;i<list.size();i++)
+            for (int i = 0; i < list.size(); i++)
             {
                 var entry = list.get(i);
                 var tag = entry.getFirst();
                 var items = entry.getSecond();
 
                 var tagBuilder = tag(tag);
-                for(var item : items)
+                for (var item : items)
                     tagBuilder.add(item);
 
-                int j = i+1;
+                int j = i + 1;
                 if (j < list.size())
                 {
                     tagBuilder.addTag(list.get(j).getFirst());

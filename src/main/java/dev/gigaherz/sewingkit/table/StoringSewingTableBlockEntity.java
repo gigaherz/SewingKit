@@ -56,12 +56,6 @@ public class StoringSewingTableBlockEntity extends BlockEntity implements Invent
     private final ListenableHolder listenable = new ListenableHolder();
 
     @Override
-    public void setChanged()
-    {
-        super.setChanged();
-    }
-
-    @Override
     public void addWeakListener(SewingTableMenu e)
     {
         listenable.addWeakListener(e);
@@ -69,7 +63,7 @@ public class StoringSewingTableBlockEntity extends BlockEntity implements Invent
 
     public void dropContents()
     {
-        for(int i=0;i<inventory.getSlots();i++)
+        for (int i = 0; i < inventory.getSlots(); i++)
         {
             var pos = getBlockPos();
             Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(i));

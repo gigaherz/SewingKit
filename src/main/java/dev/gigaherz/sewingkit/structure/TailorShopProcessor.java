@@ -26,7 +26,10 @@ public class TailorShopProcessor extends StructureProcessor
 {
     public static final MapCodec<TailorShopProcessor> CODEC = Codec.EMPTY.xmap(u -> new TailorShopProcessor(), p -> Unit.INSTANCE);
 
-    public static MapCodec<TailorShopProcessor> codec() { return CODEC; }
+    public static MapCodec<TailorShopProcessor> codec()
+    {
+        return CODEC;
+    }
 
     @Override
     protected StructureProcessorType<?> getType()

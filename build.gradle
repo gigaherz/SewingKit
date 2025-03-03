@@ -18,10 +18,6 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 java.withSourcesJar()
 
-sourceSets {
-    main.resources.srcDirs += 'src/main/generated_resources'
-}
-
 repositories {
     maven { // JEI
         url "https://maven.blamejared.com/"
@@ -78,6 +74,10 @@ neoForge {
         minecraftVersion = "1.21.4"
         mappingsVersion = "2024.12.29"
     }
+}
+
+sourceSets {
+    main.resources.srcDirs += 'src/main/generated_resources'
 }
 
 dependencies {

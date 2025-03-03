@@ -1,13 +1,14 @@
 package dev.gigaherz.sewingkit.loot;
 
 import com.google.common.collect.Lists;
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.DyeItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.LootItemConditionalFunction;
@@ -45,16 +46,19 @@ public class RandomDye extends LootItemConditionalFunction
         return getRandomDye(itemStack, lootContext.getRandom());
     }
 
-    public static ItemStack getRandomDye(ItemStack original, RandomSource rand) {
+    public static ItemStack getRandomDye(ItemStack original, RandomSource rand)
+    {
         if (original.is(ItemTags.DYEABLE))
         {
             List<DyeItem> list = Lists.newArrayList();
             list.add(getRandomDye(rand));
-            if (rand.nextFloat() > 0.7F) {
+            if (rand.nextFloat() > 0.7F)
+            {
                 list.add(getRandomDye(rand));
             }
 
-            if (rand.nextFloat() > 0.8F) {
+            if (rand.nextFloat() > 0.8F)
+            {
                 list.add(getRandomDye(rand));
             }
 
@@ -64,7 +68,8 @@ public class RandomDye extends LootItemConditionalFunction
         return original;
     }
 
-    public static DyeItem getRandomDye(RandomSource rand) {
+    public static DyeItem getRandomDye(RandomSource rand)
+    {
         return DyeItem.byColor(DyeColor.byId(rand.nextInt(16)));
     }
 }

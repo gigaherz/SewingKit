@@ -20,7 +20,7 @@ public record SyncSewingRecipes(List<RecipeHolder<SewingRecipe>> recipes) implem
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static final StreamCodec<RegistryFriendlyByteBuf, RecipeHolder<SewingRecipe>>
-            HOLDER_CODEC = (StreamCodec)RecipeHolder.STREAM_CODEC;
+            HOLDER_CODEC = (StreamCodec) RecipeHolder.STREAM_CODEC;
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SyncSewingRecipes> STREAM_CODEC = StreamCodec.composite(
             HOLDER_CODEC.apply(ByteBufCodecs.list()), SyncSewingRecipes::recipes,

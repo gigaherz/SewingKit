@@ -17,7 +17,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.Util;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -47,7 +46,6 @@ import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
@@ -60,9 +58,10 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
-import net.neoforged.neoforge.common.*;
+import net.neoforged.neoforge.common.BasicItemListing;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.crafting.IngredientType;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
@@ -167,15 +166,15 @@ public class SewingKitMod
     );
 
     public static final ResourceKey<EquipmentAsset> WOOL_ASSET = ResourceKey.create(EquipmentAssets.ROOT_ID, location("wool"));
-    private static final EnumMap<ArmorType, Integer> woolArmorValues = Util.make(new EnumMap<>(ArmorType.class), map -> {
+    private static final EnumMap<ArmorType, Integer> WOOL_ARMOR_VALUES = Util.make(new EnumMap<>(ArmorType.class), map -> {
         map.put(ArmorType.BOOTS, 0);
         map.put(ArmorType.LEGGINGS, 0);
         map.put(ArmorType.CHESTPLATE, 0);
         map.put(ArmorType.HELMET, 0);
         map.put(ArmorType.BODY, 0);
     });
-    public static final ArmorMaterial WOOL = new ArmorMaterial(25, woolArmorValues, 25, SoundEvents.ARMOR_EQUIP_GENERIC,
-                     0.0F, 0.01F,  ItemTags.WOOL, WOOL_ASSET);
+    public static final ArmorMaterial WOOL = new ArmorMaterial(25, WOOL_ARMOR_VALUES, 25, SoundEvents.ARMOR_EQUIP_GENERIC,
+            0.0F, 0.01F, ItemTags.WOOL, WOOL_ASSET);
 
     public static final DeferredItem<Item> WOOL_HAT = ITEMS.registerItem("wool_hat",
             props -> new ArmorItem(WOOL, ArmorType.HELMET, props)
@@ -214,19 +213,19 @@ public class SewingKitMod
 
     public static final DeferredHolder<PoiType, PoiType>
             TABLE_POI = POI_TYPES.register("tailor", () -> new PoiType(Stream.concat(
-                    SEWING_STATION_BLOCK.get().getStateDefinition().getPossibleStates().stream(),
-                    STORING_SEWING_STATION_BLOCK.get().getStateDefinition().getPossibleStates().stream()
-            ).collect(Collectors.toUnmodifiableSet()), 1, 1));
+            SEWING_STATION_BLOCK.get().getStateDefinition().getPossibleStates().stream(),
+            STORING_SEWING_STATION_BLOCK.get().getStateDefinition().getPossibleStates().stream()
+    ).collect(Collectors.toUnmodifiableSet()), 1, 1));
 
     public static final DeferredHolder<VillagerProfession, VillagerProfession>
             TAILOR = PROFESSIONS.register("tailor", () -> {
-                var key = Objects.requireNonNull(TABLE_POI.getKey());
-                return new VillagerProfession("tailor",
-                        holder -> holder.is(key),
-                        holder -> holder.is(key),
-                        Arrays.stream(Needles.values()).map(Needles::getNeedle).collect(ImmutableSet.toImmutableSet()),
-                        ImmutableSet.of(), null);
-            });
+        var key = Objects.requireNonNull(TABLE_POI.getKey());
+        return new VillagerProfession("tailor",
+                holder -> holder.is(key),
+                holder -> holder.is(key),
+                Arrays.stream(Needles.values()).map(Needles::getNeedle).collect(ImmutableSet.toImmutableSet()),
+                ImmutableSet.of(), null);
+    });
 
     public static final DeferredHolder<RecipeBookCategory, RecipeBookCategory>
             SEWING_MISC = RECIPE_BOOK_CATEGORY.register("sewing_misc", RecipeBookCategory::new);
@@ -250,34 +249,34 @@ public class SewingKitMod
             TAILOR_SHOP_PROCESSOR_LIST_KEY = ResourceKey.create(Registries.PROCESSOR_LIST, location("tailor_shop_processors"));
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab>
-            SEWING_KIT_TAB = CREATIVE_TABS.register("sewing_kit", () -> new CreativeModeTab.Builder(CreativeModeTab.Row.TOP,0)
-                    .icon(() -> new ItemStack(WOOD_SEWING_NEEDLE.get()))
-                    .title(Component.translatable("tab.sewing_kit"))
-                    .displayItems((featureFlags, output) -> {
-                        output.accept(SEWING_STATION_ITEM.get());
-                        output.accept(STORING_SEWING_STATION_ITEM.get());
-                        output.accept(WOOD_SEWING_NEEDLE.get());
-                        output.accept(STONE_SEWING_NEEDLE.get());
-                        output.accept(BONE_SEWING_NEEDLE.get());
-                        output.accept(GOLD_SEWING_NEEDLE.get());
-                        output.accept(IRON_SEWING_NEEDLE.get());
-                        output.accept(DIAMOND_SEWING_NEEDLE.get());
-                        output.accept(NETHERITE_SEWING_NEEDLE.get());
-                        output.accept(FILE.get());
-                        output.accept(LEATHER_STRIP.get());
-                        output.accept(LEATHER_SHEET.get());
-                        output.accept(WOOL_ROLL.get());
-                        output.accept(WOOL_TRIM.get());
-                        output.accept(WOOL_HAT.get());
-                        output.accept(WOOL_SHIRT.get());
-                        output.accept(WOOL_PANTS.get());
-                        output.accept(WOOL_SHOES.get());
-                        output.accept(COMMON_PATTERN.get());
-                        output.accept(UNCOMMON_PATTERN.get());
-                        output.accept(RARE_PATTERN.get());
-                        output.accept(LEGENDARY_PATTERN.get());
-                    }).build()
-        );
+            SEWING_KIT_TAB = CREATIVE_TABS.register("sewing_kit", () -> new CreativeModeTab.Builder(CreativeModeTab.Row.TOP, 0)
+            .icon(() -> new ItemStack(WOOD_SEWING_NEEDLE.get()))
+            .title(Component.translatable("tab.sewing_kit"))
+            .displayItems((featureFlags, output) -> {
+                output.accept(SEWING_STATION_ITEM.get());
+                output.accept(STORING_SEWING_STATION_ITEM.get());
+                output.accept(WOOD_SEWING_NEEDLE.get());
+                output.accept(STONE_SEWING_NEEDLE.get());
+                output.accept(BONE_SEWING_NEEDLE.get());
+                output.accept(GOLD_SEWING_NEEDLE.get());
+                output.accept(IRON_SEWING_NEEDLE.get());
+                output.accept(DIAMOND_SEWING_NEEDLE.get());
+                output.accept(NETHERITE_SEWING_NEEDLE.get());
+                output.accept(FILE.get());
+                output.accept(LEATHER_STRIP.get());
+                output.accept(LEATHER_SHEET.get());
+                output.accept(WOOL_ROLL.get());
+                output.accept(WOOL_TRIM.get());
+                output.accept(WOOL_HAT.get());
+                output.accept(WOOL_SHIRT.get());
+                output.accept(WOOL_PANTS.get());
+                output.accept(WOOL_SHOES.get());
+                output.accept(COMMON_PATTERN.get());
+                output.accept(UNCOMMON_PATTERN.get());
+                output.accept(RARE_PATTERN.get());
+                output.accept(LEGENDARY_PATTERN.get());
+            }).build()
+    );
 
     public static final TagKey<Item> WOOD_OR_HIGHER = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/wood_or_higher"));
     public static final TagKey<Item> BONE_OR_HIGHER = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/bone_or_higher"));
@@ -332,7 +331,8 @@ public class SewingKitMod
                 .forEach(player -> PacketDistributor.sendToPlayer(player, payload));
     }
 
-    public void addBuildingToVillages(final ServerAboutToStartEvent event) {
+    public void addBuildingToVillages(final ServerAboutToStartEvent event)
+    {
         Registry<StructureTemplatePool> templatePoolRegistry = event.getServer().registryAccess().lookupOrThrow(Registries.TEMPLATE_POOL);
         Registry<StructureProcessorList> processorListRegistry = event.getServer().registryAccess().lookupOrThrow(Registries.PROCESSOR_LIST);
 

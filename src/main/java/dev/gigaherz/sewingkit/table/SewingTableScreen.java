@@ -6,17 +6,13 @@ import com.mojang.datafixers.util.Either;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.core.HolderSet;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -25,14 +21,12 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RenderTooltipEvent;
 
@@ -89,9 +83,9 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
 
         int i = this.leftPos;
         int j = this.topPos;
-        graphics.blit(RenderType::guiTextured, BACKGROUND_TEXTURE, i, j, 0, 0, this.imageWidth, this.imageHeight, 256,256);
+        graphics.blit(RenderType::guiTextured, BACKGROUND_TEXTURE, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
         int k = (int) (41.0F * this.sliderProgress);
-        graphics.blit(RenderType::guiTextured, BACKGROUND_TEXTURE, i + 119, j + 15 + k, 176 + (this.canScroll() ? 0 : 12), 0, 12, 15, 256,256);
+        graphics.blit(RenderType::guiTextured, BACKGROUND_TEXTURE, i + 119, j + 15 + k, 176 + (this.canScroll() ? 0 : 12), 0, 12, 15, 256, 256);
         int l = this.leftPos + 52;
         int i1 = this.topPos + 14;
         int j1 = this.recipeIndexOffset + 12;
@@ -217,7 +211,8 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
 
             y += font.lineHeight;
 
-            if(cachedIngredientRecipe != recipe) {
+            if (cachedIngredientRecipe != recipe)
+            {
                 cachedIngredientRecipe = recipe;
                 cachedIngredientLists = new Reference2ObjectOpenHashMap<>();
                 var materials = recipe.getMaterials();
@@ -241,7 +236,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
                     var ticks = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
                     ItemStack stack = stacks.get((int) ((ticks / 32) % stacks.size()));
                     poseStack.pushPose();
-                    poseStack.translate(0,0,-50);
+                    poseStack.translate(0, 0, -50);
                     graphics.renderItem(stack, xx, y);
                     graphics.renderItemDecorations(font, stack, xx, y);
                     poseStack.popPose();
@@ -286,7 +281,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
                 j1 += 36;
             }
 
-            graphics.blit(RenderType::guiTextured, BACKGROUND_TEXTURE, k, i1 - 1, 0, j1, 16, 18, 256,256);
+            graphics.blit(RenderType::guiTextured, BACKGROUND_TEXTURE, k, i1 - 1, 0, j1, 16, 18, 256, 256);
         }
     }
 

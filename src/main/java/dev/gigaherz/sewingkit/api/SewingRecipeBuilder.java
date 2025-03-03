@@ -9,7 +9,6 @@ import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceKey;
@@ -17,9 +16,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeBookCategories;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.level.ItemLike;
 
@@ -149,7 +146,8 @@ public class SewingRecipeBuilder
         return this;
     }
 
-    public SewingRecipeBuilder showNotification(boolean showNotification) {
+    public SewingRecipeBuilder showNotification(boolean showNotification)
+    {
         this.showNotification = showNotification;
         return this;
     }
@@ -166,7 +164,7 @@ public class SewingRecipeBuilder
                 .rewards(AdvancementRewards.Builder.recipe(key))
                 .requirements(AdvancementRequirements.Strategy.OR);
         criteria.forEach(advancementBuilder::addCriterion);
-        ResourceLocation advancementId = id.withPrefix("recipes/" + category.getFolderName() + "/" );
+        ResourceLocation advancementId = id.withPrefix("recipes/" + category.getFolderName() + "/");
 
         var recipe = build(
                 Objects.requireNonNullElse(this.group, ""),
@@ -184,9 +182,11 @@ public class SewingRecipeBuilder
     }
 
 
-    static RecipeBookCategory determineBookCategory(RecipeCategory category) {
+    static RecipeBookCategory determineBookCategory(RecipeCategory category)
+    {
         //noinspection SwitchStatementWithTooFewBranches
-        return switch (category) {
+        return switch (category)
+        {
             default -> SewingKitMod.SEWING_MISC.get();
         };
     }
