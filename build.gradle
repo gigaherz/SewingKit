@@ -3,16 +3,13 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.63-beta'
+    id 'net.neoforged.moddev' version '2.0.80'
 }
 
-version = '2.2.1'
+neoForge.version = "21.5.32-beta"
+version = '2.3.0'
 group = 'dev.gigaherz.sewingkit'
-
-var minecraftVersionResolver = project.neoForge.version.map { "1." + (it =~ /^(\d+(?:\.[1-9]\d*|))\./)[0][1] }
-base {
-    archivesName = minecraftVersionResolver.map { "SewingKit-${it}" }
-}
+base.archivesName = "SewingKit-${neoForge.minecraftVersion}"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
@@ -39,8 +36,6 @@ repositories {
 }
 
 neoForge {
-    version = "21.4.47-beta"
-
     runs {
         // applies to all the run configs below
         configureEach {
@@ -91,9 +86,9 @@ dependencies {
 
     //runtimeOnly fg.deobf("curse.maven:cosmetic-armor-reworked-237307:3920646")
 
-    runtimeOnly("dev.gigaherz.toolbelt:ToolBelt-1.21.4:2.4.0") {
+    /*runtimeOnly("dev.gigaherz.toolbelt:ToolBelt-1.21.4:2.4.0") {
         transitive = false
-    }
+    }*/
 }
 
 jar {

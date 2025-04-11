@@ -50,7 +50,7 @@ public class StoringSewingTableBlockEntity extends BlockEntity implements Invent
     public void loadAdditional(CompoundTag nbt, HolderLookup.Provider provider)
     {
         super.loadAdditional(nbt, provider);
-        inventory.deserializeNBT(provider, nbt.getCompound("Items"));
+        inventory.deserializeNBT(provider, nbt.getCompoundOrEmpty("Items"));
     }
 
     private final ListenableHolder listenable = new ListenableHolder();
@@ -59,6 +59,12 @@ public class StoringSewingTableBlockEntity extends BlockEntity implements Invent
     public void addWeakListener(SewingTableMenu e)
     {
         listenable.addWeakListener(e);
+    }
+
+    @Override
+    public void preRemoveSideEffects(BlockPos p_394577_, BlockState p_394161_)
+    {
+        dropContents();
     }
 
     public void dropContents()

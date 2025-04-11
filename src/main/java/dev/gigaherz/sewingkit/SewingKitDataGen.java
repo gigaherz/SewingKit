@@ -6,16 +6,12 @@ import dev.gigaherz.sewingkit.loot.RandomDye;
 import dev.gigaherz.sewingkit.needle.Needles;
 import net.minecraft.Util;
 import net.minecraft.client.color.item.Dye;
-import net.minecraft.client.data.models.BlockModelGenerators;
-import net.minecraft.client.data.models.EquipmentAssetProvider;
-import net.minecraft.client.data.models.ItemModelGenerators;
-import net.minecraft.client.data.models.ModelProvider;
+import net.minecraft.client.data.models.*;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
-import net.minecraft.client.data.models.blockstates.Variant;
-import net.minecraft.client.data.models.blockstates.VariantProperties;
 import net.minecraft.client.data.models.model.ItemModelUtils;
 import net.minecraft.client.data.models.model.ModelLocationUtils;
 import net.minecraft.client.data.models.model.ModelTemplates;
+import net.minecraft.client.renderer.block.model.Variant;
 import net.minecraft.client.resources.model.EquipmentClientInfo;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -34,6 +30,7 @@ import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -46,6 +43,7 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
+import net.neoforged.neoforge.client.model.generators.blockstate.CustomBlockStateModelBuilder;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
@@ -216,9 +214,9 @@ public class SewingKitDataGen
 
         private static void horizontalWithExistingModel(BlockModelGenerators blockModels, Block block)
         {
-            blockModels.blockStateOutput.accept(MultiVariantGenerator.multiVariant(block, Variant.variant()
-                            .with(VariantProperties.MODEL, ModelLocationUtils.getModelLocation(block)))
-                    .with(BlockModelGenerators.createHorizontalFacingDispatch()));
+            var variant = new Variant(ModelLocationUtils.getModelLocation(block));
+            var multiVariant = new MultiVariant(WeightedList.of(variant));
+            blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, multiVariant).with(BlockModelGenerators.ROTATION_HORIZONTAL_FACING));
         }
     }
 

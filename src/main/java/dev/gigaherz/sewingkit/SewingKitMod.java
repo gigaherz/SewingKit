@@ -3,20 +3,20 @@ package dev.gigaherz.sewingkit;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
-import dev.gigaherz.sewingkit.api.SewingRecipeAccessor;
+import dev.gigaherz.sewingkit.api.ClientSewingRecipeAccessor;
 import dev.gigaherz.sewingkit.file.FileItem;
 import dev.gigaherz.sewingkit.loot.RandomDye;
-import dev.gigaherz.sewingkit.needle.NeedleItem;
 import dev.gigaherz.sewingkit.needle.Needles;
-import dev.gigaherz.sewingkit.network.SyncSewingRecipes;
-import dev.gigaherz.sewingkit.patterns.PatternItem;
+import dev.gigaherz.sewingkit.network.SyncRecipeOrder;
 import dev.gigaherz.sewingkit.structure.TailorShopProcessor;
 import dev.gigaherz.sewingkit.table.*;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -34,6 +34,7 @@ import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
@@ -67,7 +68,6 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.village.VillagerTradesEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.*;
@@ -116,32 +116,32 @@ public class SewingKitMod
             props -> new Item(props.stacksTo(64))
     );
 
-    public static final DeferredItem<NeedleItem> WOOD_SEWING_NEEDLE = ITEMS.registerItem("wood_sewing_needle",
-            props -> new NeedleItem(0, 1, Needles.WOOD, props)
+    public static final DeferredItem<Item> WOOD_SEWING_NEEDLE = ITEMS.registerItem("wood_sewing_needle",
+            props -> new Item(Needles.fillProperties(Needles.WOOD, props))
     );
 
-    public static final DeferredItem<NeedleItem> STONE_SEWING_NEEDLE = ITEMS.registerItem("stone_sewing_needle",
-            props -> new NeedleItem(0, 1, Needles.STONE, props)
+    public static final DeferredItem<Item> STONE_SEWING_NEEDLE = ITEMS.registerItem("stone_sewing_needle",
+            props -> new Item(Needles.fillProperties(Needles.STONE, props))
     );
 
-    public static final DeferredItem<NeedleItem> BONE_SEWING_NEEDLE = ITEMS.registerItem("bone_sewing_needle",
-            props -> new NeedleItem(0, 1, Needles.BONE, props)
+    public static final DeferredItem<Item> BONE_SEWING_NEEDLE = ITEMS.registerItem("bone_sewing_needle",
+            props -> new Item(Needles.fillProperties(Needles.BONE, props))
     );
 
-    public static final DeferredItem<NeedleItem> GOLD_SEWING_NEEDLE = ITEMS.registerItem("gold_sewing_needle",
-            props -> new NeedleItem(0, 1, Needles.GOLD, props)
+    public static final DeferredItem<Item> GOLD_SEWING_NEEDLE = ITEMS.registerItem("gold_sewing_needle",
+            props -> new Item(Needles.fillProperties(Needles.GOLD, props))
     );
 
-    public static final DeferredItem<NeedleItem> IRON_SEWING_NEEDLE = ITEMS.registerItem("iron_sewing_needle",
-            props -> new NeedleItem(0, 1, Needles.IRON, props)
+    public static final DeferredItem<Item> IRON_SEWING_NEEDLE = ITEMS.registerItem("iron_sewing_needle",
+            props -> new Item(Needles.fillProperties(Needles.IRON, props))
     );
 
-    public static final DeferredItem<NeedleItem> DIAMOND_SEWING_NEEDLE = ITEMS.registerItem("diamond_sewing_needle",
-            props -> new NeedleItem(0, 1, Needles.DIAMOND, props)
+    public static final DeferredItem<Item> DIAMOND_SEWING_NEEDLE = ITEMS.registerItem("diamond_sewing_needle",
+            props -> new Item(Needles.fillProperties(Needles.DIAMOND, props))
     );
 
-    public static final DeferredItem<NeedleItem> NETHERITE_SEWING_NEEDLE = ITEMS.registerItem("netherite_sewing_needle",
-            props -> new NeedleItem(0, 1, Needles.NETHERITE, props)
+    public static final DeferredItem<Item> NETHERITE_SEWING_NEEDLE = ITEMS.registerItem("netherite_sewing_needle",
+            props -> new Item(Needles.fillProperties(Needles.NETHERITE, props))
     );
 
     public static final DeferredBlock<Block> SEWING_STATION_BLOCK = BLOCKS.registerBlock("sewing_station",
@@ -177,36 +177,44 @@ public class SewingKitMod
             0.0F, 0.01F, ItemTags.WOOL, WOOL_ASSET);
 
     public static final DeferredItem<Item> WOOL_HAT = ITEMS.registerItem("wool_hat",
-            props -> new ArmorItem(WOOL, ArmorType.HELMET, props)
+            props -> new Item(props.humanoidArmor(WOOL, ArmorType.HELMET))
     );
 
     public static final DeferredItem<Item> WOOL_SHIRT = ITEMS.registerItem("wool_shirt",
-            props -> new ArmorItem(WOOL, ArmorType.CHESTPLATE, props)
+            props -> new Item(props.humanoidArmor(WOOL, ArmorType.CHESTPLATE))
     );
 
     public static final DeferredItem<Item> WOOL_PANTS = ITEMS.registerItem("wool_pants",
-            props -> new ArmorItem(WOOL, ArmorType.LEGGINGS, props)
+            props -> new Item(props.humanoidArmor(WOOL, ArmorType.LEGGINGS))
     );
 
     public static final DeferredItem<Item> WOOL_SHOES = ITEMS.registerItem("wool_shoes",
-            props -> new ArmorItem(WOOL, ArmorType.BOOTS, props)
+            props -> new Item(props.humanoidArmor(WOOL, ArmorType.BOOTS))
     );
 
     public static final DeferredItem<Item> COMMON_PATTERN = ITEMS.registerItem("common_pattern",
-            props -> new PatternItem(props.rarity(Rarity.COMMON))
+            props -> new Item(fillPatternProps(props.rarity(Rarity.COMMON)))
     );
 
     public static final DeferredItem<Item> UNCOMMON_PATTERN = ITEMS.registerItem("uncommon_pattern",
-            props -> new PatternItem(props.rarity(Rarity.UNCOMMON))
+            props -> new Item(fillPatternProps(props.rarity(Rarity.UNCOMMON)))
     );
 
     public static final DeferredItem<Item> RARE_PATTERN = ITEMS.registerItem("rare_pattern",
-            props -> new PatternItem(props.rarity(Rarity.RARE))
+            props -> new Item(fillPatternProps(props.rarity(Rarity.RARE)))
     );
 
     public static final DeferredItem<Item> LEGENDARY_PATTERN = ITEMS.registerItem("legendary_pattern",
-            props -> new PatternItem(props.rarity(Rarity.EPIC))
+            props -> new Item(fillPatternProps(props.rarity(Rarity.EPIC)))
     );
+
+    private static Item.Properties fillPatternProps(Item.Properties props)
+    {
+        return props.component(DataComponents.LORE, new ItemLore(List.of(
+                Component.translatable("text.sewingkit.pattern.wip").withStyle(ChatFormatting.YELLOW, ChatFormatting.BOLD),
+                Component.translatable("text.sewingkit.pattern.may_be_removed").withStyle(ChatFormatting.RED, ChatFormatting.BOLD)
+        )));
+    }
 
     public static final DeferredItem<Item>
             FILE = ITEMS.registerItem("file", props -> new FileItem(props.durability(354)));
@@ -220,7 +228,7 @@ public class SewingKitMod
     public static final DeferredHolder<VillagerProfession, VillagerProfession>
             TAILOR = PROFESSIONS.register("tailor", () -> {
         var key = Objects.requireNonNull(TABLE_POI.getKey());
-        return new VillagerProfession("tailor",
+        return new VillagerProfession(Component.translatable("entity.minecraft.villager.sewingkit.tailor"),
                 holder -> holder.is(key),
                 holder -> holder.is(key),
                 Arrays.stream(Needles.values()).map(Needles::getNeedle).collect(ImmutableSet.toImmutableSet()),
@@ -312,23 +320,12 @@ public class SewingKitMod
     private void networkSetup(RegisterPayloadHandlersEvent event)
     {
         final PayloadRegistrar registrar = event.registrar(MODID).versioned("1.0");
-        registrar.playToClient(SyncSewingRecipes.TYPE, SyncSewingRecipes.STREAM_CODEC, SyncSewingRecipes::handle);
+        registrar.playToClient(SyncRecipeOrder.TYPE, SyncRecipeOrder.STREAM_CODEC, SyncRecipeOrder::handle);
     }
 
     private void dataSync(OnDatapackSyncEvent event)
     {
-        var server = ServerLifecycleHooks.getCurrentServer();
-        if (server == null) return;
-
-        var recipeManager = server.getRecipeManager();
-        var featureFlags = server.getWorldData().enabledFeatures();
-
-        var serverRecipes = SewingRecipeAccessor.handleServerRecipes(featureFlags, recipeManager);
-
-        var payload = new SyncSewingRecipes(serverRecipes);
-
-        event.getRelevantPlayers()
-                .forEach(player -> PacketDistributor.sendToPlayer(player, payload));
+        event.sendRecipes(SEWING.get());
     }
 
     public void addBuildingToVillages(final ServerAboutToStartEvent event)
@@ -385,7 +382,7 @@ public class SewingKitMod
 
     private void villagerTrades(VillagerTradesEvent event)
     {
-        if (event.getType() != TAILOR.get())
+        if (event.getType() != TAILOR.getKey())
             return;
 
         Int2ObjectMap<List<VillagerTrades.ItemListing>> trademap = event.getTrades();

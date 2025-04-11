@@ -3,7 +3,9 @@ package dev.gigaherz.sewingkit.table;
 import com.google.common.collect.Lists;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
-import dev.gigaherz.sewingkit.api.SewingRecipeAccessor;
+import dev.gigaherz.sewingkit.api.ClientSewingRecipeAccessor;
+import dev.gigaherz.sewingkit.network.SyncRecipeOrder;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -23,11 +25,9 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class SewingTableMenu extends AbstractContainerMenu
@@ -41,7 +41,7 @@ public class SewingTableMenu extends AbstractContainerMenu
     private static final int HOTBAR_START = PLAYER_START + NUM_INVENTORY;
     private static final int PLAYER_END = HOTBAR_START + NUM_HOTBAR;
 
-    private final Level world;
+    private final Level level;
     private final ContainerLevelAccess openedFrom;
     private final DataSlot selectedRecipe = DataSlot.standalone();
     private final ItemStack[] inputStacksCache = new ItemStack[]{
@@ -50,7 +50,9 @@ public class SewingTableMenu extends AbstractContainerMenu
     };
 
     private final InventoryProvider inventoryProvider;
+    private final Player player;
     private List<RecipeHolder<SewingRecipe>> recipes = Lists.newArrayList();
+    private List<RecipeHolder<SewingRecipe>> oldRecipes = null;
     private long lastTimeSoundPlayed;
 
     private Runnable inventoryUpdateListener = () -> {
@@ -76,7 +78,8 @@ public class SewingTableMenu extends AbstractContainerMenu
     {
         super(SewingKitMod.SEWING_STATION_MENU.get(), windowIdIn);
         this.openedFrom = worldPosCallableIn;
-        this.world = playerInventoryIn.player.level();
+        this.player = playerInventoryIn.player;
+        this.level = playerInventoryIn.player.level();
         this.inputInventory = inventoryProvider.getInventory();
         this.inventoryProvider = inventoryProvider;
         inventoryProvider.addWeakListener(this);
@@ -107,11 +110,11 @@ public class SewingTableMenu extends AbstractContainerMenu
                 return false;
             }
 
-            public void onTake(Player thePlayer, ItemStack stack)
+            public void onTake(Player player, ItemStack stack)
             {
-                if (thePlayer instanceof ServerPlayer serverPlayer)
+                if (player instanceof ServerPlayer serverPlayer)
                 {
-                    stack.onCraftedBy(thePlayer.level(), thePlayer, stack.getCount());
+                    stack.onCraftedBy(player, stack.getCount());
 
                     List<ItemStack> consumed = new ArrayList<>();
 
@@ -123,7 +126,7 @@ public class SewingTableMenu extends AbstractContainerMenu
                     }
 
 
-                    SewingTableMenu.this.inventory.awardUsedRecipes(thePlayer, consumed);
+                    SewingTableMenu.this.inventory.awardUsedRecipes(player, consumed);
 
                     worldPosCallableIn.execute((world, pos) -> {
                         long l = world.getGameTime();
@@ -136,7 +139,7 @@ public class SewingTableMenu extends AbstractContainerMenu
 
                     onInventoryChanged();
                 }
-                super.onTake(thePlayer, stack);
+                super.onTake(player, stack);
             }
         });
 
@@ -295,18 +298,40 @@ public class SewingTableMenu extends AbstractContainerMenu
             this.updateAvailableRecipes();
     }
 
+    @Override
+    public void broadcastFullState()
+    {
+        super.broadcastFullState();
+
+        sendOrderedRecipes();
+    }
+
+    @Override
+    public void broadcastChanges()
+    {
+        super.broadcastChanges();
+
+        if (this.recipes != this.oldRecipes)
+        {
+            sendOrderedRecipes();
+            oldRecipes = recipes;
+        }
+    }
+
     private void updateAvailableRecipes()
     {
-        SewingRecipe recipe = getSelectedRecipe() >= 0 && recipes.size() > 0 ? recipes.get(getSelectedRecipe()).value() : null;
+        if (level.isClientSide) return;
+
+        SewingRecipe recipe = getSelectedRecipe() >= 0 && !recipes.isEmpty() ? recipes.get(getSelectedRecipe()).value() : null;
         this.recipes = Lists.newArrayList();
         this.selectedRecipe.set(-1);
         this.slots.get(OUTPUTS_START).set(ItemStack.EMPTY);
         if (hasItemsinInputSlots())
         {
             var input = SewingInput.ofSewingTableInventory(inputInventory);
-            this.recipes = SewingRecipeAccessor.getRecipes(this.world, input);
+            this.recipes = getRecipes(input, level);
         }
-        if (recipes.size() > 0 && recipe != null)
+        if (!recipes.isEmpty() && recipe != null)
         {
             int index = recipes.indexOf(recipe);
             if (index >= 0)
@@ -315,6 +340,32 @@ public class SewingTableMenu extends AbstractContainerMenu
                 updateRecipeResultSlot();
             }
         }
+        //sendOrderedRecipes();
+    }
+
+    public static List<RecipeHolder<SewingRecipe>> getRecipes(SewingInput input, Level level)
+    {
+        var recipeMap = level.getServer().getRecipeManager().recipeMap();
+        var recipes = recipeMap.byType(SewingKitMod.SEWING.get());
+        return recipes.stream().filter(
+                recipe -> recipe.value().matches(input, level)
+        ).toList();
+    }
+
+    private void sendOrderedRecipes()
+    {
+        if (this.player instanceof ServerPlayer sp)
+            PacketDistributor.sendToPlayer(sp,
+                    new SyncRecipeOrder(containerId,
+                            recipes.stream().map(r -> r.id().location()).toList()));
+    }
+
+    public void setOrderedRecipes(List<ResourceLocation> recipes)
+    {
+        var allRecipes = ClientSewingRecipeAccessor.getRecipesByName(this.level);
+        this.recipes = recipes.stream().map(allRecipes::get).toList();
+
+        onInventoryChanged();
     }
 
     private void updateRecipeResultSlot()
@@ -322,10 +373,10 @@ public class SewingTableMenu extends AbstractContainerMenu
         if (inputInventory == null) return;
         if (!this.recipes.isEmpty() && this.isValidRecipeIndex(this.selectedRecipe.get()))
         {
-            var stonecuttingrecipe = this.recipes.get(this.selectedRecipe.get());
-            this.inventory.setRecipeUsed(stonecuttingrecipe);
+            var sewingRecipe = this.recipes.get(this.selectedRecipe.get());
+            this.inventory.setRecipeUsed(sewingRecipe);
             var input = SewingInput.ofSewingTableInventory(inputInventory);
-            this.slots.get(OUTPUTS_START).set(stonecuttingrecipe.value().assemble(input, world.registryAccess()));
+            this.slots.get(OUTPUTS_START).set(sewingRecipe.value().assemble(input, level.registryAccess()));
         }
         else
         {
@@ -350,7 +401,7 @@ public class SewingTableMenu extends AbstractContainerMenu
         return slotIn.container != this.inventory && super.canTakeItemForPickAll(stack, slotIn);
     }
 
-    public ItemStack quickMoveStack(Player playerIn, int index)
+    public ItemStack quickMoveStack(Player player, int index)
     {
         Slot slot = this.slots.get(index);
         if (slot == null || !slot.hasItem())
@@ -391,7 +442,7 @@ public class SewingTableMenu extends AbstractContainerMenu
 
         if (endIndex > startIndex)
         {
-            if (notify) item.onCraftedBy(stackInSlot, playerIn.level(), playerIn);
+            if (notify) item.onCraftedBy(stackInSlot, player);
             if (!this.moveItemStackTo(stackInSlot, startIndex, endIndex, reverse))
             {
                 return ItemStack.EMPTY;
@@ -410,7 +461,7 @@ public class SewingTableMenu extends AbstractContainerMenu
             return ItemStack.EMPTY;
         }
 
-        slot.onTake(playerIn, stackInSlot);
+        slot.onTake(player, stackInSlot);
         this.broadcastChanges();
 
         return stackCopy;

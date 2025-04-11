@@ -205,6 +205,7 @@ public class SewingRecipe implements Recipe<SewingInput>
             return CODEC;
         }
 
+        @Deprecated
         @Override
         public StreamCodec<RegistryFriendlyByteBuf, SewingRecipe> streamCodec()
         {

@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@EventBusSubscriber(value = Dist.CLIENT, modid = SewingKitMod.MODID, bus = EventBusSubscriber.Bus.GAME)
 public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
 {
     private static final ResourceLocation BACKGROUND_TEXTURE = SewingKitMod.location("textures/gui/sewing_station.png");
@@ -42,7 +41,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
     private static SewingRecipe recipeContext;
 
     @EventBusSubscriber(value = Dist.CLIENT, modid = SewingKitMod.MODID, bus = EventBusSubscriber.Bus.MOD)
-    public class ModBusEvent
+    public static class ModBusEvent
     {
         @SubscribeEvent
         public static void register(RegisterClientTooltipComponentFactoriesEvent event)
@@ -51,11 +50,16 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         }
     }
 
-    @SubscribeEvent
-    public static void gatherComponents(RenderTooltipEvent.GatherComponents event)
+
+    @EventBusSubscriber(value = Dist.CLIENT, modid = SewingKitMod.MODID, bus = EventBusSubscriber.Bus.GAME)
+    public static class GameBusEvent
     {
-        if (recipeContext != null)
-            event.getTooltipElements().add(Either.right(new RecipeTooltipComponent(recipeContext)));
+        @SubscribeEvent
+        public static void gatherComponents(RenderTooltipEvent.GatherComponents event)
+        {
+            if (recipeContext != null)
+                event.getTooltipElements().add(Either.right(new RecipeTooltipComponent(recipeContext)));
+        }
     }
 
     private float sliderProgress;
@@ -70,6 +74,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         --this.titleLabelY;
     }
 
+    @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
     {
         super.render(graphics, mouseX, mouseY, partialTicks);
@@ -77,6 +82,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         this.renderTooltip(graphics, mouseX, mouseY);
     }
 
+    @Override
     protected void renderBg(GuiGraphics graphics, float partialTicks, int x, int y)
     {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
@@ -93,6 +99,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         this.drawRecipesItems(graphics, l, i1, j1);
     }
 
+    @Override
     protected void renderTooltip(GuiGraphics graphics, int x, int y)
     {
         super.renderTooltip(graphics, x, y);
@@ -149,7 +156,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
                 }
             }
 
-            if (subtract != 1 && slot.getItem().getCount() > 0)
+            if (slot.getItem().getCount() > 0)
             {
                 int x = slot.x + leftPos;
                 int y = slot.y + topPos;
@@ -303,6 +310,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         }
     }
 
+    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button)
     {
         this.clickedOnScroll = false;
@@ -336,6 +344,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
+    @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY)
     {
         if (this.clickedOnScroll && this.canScroll())
@@ -353,17 +362,19 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         }
     }
 
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta)
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double deltaX, double deltaY)
     {
         if (this.canScroll())
         {
             int i = this.getHiddenRows();
-            this.sliderProgress = (float) ((double) this.sliderProgress - delta / (double) i);
+            this.sliderProgress = (float) ((double) this.sliderProgress - deltaY / (double) i);
             this.sliderProgress = Mth.clamp(this.sliderProgress, 0.0F, 1.0F);
             this.recipeIndexOffset = (int) ((double) (this.sliderProgress * (float) i) + 0.5D) * 4;
+            return true;
         }
 
-        return true;
+        return super.mouseScrolled(mouseX, mouseY, deltaX, deltaY);
     }
 
     private boolean canScroll()

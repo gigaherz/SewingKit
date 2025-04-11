@@ -52,8 +52,8 @@ public class TailorShopProcessor extends StructureProcessor
             entityInfo = new StructureTemplate.StructureEntityInfo(entityInfo.pos, entityInfo.blockPos, entityInfo.nbt.copy());
 
             // nbt -> ArmorItems[4] -> item NBT
-            var armorTag = entityInfo.nbt.getList("ArmorItems", Tag.TAG_COMPOUND);
-            if (!entityInfo.nbt.contains("ArmorItems", Tag.TAG_LIST))
+            var armorTag = entityInfo.nbt.getListOrEmpty("ArmorItems");
+            if (!entityInfo.nbt.contains("ArmorItems"))
                 entityInfo.nbt.put("ArmorItems", armorTag);
 
             var provider = level.registryAccess();
