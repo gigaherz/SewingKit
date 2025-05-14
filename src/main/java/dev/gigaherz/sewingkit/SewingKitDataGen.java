@@ -214,7 +214,8 @@ public class SewingKitDataGen
 
         private static void horizontalWithExistingModel(BlockModelGenerators blockModels, Block block)
         {
-            var variant = new Variant(ModelLocationUtils.getModelLocation(block));
+            ResourceLocation modelLocation = ModelLocationUtils.getModelLocation(block);
+            var variant = new Variant(modelLocation);
             var multiVariant = new MultiVariant(WeightedList.of(variant));
             blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, multiVariant).with(BlockModelGenerators.ROTATION_HORIZONTAL_FACING));
         }
@@ -488,6 +489,12 @@ public class SewingKitDataGen
                     .add(SewingKitMod.WOOL_SHIRT.get())
                     .add(SewingKitMod.WOOL_PANTS.get())
                     .add(SewingKitMod.WOOL_SHOES.get());
+            tag(ItemTags.FREEZE_IMMUNE_WEARABLES)
+                    .add(SewingKitMod.WOOL_HAT.get())
+                    .add(SewingKitMod.WOOL_SHIRT.get())
+                    .add(SewingKitMod.WOOL_PANTS.get())
+                    .add(SewingKitMod.WOOL_SHOES.get());
+
 
             var list = List.of(
                     Pair.of(SewingKitMod.WOOD_OR_HIGHER, List.of(SewingKitMod.WOOD_SEWING_NEEDLE.get(), SewingKitMod.GOLD_SEWING_NEEDLE.get())),
