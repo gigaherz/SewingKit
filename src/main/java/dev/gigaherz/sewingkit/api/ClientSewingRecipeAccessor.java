@@ -28,7 +28,7 @@ public class ClientSewingRecipeAccessor
         throw new IllegalStateException("Cannot call in the server");
     }
 
-    @EventBusSubscriber(value= Dist.CLIENT, modid= SewingKitMod.MODID, bus= EventBusSubscriber.Bus.GAME)
+    @EventBusSubscriber(value= Dist.CLIENT, modid= SewingKitMod.MODID)
     public static class Client
     {
         public static void handleClientOrder(SyncRecipeOrder packet)

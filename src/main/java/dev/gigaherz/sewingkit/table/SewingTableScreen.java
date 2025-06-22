@@ -1,7 +1,10 @@
 package dev.gigaherz.sewingkit.table;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.datafixers.util.Either;
 import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
@@ -9,11 +12,19 @@ import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.gui.render.TextureSetup;
+import net.minecraft.client.gui.render.state.BlitRenderState;
+import net.minecraft.client.gui.render.state.GuiElementRenderState;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
@@ -25,11 +36,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.ClientHooks;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RenderTooltipEvent;
+import org.joml.Matrix3x2f;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,25 +56,13 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
 
     private static SewingRecipe recipeContext;
 
-    @EventBusSubscriber(value = Dist.CLIENT, modid = SewingKitMod.MODID, bus = EventBusSubscriber.Bus.MOD)
-    public static class ModBusEvent
+    @EventBusSubscriber(value = Dist.CLIENT, modid = SewingKitMod.MODID)
+    public static class ClientEvents
     {
         @SubscribeEvent
         public static void register(RegisterClientTooltipComponentFactoriesEvent event)
         {
             event.register(RecipeTooltipComponent.class, ClientRecipeTooltipComponent::new);
-        }
-    }
-
-
-    @EventBusSubscriber(value = Dist.CLIENT, modid = SewingKitMod.MODID, bus = EventBusSubscriber.Bus.GAME)
-    public static class GameBusEvent
-    {
-        @SubscribeEvent
-        public static void gatherComponents(RenderTooltipEvent.GatherComponents event)
-        {
-            if (recipeContext != null)
-                event.getTooltipElements().add(Either.right(new RecipeTooltipComponent(recipeContext)));
         }
     }
 
@@ -85,18 +89,17 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTicks, int x, int y)
     {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        int left = this.leftPos;
+        int top = this.topPos;
+        graphics.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND_TEXTURE, left, top, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+        int scrollPosition = (int) (41.0F * this.sliderProgress);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND_TEXTURE, left + 119, top + 15 + scrollPosition, 176 + (this.canScroll() ? 0 : 12), 0, 12, 15, 256, 256);
 
-        int i = this.leftPos;
-        int j = this.topPos;
-        graphics.blit(RenderType::guiTextured, BACKGROUND_TEXTURE, i, j, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
-        int k = (int) (41.0F * this.sliderProgress);
-        graphics.blit(RenderType::guiTextured, BACKGROUND_TEXTURE, i + 119, j + 15 + k, 176 + (this.canScroll() ? 0 : 12), 0, 12, 15, 256, 256);
-        int l = this.leftPos + 52;
-        int i1 = this.topPos + 14;
-        int j1 = this.recipeIndexOffset + 12;
-        this.renderButtons(graphics, x, y, l, i1, j1);
-        this.drawRecipesItems(graphics, l, i1, j1);
+        int leftRecipes = this.leftPos + 52;
+        int topRecipes = this.topPos + 14;
+        int selectedRecipe = this.recipeIndexOffset + 12;
+        this.renderButtons(graphics, x, y, leftRecipes, topRecipes, selectedRecipe);
+        this.drawRecipesItems(graphics, leftRecipes, topRecipes, selectedRecipe);
     }
 
     @Override
@@ -118,7 +121,12 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
                 if (x >= j1 && x < j1 + 16 && y >= k1 && y < k1 + 18)
                 {
                     recipeContext = list.get(l).value();
-                    graphics.renderTooltip(font, recipeContext.getOutput(), x, y);
+                    ItemStack output = recipeContext.getOutput();
+                    var lines = Screen.getTooltipFromItem(this.minecraft, output);
+                    var clientComponents = ClientHooks.gatherTooltipComponents(output, lines, output.getTooltipImage(), x, graphics.guiWidth(), graphics.guiHeight(), font);
+                    var mutable = new ArrayList<>(clientComponents);
+                    mutable.add(ClientTooltipComponent.create(new RecipeTooltipComponent(recipeContext)));
+                    graphics.renderTooltip(font, mutable, x, y, DefaultTooltipPositioner.INSTANCE, output.get(DataComponents.TOOLTIP_STYLE), output);
                     recipeContext = null;
                 }
             }
@@ -136,9 +144,6 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
 
         Map<Ingredient, Integer> remaining = recipe.getMaterials().stream().collect(Collectors.toMap(SewingRecipe.Material::ingredient, SewingRecipe.Material::count));
 
-        var poseStack = graphics.pose();
-        poseStack.pushPose();
-        poseStack.translate(0, 0, 300);
         for (int i = 0; i < 4; i++)
         {
             Slot slot = menu.slots.get(i + 2);
@@ -162,10 +167,9 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
                 int y = slot.y + topPos;
                 String text = String.format("%s", subtract);
                 int w = font.width(text);
-                graphics.drawString(font, text, x + 17 - w, y, 0xffff55);
+                graphics.drawString(font, text, x + 17 - w, y, 0xFFFFFF55);
             }
         }
-        poseStack.popPose();
     }
 
     public static record RecipeTooltipComponent(SewingRecipe recipe) implements TooltipComponent
@@ -203,18 +207,9 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         @Override
         public void renderImage(Font font, int x, int y, int p_368529_, int p_368584_, GuiGraphics graphics)
         {
-            var poseStack = graphics.pose();
-            poseStack.pushPose();
-            poseStack.translate(0, 0, 150);
-
             y += font.lineHeight;
 
-            poseStack.pushPose();
-            poseStack.translate(0, 0, 150);
-
-            graphics.drawString(font, label, x, y, 0xFFFFFF);
-
-            poseStack.popPose();
+            graphics.drawString(font, label, x, y, 0xFFFFFFFF);
 
             y += font.lineHeight;
 
@@ -242,53 +237,42 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
                 {
                     var ticks = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
                     ItemStack stack = stacks.get((int) ((ticks / 32) % stacks.size()));
-                    poseStack.pushPose();
-                    poseStack.translate(0, 0, -50);
                     graphics.renderItem(stack, xx, y);
                     graphics.renderItemDecorations(font, stack, xx, y);
-                    poseStack.popPose();
                 }
                 else
                 {
-                    RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-                    graphics.blit(RenderType::guiTextured, RECIPE_TEXTURE, xx, y, 36, 0, 16, 16, 64, 64);
+                    graphics.blit(RenderPipelines.GUI_TEXTURED, RECIPE_TEXTURE, xx, y, 36, 0, 16, 16, 64, 64);
                 }
                 if (material.count() != 1)
                 {
-                    poseStack.pushPose();
-                    poseStack.translate(0, 0, 150);
-
                     String text = String.format("%d", material.count());
                     int w = font.width(text);
-                    graphics.drawString(font, text, xx + 17 - w, y + 9, 0xFFFFFF);
-
-                    poseStack.popPose();
+                    graphics.drawString(font, text, xx + 17 - w, y + 9, 0xFFFFFFFF);
                 }
             }
-
-            poseStack.popPose();
         }
     }
 
-    private void renderButtons(GuiGraphics graphics, int x, int y, int p_238853_4_, int p_238853_5_, int p_238853_6_)
+    private void renderButtons(GuiGraphics graphics, int x, int y, int buttonsLeft, int buttonsTop, int someOffset)
     {
-        for (int i = this.recipeIndexOffset; i < p_238853_6_ && i < this.menu.getRecipeListSize(); ++i)
+        for (int index = this.recipeIndexOffset; index < someOffset && index < this.menu.getRecipeListSize(); ++index)
         {
-            int j = i - this.recipeIndexOffset;
-            int k = p_238853_4_ + j % 4 * 16;
-            int l = j / 4;
-            int i1 = p_238853_5_ + l * 18 + 2;
-            int j1 = this.imageHeight;
-            if (i == this.menu.getSelectedRecipe())
+            int position = index - this.recipeIndexOffset;
+            int xpos = buttonsLeft + position % 4 * 16;
+            int row = position / 4;
+            int ypos = buttonsTop + row * 18 + 2;
+            int v0 = this.imageHeight;
+            if (index == this.menu.getSelectedRecipe())
             {
-                j1 += 18;
+                v0 += 18;
             }
-            else if (x >= k && y >= i1 && x < k + 16 && y < i1 + 18)
+            else if (x >= xpos && y >= ypos && x < xpos + 16 && y < ypos + 18)
             {
-                j1 += 36;
+                v0 += 36;
             }
 
-            graphics.blit(RenderType::guiTextured, BACKGROUND_TEXTURE, k, i1 - 1, 0, j1, 16, 18, 256, 256);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, BACKGROUND_TEXTURE, xpos, ypos - 1, 0, v0, 16, 18, 256, 256);
         }
     }
 

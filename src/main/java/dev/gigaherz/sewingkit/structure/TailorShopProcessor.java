@@ -8,7 +8,9 @@ import dev.gigaherz.sewingkit.loot.RandomDye;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -71,7 +73,8 @@ public class TailorShopProcessor extends StructureProcessor
         {
             var item = items[rand.nextInt(items.length)];
             var stack = RandomDye.getRandomDye(new ItemStack(item), rand);
-            armorTag.set(index, stack.save(provider));
+            var stackTag = ItemStack.CODEC.encodeStart(RegistryOps.create(NbtOps.INSTANCE, provider), stack).getOrThrow();
+            armorTag.set(index, stackTag);
         }
         /*else
         {

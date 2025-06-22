@@ -1,13 +1,12 @@
 plugins {
     id 'java-library'
-    id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.88'
+    id 'net.neoforged.moddev' version '2.0.95'
 }
 
-neoForge.version = "21.5.66-beta"
-version = '2.3.1'
+neoForge.version = "21.6.11-beta"
+version = '2.4.0'
 group = 'dev.gigaherz.sewingkit'
 base.archivesName = "SewingKit-${neoForge.minecraftVersion}"
 
@@ -41,8 +40,6 @@ neoForge {
         configureEach {
             gameDirectory = project.file('run')
             logLevel = org.slf4j.event.Level.DEBUG
-            //jvmArgument "-Dmixin.debug.export=true"
-            //jvmArgument "-Dmixin.debug.verbose=true"
         }
 
         client {
@@ -59,15 +56,15 @@ neoForge {
         }
     }
 
+    parchment {
+        minecraftVersion="1.21.6-pre1"
+        mappingsVersion="BLEEDING-SNAPSHOT"
+    }
+
     mods {
         thismod {
             sourceSet(sourceSets.main)
         }
-    }
-
-    parchment {
-        minecraftVersion = "1.21.4"
-        mappingsVersion = "2024.12.29"
     }
 }
 
@@ -102,8 +99,7 @@ jar {
             "Implementation-Title": "sewingkit",
             "Implementation-Version": project.version,
             "Implementation-Vendor" :"gigaherz",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")/*,
-            "Automatic-Module-Name": "dev.gigaherz.sewingkit"*/
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
 }

@@ -8,6 +8,8 @@ import net.minecraft.world.Containers;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
@@ -40,17 +42,17 @@ public class StoringSewingTableBlockEntity extends BlockEntity implements Invent
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, HolderLookup.Provider provider)
+    protected void saveAdditional(ValueOutput output)
     {
-        super.saveAdditional(compound, provider);
-        compound.put("Items", inventory.serializeNBT(provider));
+        super.saveAdditional(output);
+        inventory.serialize(output.child("Items"));
     }
 
     @Override
-    public void loadAdditional(CompoundTag nbt, HolderLookup.Provider provider)
+    public void loadAdditional(ValueInput nbt)
     {
-        super.loadAdditional(nbt, provider);
-        inventory.deserializeNBT(provider, nbt.getCompoundOrEmpty("Items"));
+        super.loadAdditional(nbt);
+        inventory.deserialize(nbt.childOrEmpty("Items"));
     }
 
     private final ListenableHolder listenable = new ListenableHolder();
