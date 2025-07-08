@@ -5,7 +5,7 @@ plugins {
     id 'net.neoforged.moddev' version '2.0.95'
 }
 
-neoForge.version = "21.6.11-beta"
+neoForge.version = "21.7.11-beta"
 version = '2.4.0'
 group = 'dev.gigaherz.sewingkit'
 base.archivesName = "SewingKit-${neoForge.minecraftVersion}"
@@ -57,7 +57,7 @@ neoForge {
     }
 
     parchment {
-        minecraftVersion="1.21.6-pre1"
+        minecraftVersion="1.21.6"
         mappingsVersion="BLEEDING-SNAPSHOT"
     }
 
