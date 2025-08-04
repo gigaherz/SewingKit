@@ -386,7 +386,6 @@ public class SewingTableMenu extends AbstractContainerMenu
         this.broadcastChanges();
     }
 
-    @OnlyIn(Dist.CLIENT)
     public void setInventoryUpdateListener(Runnable listenerIn)
     {
         this.inventoryUpdateListener = listenerIn;
