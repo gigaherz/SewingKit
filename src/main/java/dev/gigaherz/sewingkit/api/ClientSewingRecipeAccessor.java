@@ -23,7 +23,7 @@ public class ClientSewingRecipeAccessor
 
     public static Map<ResourceLocation, RecipeHolder<SewingRecipe>> getRecipesByName(Level level)
     {
-        if (level.isClientSide)
+        if (level.isClientSide())
             return clientRecipesByName;
         throw new IllegalStateException("Cannot call in the server");
     }

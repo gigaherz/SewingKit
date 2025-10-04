@@ -2,21 +2,27 @@ package dev.gigaherz.sewingkit.table;
 
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeInput;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import java.util.List;
 
 public class SewingInput implements RecipeInput
 {
-    public static SewingInput ofSewingTableInventory(IItemHandler inv)
+    public static ItemStack stackAt(ResourceHandler<ItemResource> inv, int slot)
     {
-        var tool = inv.getStackInSlot(0);
-        var pattern = inv.getStackInSlot(1);
+        return inv.getResource(slot).toStack(inv.getAmountAsInt(slot));
+    }
+
+    public static SewingInput ofSewingTableInventory(ResourceHandler<ItemResource> inv)
+    {
+        var tool = stackAt(inv, 0);
+        var pattern = stackAt(inv, 1);
         var materials = List.of(
-                inv.getStackInSlot(2),
-                inv.getStackInSlot(3),
-                inv.getStackInSlot(4),
-                inv.getStackInSlot(5)
+                stackAt(inv, 2),
+                stackAt(inv, 3),
+                stackAt(inv, 4),
+                stackAt(inv, 5)
         );
         return new SewingInput(materials, tool, pattern);
     }

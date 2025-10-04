@@ -2,25 +2,23 @@ package dev.gigaherz.sewingkit.table;
 
 import dev.gigaherz.sewingkit.SewingKitMod;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.Containers;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 
 public class StoringSewingTableBlockEntity extends BlockEntity implements InventoryProvider
 {
-    private final ItemStackHandler inventory = new ItemStackHandler(6)
+    private final ItemStacksResourceHandler inventory = new ItemStacksResourceHandler (6)
     {
         @Override
-        protected void onContentsChanged(int slot)
+        protected void onContentsChanged(int index, ItemStack previousContents)
         {
-            super.onContentsChanged(slot);
+            super.onContentsChanged(index, previousContents);
             setChanged();
             listenable.doCallbacks();
         }
@@ -36,7 +34,7 @@ public class StoringSewingTableBlockEntity extends BlockEntity implements Invent
         this(SewingKitMod.STORING_SEWING_STATION_BLOCK_ENTITY.get(), pos, state);
     }
 
-    public IItemHandlerModifiable getInventory()
+    public ItemStacksResourceHandler getInventory()
     {
         return inventory;
     }
@@ -71,10 +69,10 @@ public class StoringSewingTableBlockEntity extends BlockEntity implements Invent
 
     public void dropContents()
     {
-        for (int i = 0; i < inventory.getSlots(); i++)
+        for (int i = 0; i < inventory.size(); i++)
         {
             var pos = getBlockPos();
-            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), inventory.getStackInSlot(i));
+            Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), SewingInput.stackAt(inventory, i));
         }
     }
 }

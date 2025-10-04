@@ -1,12 +1,12 @@
 package dev.gigaherz.sewingkit.table;
 
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 
 public interface InventoryProvider
 {
     void addWeakListener(SewingTableMenu e);
 
-    IItemHandlerModifiable getInventory();
+    ItemStacksResourceHandler getInventory();
 
     default boolean isDummy()
     {

@@ -111,7 +111,7 @@ public class StoringSewingTableBlock extends Block implements EntityBlock
         if (!(te instanceof StoringSewingTableBlockEntity table))
             return InteractionResult.FAIL;
 
-        if (level.isClientSide)
+        if (level.isClientSide())
             return InteractionResult.SUCCESS;
 
         player.openMenu(new SimpleMenuProvider(

@@ -107,7 +107,7 @@ public class SewingTableBlock extends Block
 
     public InteractionResult use(Level level, BlockPos pos, Player player)
     {
-        if (level.isClientSide)
+        if (level.isClientSide())
             return InteractionResult.SUCCESS;
 
         player.openMenu(new SimpleMenuProvider(

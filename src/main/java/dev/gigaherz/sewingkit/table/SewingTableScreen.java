@@ -20,6 +20,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
@@ -294,9 +295,12 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         }
     }
 
+
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button)
+    public boolean mouseClicked(MouseButtonEvent event, boolean shiftMaybe)
     {
+        var mouseX = event.x();
+        var mouseY = event.y();
         this.clickedOnScroll = false;
         if (this.hasItemsInInputSlot)
         {
@@ -325,14 +329,16 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
             }
         }
 
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, shiftMaybe);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY)
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY)
     {
         if (this.clickedOnScroll && this.canScroll())
         {
+            var mouseX = event.x();
+            var mouseY = event.y();
             int i = this.topPos + 14;
             int j = i + 54;
             this.sliderProgress = ((float) mouseY - (float) i - 7.5F) / ((float) (j - i) - 15.0F);
@@ -342,7 +348,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         }
         else
         {
-            return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+            return super.mouseDragged(event, dragX, dragY);
         }
     }
 

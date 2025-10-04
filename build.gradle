@@ -2,11 +2,11 @@ plugins {
     id 'java-library'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.99'
+    id 'net.neoforged.moddev' version '2.0.112'
 }
 
-neoForge.version = "21.8.10"
-version = '2.4.0'
+neoForge.version = "21.9.11-beta"
+version = '2.5.0'
 group = 'dev.gigaherz.sewingkit'
 base.archivesName = "SewingKit-${neoForge.minecraftVersion}"
 
@@ -57,7 +57,7 @@ neoForge {
     }
 
     parchment {
-        minecraftVersion="1.21.6"
+        minecraftVersion="1.21.8"
         mappingsVersion="BLEEDING-SNAPSHOT"
     }
 

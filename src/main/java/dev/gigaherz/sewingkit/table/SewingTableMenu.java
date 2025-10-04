@@ -21,11 +21,11 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
-import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -58,7 +58,7 @@ public class SewingTableMenu extends AbstractContainerMenu
     private Runnable inventoryUpdateListener = () -> {
     };
 
-    public IItemHandlerModifiable inputInventory;
+    public ItemStacksResourceHandler inputInventory;
     /**
      * The inventory that stores the output of the crafting recipe.
      */
@@ -84,22 +84,22 @@ public class SewingTableMenu extends AbstractContainerMenu
         this.inventoryProvider = inventoryProvider;
         inventoryProvider.addWeakListener(this);
 
-        this.addSlot(new SlotItemHandler(this.inputInventory, 0, 8, 15)
+        this.addSlot(new ResourceHandlerSlot(this.inputInventory, this.inputInventory::set, 0, 8, 15)
         {
             {
                 this.setBackground(SewingKitMod.location("needle_slot_background"));
             }
         });
-        this.addSlot(new SlotItemHandler(this.inputInventory, 1, 30, 15)
+        this.addSlot(new ResourceHandlerSlot(this.inputInventory, this.inputInventory::set, 1, 30, 15)
         {
             {
                 this.setBackground(SewingKitMod.location("pattern_slot_background"));
             }
         });
-        this.addSlot(new SlotItemHandler(this.inputInventory, 2, 10, 35));
-        this.addSlot(new SlotItemHandler(this.inputInventory, 3, 28, 35));
-        this.addSlot(new SlotItemHandler(this.inputInventory, 4, 10, 53));
-        this.addSlot(new SlotItemHandler(this.inputInventory, 5, 28, 53));
+        this.addSlot(new ResourceHandlerSlot(this.inputInventory, this.inputInventory::set, 2, 10, 35));
+        this.addSlot(new ResourceHandlerSlot(this.inputInventory, this.inputInventory::set, 3, 28, 35));
+        this.addSlot(new ResourceHandlerSlot(this.inputInventory, this.inputInventory::set, 4, 10, 53));
+        this.addSlot(new ResourceHandlerSlot(this.inputInventory, this.inputInventory::set, 5, 28, 53));
         this.addSlot(new Slot(this.inventory, 1, 143, 33)
         {
             /**
@@ -320,7 +320,7 @@ public class SewingTableMenu extends AbstractContainerMenu
 
     private void updateAvailableRecipes()
     {
-        if (level.isClientSide) return;
+        if (level.isClientSide()) return;
 
         SewingRecipe recipe = getSelectedRecipe() >= 0 && !recipes.isEmpty() ? recipes.get(getSelectedRecipe()).value() : null;
         this.recipes = Lists.newArrayList();
@@ -481,19 +481,19 @@ public class SewingTableMenu extends AbstractContainerMenu
         if (inputInventory == null) return;
         if (!pPlayer.isAlive() || pPlayer instanceof ServerPlayer && ((ServerPlayer) pPlayer).hasDisconnected())
         {
-            for (int j = 0; j < inputInventory.getSlots(); j++)
+            for (int j = 0; j < inputInventory.size(); j++)
             {
-                pPlayer.drop(inputInventory.getStackInSlot(j), false);
+                pPlayer.drop(SewingInput.stackAt(inputInventory, j), false);
             }
         }
         else
         {
-            for (int i = 0; i < inputInventory.getSlots(); i++)
+            for (int i = 0; i < inputInventory.size(); i++)
             {
                 Inventory inventory = pPlayer.getInventory();
                 if (inventory.player instanceof ServerPlayer)
                 {
-                    inventory.placeItemBackInInventory(inputInventory.getStackInSlot(i));
+                    inventory.placeItemBackInInventory(SewingInput.stackAt(inputInventory, i));
                 }
             }
         }

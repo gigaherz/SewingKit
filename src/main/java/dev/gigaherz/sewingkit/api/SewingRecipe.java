@@ -114,12 +114,12 @@ public class SewingRecipe implements Recipe<SewingInput>
     @Override
     public boolean matches(SewingInput input, Level worldIn)
     {
-        ItemStack toolStack = input.getTool();
-        var hasTool = tool != null ? toolStack.getCount() > 0 && tool.test(toolStack) : toolStack.getCount() == 0;
+        var toolStack = input.getTool();
+        var hasTool = tool != null ? !toolStack.isEmpty() && tool.test(toolStack) : toolStack.getCount() == 0;
         if (!hasTool)
             return false;
 
-        ItemStack patternStack = input.getPattern();
+        var patternStack = input.getPattern();
         var hasPattern = pattern != null ? patternStack.getCount() > 0 && pattern.test(patternStack) : patternStack.getCount() == 0;
         if (!hasPattern)
             return false;
