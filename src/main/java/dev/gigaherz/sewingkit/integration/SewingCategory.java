@@ -11,7 +11,7 @@ import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 
 public class SewingCategory implements IRecipeCategory<SewingRecipe>
 {
-    private static final ResourceLocation GUI_TEXTURE_LOCATION = SewingKitMod.location("textures/gui/sewing_station.png");
-    public static final ResourceLocation UID = SewingKitMod.location("drying");
+    private static final Identifier GUI_TEXTURE_LOCATION = SewingKitMod.location("textures/gui/sewing_station.png");
+    public static final Identifier UID = SewingKitMod.location("drying");
     public static final RecipeType<SewingRecipe> SEWING = new RecipeType<>(UID, SewingRecipe.class);
 
     public static SewingCategory INSTANCE;

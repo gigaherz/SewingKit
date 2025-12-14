@@ -4,7 +4,6 @@ import com.mojang.datafixers.util.Pair;
 import dev.gigaherz.sewingkit.api.SewingRecipeBuilder;
 import dev.gigaherz.sewingkit.loot.RandomDye;
 import dev.gigaherz.sewingkit.needle.Needles;
-import net.minecraft.Util;
 import net.minecraft.client.color.item.Dye;
 import net.minecraft.client.data.models.*;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
@@ -28,8 +27,9 @@ import net.minecraft.data.recipes.packs.VanillaRecipeProvider;
 import net.minecraft.data.registries.VanillaRegistries;
 import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
+import net.minecraft.util.Util;
 import net.minecraft.util.random.WeightedList;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Item;
@@ -132,14 +132,14 @@ public class SewingKitDataGen
         @Override
         protected void registerModels(BiConsumer<ResourceKey<EquipmentAsset>, EquipmentClientInfo> output)
         {
-            ResourceLocation textureId = SewingKitMod.location("wool");
+            Identifier textureId = SewingKitMod.location("wool");
             output.accept(SewingKitMod.WOOL_ASSET, EquipmentClientInfo.builder()
                     .addLayers(EquipmentClientInfo.LayerType.HUMANOID_LEGGINGS, whiteDefaultDyeable(textureId))
                     .addLayers(EquipmentClientInfo.LayerType.HUMANOID, whiteDefaultDyeable(textureId))
                     .build());
         }
 
-        public static EquipmentClientInfo.Layer whiteDefaultDyeable(ResourceLocation textureId)
+        public static EquipmentClientInfo.Layer whiteDefaultDyeable(Identifier textureId)
         {
             return new EquipmentClientInfo.Layer(
                     textureId, Optional.of(new EquipmentClientInfo.Dyeable(Optional.of(-1))), false
@@ -214,7 +214,7 @@ public class SewingKitDataGen
 
         private static void horizontalWithExistingModel(BlockModelGenerators blockModels, Block block)
         {
-            ResourceLocation modelLocation = ModelLocationUtils.getModelLocation(block);
+            Identifier modelLocation = ModelLocationUtils.getModelLocation(block);
             var variant = new Variant(modelLocation);
             var multiVariant = new MultiVariant(WeightedList.of(variant));
             blockModels.blockStateOutput.accept(MultiVariantGenerator.dispatch(block, multiVariant).with(BlockModelGenerators.ROTATION_HORIZONTAL_FACING));
@@ -424,7 +424,7 @@ public class SewingKitDataGen
             protected Iterable<Block> getKnownBlocks()
             {
                 return BuiltInRegistries.BLOCK.entrySet().stream()
-                        .filter(e -> e.getKey().location().getNamespace().equals(SewingKitMod.MODID))
+                        .filter(e -> e.getKey().identifier().getNamespace().equals(SewingKitMod.MODID))
                         .map(Map.Entry::getValue)
                         .collect(Collectors.toList());
             }

@@ -9,7 +9,7 @@ import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 
@@ -18,10 +18,10 @@ import java.util.Objects;
 @JeiPlugin
 public class JEIPlugin implements IModPlugin
 {
-    private static final ResourceLocation ID = SewingKitMod.location("jei_plugin");
+    private static final Identifier ID = SewingKitMod.location("jei_plugin");
 
     @Override
-    public ResourceLocation getPluginUid()
+    public Identifier getPluginUid()
     {
         return ID;
     }

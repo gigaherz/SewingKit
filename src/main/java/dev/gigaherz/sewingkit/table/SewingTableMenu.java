@@ -13,7 +13,7 @@ import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 import it.unimi.dsi.fastutil.objects.Reference2IntMaps;
 import net.minecraft.core.Holder;
 import net.minecraft.core.NonNullList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -365,10 +365,10 @@ public class SewingTableMenu extends RecipeBookMenu
         if (this.player instanceof ServerPlayer sp)
             PacketDistributor.sendToPlayer(sp,
                     new SyncRecipeOrder(containerId,
-                            recipes.stream().map(r -> r.id().location()).toList()));
+                            recipes.stream().map(r -> r.id().identifier()).toList()));
     }
 
-    public void setOrderedRecipes(List<ResourceLocation> recipes)
+    public void setOrderedRecipes(List<Identifier> recipes)
     {
         var allRecipes = ClientSewingRecipeAccessor.getRecipesByName(this.level);
         this.recipes = recipes.stream().map(allRecipes::get).toList();

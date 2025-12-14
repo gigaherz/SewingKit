@@ -19,7 +19,7 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 
 public class SewingTableScreen extends AbstractRecipeBookScreen<SewingTableMenu>
 {
-    private static final ResourceLocation BACKGROUND_TEXTURE = SewingKitMod.location("textures/gui/sewing_station.png");
+    private static final Identifier BACKGROUND_TEXTURE = SewingKitMod.location("textures/gui/sewing_station.png");
 
     private static SewingRecipe recipeContext;
 
@@ -173,7 +173,7 @@ public class SewingTableScreen extends AbstractRecipeBookScreen<SewingTableMenu>
 
     public static class ClientRecipeTooltipComponent implements ClientTooltipComponent
     {
-        private static final ResourceLocation RECIPE_TEXTURE = SewingKitMod.location("textures/gui/recipetooltip.png");
+        private static final Identifier RECIPE_TEXTURE = SewingKitMod.location("textures/gui/recipetooltip.png");
 
         private final SewingRecipe recipe;
         private final Component label;

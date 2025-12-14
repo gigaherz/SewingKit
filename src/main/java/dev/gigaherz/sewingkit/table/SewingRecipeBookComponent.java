@@ -7,16 +7,13 @@ import net.minecraft.client.gui.screens.recipebook.GhostSlots;
 import net.minecraft.client.gui.screens.recipebook.RecipeBookComponent;
 import net.minecraft.client.gui.screens.recipebook.RecipeCollection;
 import net.minecraft.network.chat.Component;
-import net.minecraft.recipebook.PlaceRecipeHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.context.ContextMap;
 import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
-import net.minecraft.world.item.crafting.display.ShapedCraftingRecipeDisplay;
-import net.minecraft.world.item.crafting.display.ShapelessCraftingRecipeDisplay;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,10 +21,10 @@ import java.util.Optional;
 public class SewingRecipeBookComponent extends RecipeBookComponent<SewingTableMenu>
 {
     private static final WidgetSprites FILTER_BUTTON_SPRITES = new WidgetSprites(
-            ResourceLocation.withDefaultNamespace("recipe_book/filter_enabled"),
-            ResourceLocation.withDefaultNamespace("recipe_book/filter_disabled"),
-            ResourceLocation.withDefaultNamespace("recipe_book/filter_enabled_highlighted"),
-            ResourceLocation.withDefaultNamespace("recipe_book/filter_disabled_highlighted")
+            Identifier.withDefaultNamespace("recipe_book/filter_enabled"),
+            Identifier.withDefaultNamespace("recipe_book/filter_disabled"),
+            Identifier.withDefaultNamespace("recipe_book/filter_enabled_highlighted"),
+            Identifier.withDefaultNamespace("recipe_book/filter_disabled_highlighted")
     );
     private static final Component RECIPE_FILTER_NAME = Component.translatable("gui.recipebook.toggleRecipes.craftable");
     private static final List<RecipeBookComponent.TabInfo> TABS = List.of(
@@ -62,8 +59,9 @@ public class SewingRecipeBookComponent extends RecipeBookComponent<SewingTableMe
     }
 
     @Override
-    protected void initFilterButtonTextures() {
-        this.filterButton.initTextureValues(FILTER_BUTTON_SPRITES);
+    protected WidgetSprites getFilterButtonTextures()
+    {
+        return FILTER_BUTTON_SPRITES;
     }
 
     @Override

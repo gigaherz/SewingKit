@@ -5,14 +5,14 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.Criterion;
-import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
+import net.minecraft.advancements.criterion.RecipeUnlockedTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -152,7 +152,7 @@ public class SewingRecipeBuilder
         return this;
     }
 
-    public void save(RecipeOutput consumerIn, ResourceLocation id)
+    public void save(RecipeOutput consumerIn, Identifier id)
     {
         this.validate(id);
 
@@ -164,7 +164,7 @@ public class SewingRecipeBuilder
                 .rewards(AdvancementRewards.Builder.recipe(key))
                 .requirements(AdvancementRequirements.Strategy.OR);
         criteria.forEach(advancementBuilder::addCriterion);
-        ResourceLocation advancementId = id.withPrefix("recipes/" + category.getFolderName() + "/");
+        Identifier advancementId = id.withPrefix("recipes/" + category.getFolderName() + "/");
 
         var recipe = build(
                 Objects.requireNonNullElse(this.group, ""),
@@ -196,7 +196,7 @@ public class SewingRecipeBuilder
         return new SewingRecipe(group, category, materials, pattern, tool, result, showNotification);
     }
 
-    private void validate(ResourceLocation id)
+    private void validate(Identifier id)
     {
         if (this.criteria.isEmpty())
         {

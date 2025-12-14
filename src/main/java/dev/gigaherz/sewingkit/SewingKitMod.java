@@ -17,7 +17,6 @@ import dev.gigaherz.sewingkit.table.*;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
@@ -26,16 +25,18 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.Util;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
-import net.minecraft.world.entity.npc.VillagerProfession;
-import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.world.entity.npc.villager.VillagerProfession;
+import net.minecraft.world.entity.npc.villager.VillagerTrades;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.RecipeBookType;
@@ -360,31 +361,31 @@ public class SewingKitMod
         Registry<StructureProcessorList> processorListRegistry = event.getServer().registryAccess().lookupOrThrow(Registries.PROCESSOR_LIST);
 
         // Adds our piece to all village houses pool
-        // Note, the resourcelocation is getting the pool files from the data folder. Not assets folder.
+        // Note, the Identifier is getting the pool files from the data folder. Not assets folder.
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
-                ResourceLocation.parse("minecraft:village/plains/houses"),
+                Identifier.parse("minecraft:village/plains/houses"),
                 "sewingkit:tailor_shop", 5);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
-                ResourceLocation.parse("minecraft:village/snowy/houses"),
+                Identifier.parse("minecraft:village/snowy/houses"),
                 "sewingkit:tailor_shop", 5);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
-                ResourceLocation.parse("minecraft:village/savanna/houses"),
+                Identifier.parse("minecraft:village/savanna/houses"),
                 "sewingkit:tailor_shop", 5);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
-                ResourceLocation.parse("minecraft:village/taiga/houses"),
+                Identifier.parse("minecraft:village/taiga/houses"),
                 "sewingkit:tailor_shop", 5);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
-                ResourceLocation.parse("minecraft:village/desert/houses"),
+                Identifier.parse("minecraft:village/desert/houses"),
                 "sewingkit:tailor_shop", 5);
     }
 
     private static void addBuildingToPool(Registry<StructureTemplatePool> templatePoolRegistry,
                                           Registry<StructureProcessorList> processorListRegistry,
-                                          ResourceLocation poolRL,
+                                          Identifier poolRL,
                                           String nbtPieceRL,
                                           int weight)
     {
@@ -501,11 +502,10 @@ public class SewingKitMod
             this.priceMultiplier = priceMultiplier;
         }
 
-        @org.jetbrains.annotations.Nullable
         @Override
-        public MerchantOffer getOffer(Entity p_219693_, RandomSource rand)
+        public @org.jspecify.annotations.Nullable MerchantOffer getOffer(ServerLevel serverLevel, Entity entity, RandomSource randomSource)
         {
-            return BuiltInRegistries.ITEM.getRandomElementOf(tagSource, rand)
+            return BuiltInRegistries.ITEM.getRandomElementOf(tagSource, randomSource)
                     .map(itemHolder -> new MerchantOffer(
                             new ItemCost(Items.EMERALD, price),
                             new ItemStack(itemHolder, quantity), this.maxUses, this.xp, this.priceMultiplier))
@@ -518,9 +518,9 @@ public class SewingKitMod
         SewingKitDataGen.gatherData(event);
     }
 
-    public static ResourceLocation location(String path)
+    public static Identifier location(String path)
     {
-        return ResourceLocation.fromNamespaceAndPath(MODID, path);
+        return Identifier.fromNamespaceAndPath(MODID, path);
     }
 
     @SuppressWarnings("SameParameterValue")

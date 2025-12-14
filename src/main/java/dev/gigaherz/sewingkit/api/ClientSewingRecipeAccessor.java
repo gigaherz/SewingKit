@@ -5,7 +5,7 @@ import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.network.SyncRecipeOrder;
 import dev.gigaherz.sewingkit.table.SewingTableMenu;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
@@ -19,9 +19,9 @@ import java.util.stream.Collectors;
 
 public class ClientSewingRecipeAccessor
 {
-    private static Map<ResourceLocation, RecipeHolder<SewingRecipe>> clientRecipesByName;
+    private static Map<Identifier, RecipeHolder<SewingRecipe>> clientRecipesByName;
 
-    public static Map<ResourceLocation, RecipeHolder<SewingRecipe>> getRecipesByName(Level level)
+    public static Map<Identifier, RecipeHolder<SewingRecipe>> getRecipesByName(Level level)
     {
         if (level.isClientSide())
             return clientRecipesByName;
@@ -44,7 +44,7 @@ public class ClientSewingRecipeAccessor
         public static void recipesReceived(RecipesReceivedEvent event)
         {
             var clientRecipes = event.getRecipeMap().byType(SewingKitMod.SEWING.get());
-            clientRecipesByName = clientRecipes.stream().collect(Collectors.toMap(e -> e.id().location(), e -> e));
+            clientRecipesByName = clientRecipes.stream().collect(Collectors.toMap(e -> e.id().identifier(), e -> e));
         }
     }
 }

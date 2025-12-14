@@ -6,19 +6,19 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.List;
 
-public record SyncRecipeOrder(int menuId, List<ResourceLocation> recipes) implements CustomPacketPayload
+public record SyncRecipeOrder(int menuId, List<Identifier> recipes) implements CustomPacketPayload
 {
-    public static final ResourceLocation ID = SewingKitMod.location("key_change");
+    public static final Identifier ID = SewingKitMod.location("key_change");
     public static final Type<SyncRecipeOrder> TYPE = new Type<>(ID);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SyncRecipeOrder> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.INT, SyncRecipeOrder::menuId,
-            ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()), SyncRecipeOrder::recipes,
+            Identifier.STREAM_CODEC.apply(ByteBufCodecs.list()), SyncRecipeOrder::recipes,
             SyncRecipeOrder::new
     );
 
