@@ -31,7 +31,7 @@ public class SewingRecipeBuilder
     private String group;
     private Ingredient tool;
     private Ingredient pattern;
-    private final NonNullList<SewingRecipe.Material> materials = NonNullList.create();
+    private final NonNullList<SewingMaterial> materials = NonNullList.create();
     private final ItemStack result;
     private final Map<String, Criterion<?>> criteria = new LinkedHashMap<>();
     private boolean showNotification = true;
@@ -130,7 +130,7 @@ public class SewingRecipeBuilder
         {
             throw new IllegalArgumentException("Count must be a positive integer!");
         }
-        materials.add(SewingRecipe.Material.of(x, count));
+        materials.add(SewingMaterial.of(x, count));
         return this;
     }
 
@@ -191,7 +191,7 @@ public class SewingRecipeBuilder
         };
     }
 
-    protected SewingRecipe build(String group, RecipeBookCategory category, NonNullList<SewingRecipe.Material> materials, Ingredient pattern, Ingredient tool, ItemStack result, boolean showNotification)
+    protected SewingRecipe build(String group, RecipeBookCategory category, NonNullList<SewingMaterial> materials, Ingredient pattern, Ingredient tool, ItemStack result, boolean showNotification)
     {
         return new SewingRecipe(group, category, materials, pattern, tool, result, showNotification);
     }

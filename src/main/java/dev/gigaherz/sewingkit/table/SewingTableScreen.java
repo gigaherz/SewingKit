@@ -1,28 +1,20 @@
 package dev.gigaherz.sewingkit.table;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.datafixers.util.Either;
 import dev.gigaherz.sewingkit.SewingKitMod;
+import dev.gigaherz.sewingkit.api.SewingMaterial;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.navigation.ScreenRectangle;
-import net.minecraft.client.gui.render.TextureSetup;
-import net.minecraft.client.gui.render.state.BlitRenderState;
-import net.minecraft.client.gui.render.state.GuiElementRenderState;
+import net.minecraft.client.gui.navigation.ScreenPosition;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractRecipeBookScreen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
@@ -37,21 +29,17 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.ClientHooks;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
-import net.neoforged.neoforge.client.event.RenderTooltipEvent;
-import org.joml.Matrix3x2f;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
+public class SewingTableScreen extends AbstractRecipeBookScreen<SewingTableMenu>
 {
     private static final ResourceLocation BACKGROUND_TEXTURE = SewingKitMod.location("textures/gui/sewing_station.png");
 
@@ -72,11 +60,17 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
     private int recipeIndexOffset;
     private boolean hasItemsInInputSlot;
 
-    public SewingTableScreen(SewingTableMenu containerIn, Inventory playerInv, Component titleIn)
+    public SewingTableScreen(SewingTableMenu menu, Inventory playerInv, Component title)
     {
-        super(containerIn, playerInv, titleIn);
-        containerIn.setInventoryUpdateListener(this::onInventoryUpdate);
+        super(menu, new SewingRecipeBookComponent(menu), playerInv, title);
+        menu.setInventoryUpdateListener(this::onInventoryUpdate);
         --this.titleLabelY;
+    }
+
+    @Override
+    protected ScreenPosition getRecipeBookButtonPosition()
+    {
+        return new ScreenPosition(this.leftPos + 140, this.topPos + 60); // TODO: FIXME
     }
 
     @Override
@@ -122,7 +116,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
                 if (x >= j1 && x < j1 + 16 && y >= k1 && y < k1 + 18)
                 {
                     recipeContext = list.get(l).value();
-                    ItemStack output = recipeContext.getOutput();
+                    ItemStack output = recipeContext.output();
                     var lines = Screen.getTooltipFromItem(this.minecraft, output);
                     var clientComponents = ClientHooks.gatherTooltipComponents(output, lines, output.getTooltipImage(), x, graphics.guiWidth(), graphics.guiHeight(), font);
                     var mutable = new ArrayList<>(clientComponents);
@@ -143,7 +137,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         if (recipe == null)
             return;
 
-        Map<Ingredient, Integer> remaining = recipe.getMaterials().stream().collect(Collectors.toMap(SewingRecipe.Material::ingredient, SewingRecipe.Material::count));
+        Map<Ingredient, Integer> remaining = recipe.materials().stream().collect(Collectors.toMap(SewingMaterial::ingredient, SewingMaterial::count));
 
         for (int i = 0; i < 4; i++)
         {
@@ -162,7 +156,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
                 }
             }
 
-            if (slot.getItem().getCount() > 0)
+            if (!slot.getItem().isEmpty())
             {
                 int x = slot.x + leftPos;
                 int y = slot.y + topPos;
@@ -185,7 +179,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
         private final Component label;
 
         private SewingRecipe cachedIngredientRecipe = null;
-        private Map<SewingRecipe.Material, List<ItemStack>> cachedIngredientLists = null;
+        private Map<SewingMaterial, List<ItemStack>> cachedIngredientLists = null;
 
         public ClientRecipeTooltipComponent(RecipeTooltipComponent component)
         {
@@ -218,21 +212,21 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
             {
                 cachedIngredientRecipe = recipe;
                 cachedIngredientLists = new Reference2ObjectOpenHashMap<>();
-                var materials = recipe.getMaterials();
+                var materials = recipe.materials();
                 for (int i = 0; i < materials.size(); i++)
                 {
-                    SewingRecipe.Material material = materials.get(i);
+                    SewingMaterial material = materials.get(i);
                     var stacks = material.ingredient().items().map(ItemStack::new).toList();
                     cachedIngredientLists.put(material, stacks);
                 }
             }
 
-            NonNullList<SewingRecipe.Material> materials = recipe.getMaterials();
+            NonNullList<SewingMaterial> materials = recipe.materials();
             for (int i = 0; i < materials.size(); i++)
             {
                 int xx = x + i * 17 + 4;
 
-                SewingRecipe.Material material = materials.get(i);
+                SewingMaterial material = materials.get(i);
                 var stacks = cachedIngredientLists.get(material);
                 if (stacks.size() > 0)
                 {
@@ -289,7 +283,7 @@ public class SewingTableScreen extends AbstractContainerScreen<SewingTableMenu>
             int l = j / 4;
             int i1 = top + l * 18 + 2;
             poseStack.translate(0.0F, 0.0F, 0.0F);
-            var resultItem = list.get(i).value().getOutput();
+            var resultItem = list.get(i).value().output();
             graphics.renderItem(resultItem, k, i1);
             graphics.renderItemDecorations(font, resultItem, k, i1);
         }

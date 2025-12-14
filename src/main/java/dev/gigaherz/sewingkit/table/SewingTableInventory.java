@@ -1,21 +1,20 @@
 package dev.gigaherz.sewingkit.table;
 
-import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
 
-class SewingTableInventory extends ItemStacksResourceHandler implements InventoryProvider
+class SewingTableInventory extends SimpleContainer implements InventoryProvider
 {
     private final ListenableHolder listenable = new ListenableHolder();
 
     public SewingTableInventory()
     {
         super(6);
+        addListener(this::onContentsChanged);
     }
 
-    @Override
-    protected void onContentsChanged(int index, ItemStack previousContents)
+    private void onContentsChanged(Container itemStacks)
     {
-        super.onContentsChanged(index, previousContents);
         listenable.doCallbacks();
     }
 
@@ -26,7 +25,7 @@ class SewingTableInventory extends ItemStacksResourceHandler implements Inventor
     }
 
     @Override
-    public ItemStacksResourceHandler getInventory()
+    public Container getInventory()
     {
         return this;
     }

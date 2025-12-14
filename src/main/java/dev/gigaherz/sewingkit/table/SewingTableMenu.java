@@ -2,9 +2,17 @@ package dev.gigaherz.sewingkit.table;
 
 import com.google.common.collect.Lists;
 import dev.gigaherz.sewingkit.SewingKitMod;
-import dev.gigaherz.sewingkit.api.SewingRecipe;
 import dev.gigaherz.sewingkit.api.ClientSewingRecipeAccessor;
+import dev.gigaherz.sewingkit.api.SewingMaterial;
+import dev.gigaherz.sewingkit.api.SewingRecipe;
 import dev.gigaherz.sewingkit.network.SyncRecipeOrder;
+import it.unimi.dsi.fastutil.ints.Int2IntArrayMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.objects.Reference2IntMap;
+import it.unimi.dsi.fastutil.objects.Reference2IntMaps;
+import net.minecraft.core.Holder;
+import net.minecraft.core.NonNullList;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -13,24 +21,24 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.player.StackedContents;
+import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
-import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class SewingTableMenu extends AbstractContainerMenu
+public class SewingTableMenu extends RecipeBookMenu
 {
     private static final int NUM_INPUTS = 6;
     private static final int NUM_OUTPUTS = 1;
@@ -58,7 +66,7 @@ public class SewingTableMenu extends AbstractContainerMenu
     private Runnable inventoryUpdateListener = () -> {
     };
 
-    public ItemStacksResourceHandler inputInventory;
+    public Container inputInventory;
     /**
      * The inventory that stores the output of the crafting recipe.
      */
@@ -84,22 +92,22 @@ public class SewingTableMenu extends AbstractContainerMenu
         this.inventoryProvider = inventoryProvider;
         inventoryProvider.addWeakListener(this);
 
-        this.addSlot(new ResourceHandlerSlot(this.inputInventory, this.inputInventory::set, 0, 8, 15)
+        this.addSlot(new Slot(this.inputInventory, 0, 8, 15)
         {
             {
                 this.setBackground(SewingKitMod.location("needle_slot_background"));
             }
         });
-        this.addSlot(new ResourceHandlerSlot(this.inputInventory, this.inputInventory::set, 1, 30, 15)
+        this.addSlot(new Slot(this.inputInventory, 1, 30, 15)
         {
             {
                 this.setBackground(SewingKitMod.location("pattern_slot_background"));
             }
         });
-        this.addSlot(new ResourceHandlerSlot(this.inputInventory, this.inputInventory::set, 2, 10, 35));
-        this.addSlot(new ResourceHandlerSlot(this.inputInventory, this.inputInventory::set, 3, 28, 35));
-        this.addSlot(new ResourceHandlerSlot(this.inputInventory, this.inputInventory::set, 4, 10, 53));
-        this.addSlot(new ResourceHandlerSlot(this.inputInventory, this.inputInventory::set, 5, 28, 53));
+        this.addSlot(new Slot(this.inputInventory, 2, 10, 35));
+        this.addSlot(new Slot(this.inputInventory, 3, 28, 35));
+        this.addSlot(new Slot(this.inputInventory, 4, 10, 53));
+        this.addSlot(new Slot(this.inputInventory, 5, 28, 53));
         this.addSlot(new Slot(this.inventory, 1, 143, 33)
         {
             /**
@@ -119,7 +127,7 @@ public class SewingTableMenu extends AbstractContainerMenu
                     List<ItemStack> consumed = new ArrayList<>();
 
                     SewingRecipe recipe = recipes.get(getSelectedRecipe()).value();
-                    Map<Ingredient, Integer> remaining = recipe.getMaterials().stream().collect(Collectors.toMap(SewingRecipe.Material::ingredient, SewingRecipe.Material::count));
+                    Map<Ingredient, Integer> remaining = recipe.materials().stream().collect(Collectors.toMap(SewingMaterial::ingredient, SewingMaterial::count));
                     if (consumeCraftingMaterials(serverPlayer, remaining, consumed))
                     {
                         updateRecipeResultSlot();
@@ -422,7 +430,7 @@ public class SewingTableMenu extends AbstractContainerMenu
         }
         else if (index >= OUTPUTS_START)
         {
-            if (stackInSlot.getMaxStackSize() == 1 && slots.get(0).getItem().getCount() == 0)
+            if (stackInSlot.getMaxStackSize() == 1 && slots.get(0).getItem().isEmpty())
             {
                 startIndex = 0;
                 endIndex = 1;
@@ -481,22 +489,652 @@ public class SewingTableMenu extends AbstractContainerMenu
         if (inputInventory == null) return;
         if (!pPlayer.isAlive() || pPlayer instanceof ServerPlayer && ((ServerPlayer) pPlayer).hasDisconnected())
         {
-            for (int j = 0; j < inputInventory.size(); j++)
+            for (int j = 0; j < inputInventory.getContainerSize(); j++)
             {
-                pPlayer.drop(SewingInput.stackAt(inputInventory, j), false);
+                pPlayer.drop(inputInventory.getItem(j), false);
             }
         }
         else
         {
-            for (int i = 0; i < inputInventory.size(); i++)
+            for (int i = 0; i < inputInventory.getContainerSize(); i++)
             {
                 Inventory inventory = pPlayer.getInventory();
                 if (inventory.player instanceof ServerPlayer)
                 {
-                    inventory.placeItemBackInInventory(SewingInput.stackAt(inputInventory, i));
+                    inventory.placeItemBackInInventory(inputInventory.getItem(i));
                 }
             }
         }
         inputInventory = null;
+    }
+
+    // Recipe book stuffs
+    public boolean isCraftingSlot(Slot slot)
+    {
+        return this.slots.indexOf(slot) < 6;
+    }
+
+    @Override
+    public RecipeBookMenu.PostPlaceAction handlePlacement(
+            boolean useMaxItems, boolean isCreative, RecipeHolder<?> recipe, final ServerLevel level, Inventory playerInventory
+    )
+    {
+        if (!isCreative && !testClearGrid(playerInventory))
+        {
+            return PostPlaceAction.NOTHING;
+        }
+        else
+        {
+            StackedItemContents stackeditemcontents = new StackedItemContents();
+            playerInventory.fillStackedContents(stackeditemcontents);
+            SewingTableMenu.this.fillCraftSlotsStackedContents(stackeditemcontents);
+            //noinspection unchecked
+            return tryPlaceRecipe(playerInventory, (RecipeHolder<SewingRecipe>) recipe, stackeditemcontents, useMaxItems);
+        }
+    }
+
+    @Override
+    public void fillCraftSlotsStackedContents(StackedItemContents stackedItemContents)
+    {
+        if (this.inputInventory instanceof StackedContentsCompatible stackedContentsCompatible)
+        {
+            stackedContentsCompatible.fillStackedContents(stackedItemContents);
+        }
+    }
+
+    @Override
+    public RecipeBookType getRecipeBookType()
+    {
+        return SewingKitMod.SEWING_BOOK_CATEGORY;
+    }
+
+    private boolean testClearGrid(Inventory playerInventory)
+    {
+        List<ItemStack> list = Lists.newArrayList();
+        int freeSlots = getAmountOfFreeSlotsInInventory(playerInventory);
+
+        for (int i = 0; i < 6; i++)
+        {
+            var slot = SewingTableMenu.this.getSlot(i);
+            ItemStack itemstack = slot.getItem().copy();
+            if (!itemstack.isEmpty())
+            {
+                int j = playerInventory.getSlotWithRemainingSpace(itemstack);
+                if (j == ITEM_NOT_FOUND && list.size() <= freeSlots)
+                {
+                    for (ItemStack itemstack1 : list)
+                    {
+                        if (ItemStack.isSameItem(itemstack1, itemstack)
+                                && itemstack1.getCount() != itemstack1.getMaxStackSize()
+                                && itemstack1.getCount() + itemstack.getCount() <= itemstack1.getMaxStackSize())
+                        {
+                            itemstack1.grow(itemstack.getCount());
+                            itemstack.setCount(0);
+                            break;
+                        }
+                    }
+
+                    if (!itemstack.isEmpty())
+                    {
+                        if (list.size() >= freeSlots)
+                        {
+                            return false;
+                        }
+
+                        list.add(itemstack);
+                    }
+                }
+                else if (j == ITEM_NOT_FOUND)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private static int getAmountOfFreeSlotsInInventory(Inventory platerInventory)
+    {
+        int i = 0;
+
+        for (ItemStack itemstack : platerInventory.getNonEquipmentItems())
+        {
+            if (itemstack.isEmpty())
+            {
+                i++;
+            }
+        }
+
+        return i;
+    }
+
+    public static final int ITEM_NOT_FOUND = -1;
+
+    private RecipeBookMenu.PostPlaceAction tryPlaceRecipe(Inventory inventory, RecipeHolder<SewingRecipe> recipe, StackedItemContents stackedItemContents, boolean useMaxItems)
+    {
+        if (stackedItemContents.canCraft(recipe.value(), null))
+        {
+            this.placeRecipe(inventory, recipe, stackedItemContents, useMaxItems);
+            inventory.setChanged();
+            return RecipeBookMenu.PostPlaceAction.NOTHING;
+        }
+        else
+        {
+            this.clearGrid(inventory);
+            inventory.setChanged();
+            return RecipeBookMenu.PostPlaceAction.PLACE_GHOST_RECIPE;
+        }
+    }
+
+    private void clearGrid(Inventory inventory)
+    {
+        for (int i = 0; i < 6; i++)
+        {
+            var slot = SewingTableMenu.this.getSlot(i);
+            ItemStack itemstack = slot.getItem().copy();
+            inventory.placeItemBackInInventory(itemstack, false);
+            slot.set(itemstack);
+        }
+
+        SewingTableMenu.this.inputInventory.clearContent();
+    }
+
+    private void placeRecipe(Inventory inventory, RecipeHolder<SewingRecipe> recipeHolder, StackedItemContents stackedItemContents, boolean useMaxItems)
+    {
+        var recipe = recipeHolder.value();
+        var tool = recipe.tool();
+        var pattern = recipe.pattern();
+        var materials = recipe.materials();
+
+        var input = SewingInput.ofSewingTableInventory(inputInventory);
+
+        boolean recipeMatches = recipe.matches(input, level);
+
+        Int2IntArrayMap slotToAmount = new Int2IntArrayMap();
+        int amountToCraft = getMaxCraft(tool, pattern, materials, stackedItemContents, slotToAmount);
+
+        if (!useMaxItems)
+        {
+            amountToCraft = 1;
+            if (recipeMatches) // try to craft one additional item to however many can be crafted with whatever is already on the table
+            {
+                var stacked = new StackedItemContents();
+
+                for (int i = 0; i < 6; i++)
+                {
+                    var slot2 = this.getSlot(i);
+                    stacked.accountStack(slot2.getItem());
+                }
+
+                var amountCraftable = getMaxCraft(tool, pattern, materials, stacked, slotToAmount);
+
+                if (amountCraftable < amountToCraft && canFitInGrid(materials, amountCraftable + 1))
+                    amountToCraft = amountCraftable + 1;
+            }
+        }
+
+        List<Holder<Item>> list = new ArrayList<>();
+        if (tryPickItemsForCraft(stackedItemContents, recipe, amountToCraft, list))
+            return;
+
+        int amount = amountToCraft;
+        for (Holder<Item> holder1 : list)
+        {
+            amount = Math.min(amount, holder1.value().getDefaultMaxStackSize());
+        }
+
+        if (amount != amountToCraft)
+        {
+            list.clear();
+            if (tryPickItemsForCraft(stackedItemContents, recipe, amount, list))
+                return;
+        }
+
+        this.clearGrid(inventory);
+
+        var iterator = recipe.placementInfo().slotsToIngredientIndex().iterator();
+        for (int i = 0; i < 6; i++) {
+            if (!iterator.hasNext()) {
+                return;
+            }
+            var item = iterator.nextInt();
+            if (item != ITEM_NOT_FOUND)
+            {
+                Slot targetSlot = SewingTableMenu.this.getSlot(i);
+                Holder<Item> holder = list.get(item);
+                int countPerItem = slotToAmount.getOrDefault(i, 0);
+                int remaining = amount * countPerItem;
+                while (remaining > 0)
+                {
+                    var inSlot = targetSlot.getItem();
+                    int matchingSlot = inventory.findSlotMatchingCraftingIngredient(holder, inSlot);
+
+                    int result;
+                    if (matchingSlot == ITEM_NOT_FOUND)
+                    {
+                        result = ITEM_NOT_FOUND;
+                    }
+                    else
+                    {
+                        ItemStack itemstack1 = inventory.getItem(matchingSlot);
+                        ItemStack itemstack2 = remaining < itemstack1.getCount()
+                                ? inventory.removeItem(matchingSlot, remaining)
+                                : inventory.removeItemNoUpdate(matchingSlot);
+
+                        int j = itemstack2.getCount();
+                        if (inSlot.isEmpty())
+                        {
+                            targetSlot.set(itemstack2);
+                        }
+                        else
+                        {
+                            inSlot.grow(j);
+                        }
+
+                        result = remaining - j;
+                    }
+                    remaining = result;
+                    if (remaining == ITEM_NOT_FOUND)
+                    {
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean tryPickItemsForCraft(StackedItemContents stackedItemContents, SewingRecipe recipe, int amountToCraft, List<Holder<Item>> list)
+    {
+        IntList amounts = new IntArrayList();
+        if (recipe.tool() != null ) amounts.add(-1);
+        if (recipe.pattern() != null ) amounts.add(-1);
+        for(var mat : recipe.materials())
+            amounts.add(mat.count());
+
+        PlacementInfo placementinfo = recipe.placementInfo();
+        if (placementinfo.isImpossibleToPlace()) return true;
+        var ingredients = placementinfo.ingredients();
+        var picker = new CustomRecipePicker<>(stackedItemContents.raw, ingredients, amounts);
+        return !picker.tryPick(amountToCraft, list::add);
+    }
+
+    private static class CustomRecipePicker<T>
+    {
+        private final StackedContents<T> raw;
+        private final List<? extends StackedContents.IngredientInfo<T>> ingredients;
+        private final int ingredientCount;
+        private final List<T> items;
+        private final IntList amountsList;
+        private final int itemCount;
+        private final BitSet data;
+        private final IntList path = new IntArrayList();
+
+        public CustomRecipePicker(StackedContents<T> raw, List<? extends StackedContents.IngredientInfo<T>> ingredients, IntList amountsList) {
+            this.raw = raw;
+            this.ingredients = ingredients;
+            this.ingredientCount = ingredients.size();
+            this.items = this.getUniqueAvailableIngredientItems(ingredients);
+            this.amountsList = amountsList;
+            this.itemCount = this.items.size();
+            this.data = new BitSet(
+                    this.visitedIngredientCount() + this.visitedItemCount() + this.satisfiedCount() + this.connectionCount() + this.residualCount()
+            );
+            this.setInitialConnections();
+        }
+
+        List<T> getUniqueAvailableIngredientItems(Iterable<? extends StackedContents.IngredientInfo<T>> ingredients) {
+            List<T> list = new ArrayList<>();
+
+            for (Reference2IntMap.Entry<T> entry : Reference2IntMaps.fastIterable(this.raw.amounts)) {
+                if (entry.getIntValue() > 0 && anyIngredientMatches(ingredients, entry.getKey())) {
+                    list.add(entry.getKey());
+                }
+            }
+
+            return list;
+        }
+
+        private static <T> boolean anyIngredientMatches(Iterable<? extends StackedContents.IngredientInfo<T>> ingredients, T item) {
+            for (StackedContents.IngredientInfo<T> ingredientinfo : ingredients) {
+                if (ingredientinfo.acceptsItem(item)) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void setInitialConnections() {
+            for (int i = 0; i < this.ingredientCount; i++) {
+                StackedContents.IngredientInfo<T> ingredientinfo = this.ingredients.get(i);
+
+                for (int j = 0; j < this.itemCount; j++) {
+                    if (ingredientinfo.acceptsItem(this.items.get(j))) {
+                        this.setConnection(j, i);
+                    }
+                }
+            }
+        }
+
+        public boolean tryPick(int amount, @javax.annotation.Nullable StackedContents.Output<T> output) {
+            if (amount <= 0) {
+                return true;
+            } else {
+                int i = 0;
+
+                while (true) {
+                    var ingredientAmount = i < ingredientCount ? amountsList.getInt(i) < 0 ? -amountsList.getInt(i) :  amount * amountsList.getInt(i) : amount;
+                    IntList intlist = this.tryAssigningNewItem(ingredientAmount);
+                    if (intlist == null) {
+                        boolean flag = i == this.ingredientCount;
+                        boolean flag1 = flag && output != null;
+                        this.clearAllVisited();
+                        this.clearSatisfied();
+
+                        for (int k1 = 0; k1 < this.ingredientCount; k1++) {
+                            var ingredientAmount1 = amountsList.getInt(k1) < 0 ? -amountsList.getInt(k1) :  amount * amountsList.getInt(k1);
+                            for (int l1 = 0; l1 < this.itemCount; l1++) {
+                                if (this.isAssigned(l1, k1)) {
+                                    this.unassign(l1, k1);
+                                    raw.put(this.items.get(l1), ingredientAmount1);
+                                    if (flag1) {
+                                        output.accept(this.items.get(l1));
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+
+                        assert this.data.get(this.residualOffset(), this.residualOffset() + this.residualCount()).isEmpty();
+
+                        return flag;
+                    }
+
+                    int j = intlist.getInt(0);
+                    raw.take(this.items.get(j), ingredientAmount);
+                    int k = intlist.size() - 1;
+                    this.setSatisfied(intlist.getInt(k));
+                    i++;
+
+                    for (int l = 0; l < intlist.size() - 1; l++) {
+                        if (isPathIndexItem(l)) {
+                            int i1 = intlist.getInt(l);
+                            int j1 = intlist.getInt(l + 1);
+                            this.assign(i1, j1);
+                        } else {
+                            int i2 = intlist.getInt(l + 1);
+                            int j2 = intlist.getInt(l);
+                            this.unassign(i2, j2);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static boolean isPathIndexItem(int index) {
+            return (index & 1) == 0;
+        }
+
+        @javax.annotation.Nullable
+        private IntList tryAssigningNewItem(int amount) {
+            this.clearAllVisited();
+
+            for (int i = 0; i < this.itemCount; i++) {
+                if (raw.hasAtLeast(this.items.get(i), amount)) {
+                    IntList intlist = this.findNewItemAssignmentPath(i);
+                    if (intlist != null) {
+                        return intlist;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        @javax.annotation.Nullable
+        private IntList findNewItemAssignmentPath(int amount) {
+            this.path.clear();
+            this.visitItem(amount);
+            this.path.add(amount);
+
+            while (!this.path.isEmpty()) {
+                int i = this.path.size();
+                if (isPathIndexItem(i - 1)) {
+                    int l = this.path.getInt(i - 1);
+
+                    for (int j1 = 0; j1 < this.ingredientCount; j1++) {
+                        if (!this.hasVisitedIngredient(j1) && this.hasConnection(l, j1) && !this.isAssigned(l, j1)) {
+                            this.visitIngredient(j1);
+                            this.path.add(j1);
+                            break;
+                        }
+                    }
+                } else {
+                    int j = this.path.getInt(i - 1);
+                    if (!this.isSatisfied(j)) {
+                        return this.path;
+                    }
+
+                    for (int k = 0; k < this.itemCount; k++) {
+                        if (!this.hasVisitedItem(k) && this.isAssigned(k, j)) {
+                            assert this.hasConnection(k, j);
+
+                            this.visitItem(k);
+                            this.path.add(k);
+                            break;
+                        }
+                    }
+                }
+
+                int i1 = this.path.size();
+                if (i1 == i) {
+                    this.path.removeInt(i1 - 1);
+                }
+            }
+
+            return null;
+        }
+
+        private int visitedIngredientOffset() {
+            return 0;
+        }
+
+        private int visitedIngredientCount() {
+            return this.ingredientCount;
+        }
+
+        private int visitedItemOffset() {
+            return this.visitedIngredientOffset() + this.visitedIngredientCount();
+        }
+
+        private int visitedItemCount() {
+            return this.itemCount;
+        }
+
+        private int satisfiedOffset() {
+            return this.visitedItemOffset() + this.visitedItemCount();
+        }
+
+        private int satisfiedCount() {
+            return this.ingredientCount;
+        }
+
+        private int connectionOffset() {
+            return this.satisfiedOffset() + this.satisfiedCount();
+        }
+
+        private int connectionCount() {
+            return this.ingredientCount * this.itemCount;
+        }
+
+        private int residualOffset() {
+            return this.connectionOffset() + this.connectionCount();
+        }
+
+        private int residualCount() {
+            return this.ingredientCount * this.itemCount;
+        }
+
+        private boolean isSatisfied(int stackingIndex) {
+            return this.data.get(this.getSatisfiedIndex(stackingIndex));
+        }
+
+        private void setSatisfied(int stackingIndex) {
+            this.data.set(this.getSatisfiedIndex(stackingIndex));
+        }
+
+        private int getSatisfiedIndex(int stackingIndex) {
+            assert stackingIndex >= 0 && stackingIndex < this.ingredientCount;
+
+            return this.satisfiedOffset() + stackingIndex;
+        }
+
+        private void clearSatisfied() {
+            this.clearRange(this.satisfiedOffset(), this.satisfiedCount());
+        }
+
+        private void setConnection(int itemIndex, int ingredientIndex) {
+            this.data.set(this.getConnectionIndex(itemIndex, ingredientIndex));
+        }
+
+        private boolean hasConnection(int itemIndex, int ingredientIndex) {
+            return this.data.get(this.getConnectionIndex(itemIndex, ingredientIndex));
+        }
+
+        private int getConnectionIndex(int itemIndex, int ingredientIndex) {
+            assert itemIndex >= 0 && itemIndex < this.itemCount;
+
+            assert ingredientIndex >= 0 && ingredientIndex < this.ingredientCount;
+
+            return this.connectionOffset() + itemIndex * this.ingredientCount + ingredientIndex;
+        }
+
+        private boolean isAssigned(int itemIndex, int ingredientIndex) {
+            return this.data.get(this.getResidualIndex(itemIndex, ingredientIndex));
+        }
+
+        private void assign(int itemIndex, int ingredientIndex) {
+            int i = this.getResidualIndex(itemIndex, ingredientIndex);
+
+            assert !this.data.get(i);
+
+            this.data.set(i);
+        }
+
+        private void unassign(int itemIndex, int ingredientIndex) {
+            int i = this.getResidualIndex(itemIndex, ingredientIndex);
+
+            assert this.data.get(i);
+
+            this.data.clear(i);
+        }
+
+        private int getResidualIndex(int itemIndex, int ingredientIndex) {
+            assert itemIndex >= 0 && itemIndex < this.itemCount;
+
+            assert ingredientIndex >= 0 && ingredientIndex < this.ingredientCount;
+
+            return this.residualOffset() + itemIndex * this.ingredientCount + ingredientIndex;
+        }
+
+        private void visitIngredient(int ingredientIndex) {
+            this.data.set(this.getVisitedIngredientIndex(ingredientIndex));
+        }
+
+        private boolean hasVisitedIngredient(int ingredientIndex) {
+            return this.data.get(this.getVisitedIngredientIndex(ingredientIndex));
+        }
+
+        private int getVisitedIngredientIndex(int ingredientIndex) {
+            assert ingredientIndex >= 0 && ingredientIndex < this.ingredientCount;
+
+            return this.visitedIngredientOffset() + ingredientIndex;
+        }
+
+        private void visitItem(int itemIndex) {
+            this.data.set(this.getVisitiedItemIndex(itemIndex));
+        }
+
+        private boolean hasVisitedItem(int itemIndex) {
+            return this.data.get(this.getVisitiedItemIndex(itemIndex));
+        }
+
+        private int getVisitiedItemIndex(int itemIndex) {
+            assert itemIndex >= 0 && itemIndex < this.itemCount;
+
+            return this.visitedItemOffset() + itemIndex;
+        }
+
+        private void clearAllVisited() {
+            this.clearRange(this.visitedIngredientOffset(), this.visitedIngredientCount());
+            this.clearRange(this.visitedItemOffset(), this.visitedItemCount());
+        }
+
+        private void clearRange(int offset, int count) {
+            this.data.clear(offset, offset + count);
+        }
+    }
+
+    private boolean canFitInGrid(NonNullList<SewingMaterial> materials, int quantity)
+    {
+        // FIXME: allow empty slot to contain one additional stack of one material
+
+        for (SewingMaterial mat : materials)
+        {
+            var ingredient = mat.ingredient();
+
+            for (int i = 2; i < 6; i++)
+            {
+                var inSlot = getSlot(i).getItem();
+
+                if (ingredient.test(inSlot))
+                {
+                    if (mat.count() * quantity > inSlot.getMaxStackSize())
+                        return false;
+                    break;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private static int getMaxCraft(@Nullable Ingredient tool, @Nullable Ingredient pattern, NonNullList<SewingMaterial> materials,
+                                   StackedItemContents stackedItemContents, Int2IntArrayMap slotToAmount)
+    {
+        var am = stackedItemContents.raw.amounts;
+
+        int size = Integer.MAX_VALUE;
+
+        slotToAmount.clear();
+
+        if (tool != null)
+        {
+            slotToAmount.put(0, 1);
+            if (am.reference2IntEntrySet().stream().noneMatch(kv -> tool.acceptsItem(kv.getKey()) && kv.getIntValue() > 0))
+            {
+                size = 0;
+            }
+        }
+
+        if (size > 0 && pattern != null)
+        {
+            slotToAmount.put(1, 1);
+            if (am.reference2IntEntrySet().stream().noneMatch(kv -> pattern.acceptsItem(kv.getKey()) && kv.getIntValue() > 0))
+            {
+                size = 0;
+            }
+        }
+
+        for (int i = 0; size > 0 && i < materials.size(); i++)
+        {
+            var mat = materials.get(i);
+            slotToAmount.put(i+2, mat.count());
+            int count = am.reference2IntEntrySet().stream().mapToInt(kv -> mat.ingredient().acceptsItem(kv.getKey()) ? kv.getIntValue() : 0).sum();
+            count /= mat.count();
+            size = Math.min(size, count);
+        }
+        return size;
     }
 }

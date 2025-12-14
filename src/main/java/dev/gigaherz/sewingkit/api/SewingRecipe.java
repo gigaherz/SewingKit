@@ -14,7 +14,10 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,22 +25,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class SewingRecipe implements Recipe<SewingInput>
 {
     public static <T extends SewingRecipe> Products.P7<RecordCodecBuilder.Mu<T>, String, RecipeBookCategory,
-            NonNullList<Material>, Optional<Ingredient>, Optional<Ingredient>, ItemStack, Boolean>
+            NonNullList<SewingMaterial>, Optional<Ingredient>, Optional<Ingredient>, ItemStack, Boolean>
     defaultSewingFields(RecordCodecBuilder.Instance<T> instance)
     {
         return instance.group(
                 Codec.STRING.optionalFieldOf("group", "").forGetter(SewingRecipe::group),
                 BuiltInRegistries.RECIPE_BOOK_CATEGORY.byNameCodec().fieldOf("category").forGetter(SewingRecipe::recipeBookCategory),
-                NonNullList.codecOf(Material.CODEC).fieldOf("materials").forGetter(SewingRecipe::getMaterials),
-                Ingredient.CODEC.optionalFieldOf("pattern").forGetter(SewingRecipe::getPattern),
-                Ingredient.CODEC.optionalFieldOf("tool").forGetter(SewingRecipe::getTool),
-                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(SewingRecipe::getOutput),
+                NonNullList.codecOf(SewingMaterial.CODEC).fieldOf("materials").forGetter(SewingRecipe::materials),
+                Ingredient.CODEC.optionalFieldOf("pattern").forGetter(recipe -> Optional.ofNullable(recipe.pattern())),
+                Ingredient.CODEC.optionalFieldOf("tool").forGetter(recipe -> Optional.ofNullable(recipe.tool())),
+                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(SewingRecipe::output),
                 Codec.BOOL.optionalFieldOf("show_notification", true).forGetter(SewingRecipe::showNotification)
         );
     }
@@ -47,26 +49,17 @@ public class SewingRecipe implements Recipe<SewingInput>
     public static final StreamCodec<RegistryFriendlyByteBuf, SewingRecipe> STREAM_CODEC = StreamCodec.composite(
             SewingKitMod.nullable(ByteBufCodecs.STRING_UTF8), SewingRecipe::group,
             ByteBufCodecs.registry(Registries.RECIPE_BOOK_CATEGORY), SewingRecipe::recipeBookCategory,
-            ByteBufCodecs.collection(NonNullList::createWithCapacity, Material.STREAM_CODEC), SewingRecipe::getMaterials,
-            ByteBufCodecs.optional(Ingredient.CONTENTS_STREAM_CODEC), SewingRecipe::getPattern,
-            ByteBufCodecs.optional(Ingredient.CONTENTS_STREAM_CODEC), SewingRecipe::getTool,
-            ItemStack.STREAM_CODEC, SewingRecipe::getOutput,
+            ByteBufCodecs.collection(NonNullList::createWithCapacity, SewingMaterial.STREAM_CODEC), SewingRecipe::materials,
+            SewingKitMod.nullable(Ingredient.CONTENTS_STREAM_CODEC), SewingRecipe::pattern,
+            SewingKitMod.nullable(Ingredient.CONTENTS_STREAM_CODEC), SewingRecipe::tool,
+            ItemStack.STREAM_CODEC, SewingRecipe::output,
             ByteBufCodecs.BOOL, SewingRecipe::showNotification,
             SewingRecipe::new
     );
 
-    // TODO start using instead of Optional<> next breaking change cycle
-    private static <T> MapCodec<@Nullable T> nullableFieldOf(Codec<T> codec, String name)
-    {
-        return codec.optionalFieldOf(name).xmap(
-                a -> a.orElse(null),
-                Optional::ofNullable
-        );
-    }
-
     private final String group;
     private final RecipeBookCategory recipeBookCategory;
-    private final NonNullList<Material> materials;
+    private final NonNullList<SewingMaterial> materials;
     @Nullable
     private final Ingredient pattern;
     @Nullable
@@ -77,12 +70,12 @@ public class SewingRecipe implements Recipe<SewingInput>
     private PlacementInfo placementInfo;
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    protected SewingRecipe(String group, RecipeBookCategory recipeBookCategory, NonNullList<Material> materials, Optional<Ingredient> pattern, Optional<Ingredient> tool, ItemStack output, boolean showNotification)
+    protected SewingRecipe(String group, RecipeBookCategory recipeBookCategory, NonNullList<SewingMaterial> materials, Optional<Ingredient> pattern, Optional<Ingredient> tool, ItemStack output, boolean showNotification)
     {
         this(group, recipeBookCategory, materials, pattern.orElse(null), tool.orElse(null), output, showNotification);
     }
 
-    public SewingRecipe(String group, RecipeBookCategory recipeBookCategory, NonNullList<Material> materials, @Nullable Ingredient pattern, @Nullable Ingredient tool, ItemStack output, boolean showNotification)
+    public SewingRecipe(String group, RecipeBookCategory recipeBookCategory, NonNullList<SewingMaterial> materials, @Nullable Ingredient pattern, @Nullable Ingredient tool, ItemStack output, boolean showNotification)
     {
         this.group = group;
         this.recipeBookCategory = recipeBookCategory;
@@ -115,16 +108,16 @@ public class SewingRecipe implements Recipe<SewingInput>
     public boolean matches(SewingInput input, Level worldIn)
     {
         var toolStack = input.getTool();
-        var hasTool = tool != null ? !toolStack.isEmpty() && tool.test(toolStack) : toolStack.getCount() == 0;
+        var hasTool = tool != null ? !toolStack.isEmpty() && tool.test(toolStack) : toolStack.isEmpty();
         if (!hasTool)
             return false;
 
         var patternStack = input.getPattern();
-        var hasPattern = pattern != null ? patternStack.getCount() > 0 && pattern.test(patternStack) : patternStack.getCount() == 0;
+        var hasPattern = pattern != null ? !patternStack.isEmpty() && pattern.test(patternStack) : patternStack.isEmpty();
         if (!hasPattern)
             return false;
 
-        Map<Ingredient, Integer> missing = materials.stream().collect(Collectors.toMap(i -> i.ingredient, i -> i.count));
+        Map<Ingredient, Integer> missing = materials.stream().collect(Collectors.toMap(SewingMaterial::ingredient, SewingMaterial::count));
         for (int i = 0; i < 4; i++)
         {
             for (Map.Entry<Ingredient, Integer> mat : missing.entrySet())
@@ -140,8 +133,7 @@ public class SewingRecipe implements Recipe<SewingInput>
             }
         }
 
-        var hasMaterials = missing.values().stream().noneMatch(v -> v > 0);
-        return hasMaterials;
+        return missing.values().stream().noneMatch(v -> v > 0);
     }
 
     @Override
@@ -150,7 +142,7 @@ public class SewingRecipe implements Recipe<SewingInput>
         return output.copy();
     }
 
-    public NonNullList<Material> getMaterials()
+    public NonNullList<SewingMaterial> materials()
     {
         return materials;
     }
@@ -161,9 +153,9 @@ public class SewingRecipe implements Recipe<SewingInput>
         if (placementInfo == null)
         {
             List<Optional<Ingredient>> ingredients = new ArrayList<>();
-            ingredients.add(Optional.ofNullable(pattern));
             ingredients.add(Optional.ofNullable(tool));
-            materials.stream().map(m -> Optional.of(m.ingredient)).forEach(ingredients::add);
+            ingredients.add(Optional.ofNullable(pattern));
+            materials.stream().map(m -> Optional.of(m.ingredient())).forEach(ingredients::add);
 
             placementInfo = PlacementInfo.createFromOptionals(ingredients);
         }
@@ -176,17 +168,19 @@ public class SewingRecipe implements Recipe<SewingInput>
         return recipeBookCategory;
     }
 
-    public Optional<Ingredient> getTool()
+    @Nullable
+    public Ingredient tool()
     {
-        return Optional.ofNullable(tool);
+        return tool;
     }
 
-    public Optional<Ingredient> getPattern()
+    @Nullable
+    public Ingredient pattern()
     {
-        return Optional.ofNullable(pattern);
+        return pattern;
     }
 
-    public ItemStack getOutput()
+    public ItemStack output()
     {
         return output;
     }
@@ -195,6 +189,17 @@ public class SewingRecipe implements Recipe<SewingInput>
     public boolean showNotification()
     {
         return this.showNotification;
+    }
+
+    @Override
+    public List<RecipeDisplay> display() {
+        return List.of(
+                new SewingRecipeDisplay(
+                        this.materials.stream().map(SewingMaterial::display).toList(),
+                        new SlotDisplay.ItemStackSlotDisplay(this.output),
+                        new SlotDisplay.ItemSlotDisplay(Items.CRAFTING_TABLE)
+                )
+        );
     }
 
     public static class Serializer implements RecipeSerializer<SewingRecipe>
@@ -210,31 +215,6 @@ public class SewingRecipe implements Recipe<SewingInput>
         public StreamCodec<RegistryFriendlyByteBuf, SewingRecipe> streamCodec()
         {
             return STREAM_CODEC;
-        }
-    }
-
-    public static record Material(Ingredient ingredient, int count) implements Predicate<ItemStack>
-    {
-        public static final Codec<Material> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                Ingredient.CODEC.fieldOf("ingredient").forGetter(Material::ingredient),
-                Codec.INT.fieldOf("count").forGetter(Material::count)
-        ).apply(instance, Material::new));
-
-        public static final StreamCodec<RegistryFriendlyByteBuf, Material> STREAM_CODEC = StreamCodec.composite(
-                Ingredient.CONTENTS_STREAM_CODEC, Material::ingredient,
-                ByteBufCodecs.INT, Material::count,
-                Material::new
-        );
-
-        public static Material of(Ingredient ingredient, int count)
-        {
-            return new Material(ingredient, count);
-        }
-
-        @Override
-        public boolean test(ItemStack itemStack)
-        {
-            return ingredient.test(itemStack) && itemStack.getCount() >= count;
         }
     }
 }

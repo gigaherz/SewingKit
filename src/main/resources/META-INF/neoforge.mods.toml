@@ -14,6 +14,7 @@ issueTrackerURL="https://github.com/gigaherz/SewingKit/issues"
     description='''
 Sewing Kit is a base mod for anything that wants to add sewing features, such as leatherworking or tailoring.
 '''
+enumExtensions="META-INF/enumextensions.json"
 
 [[dependencies.sewingkit]]
     modId="neoforge"

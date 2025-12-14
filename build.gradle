@@ -2,10 +2,10 @@ plugins {
     id 'java-library'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.112'
+    id 'net.neoforged.moddev' version '2.0.116'
 }
 
-neoForge.version = "21.9.11-beta"
+neoForge.version = "21.10.40-beta"
 version = '2.5.0'
 group = 'dev.gigaherz.sewingkit'
 base.archivesName = "SewingKit-${neoForge.minecraftVersion}"
@@ -73,10 +73,10 @@ sourceSets {
 }
 
 dependencies {
-    //compileOnly "mezz.jei:jei-1.21-common-api:19.5.0.56"
-    //runtimeOnly "mezz.jei:jei-1.21-common:19.5.0.56"
-    //compileOnly "mezz.jei:jei-1.21-neoforge-api:19.5.0.56"
-    //runtimeOnly "mezz.jei:jei-1.21-neoforge:19.5.0.56"
+    //compileOnly "mezz.jei:jei-1.21.9-common-api:25.0.0.2"
+    //runtimeOnly "mezz.jei:jei-1.21.9-common:25.0.0.2"
+    //compileOnly "mezz.jei:jei-1.21.9-neoforge-api:25.0.0.2"
+    //runtimeOnly "mezz.jei:jei-1.21.9-neoforge:25.0.0.2"
 
     //compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19.2-5.1.1.0")
     //runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19.2-5.1.1.0")

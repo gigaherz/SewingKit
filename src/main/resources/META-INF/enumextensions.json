@@ -1,0 +1,10 @@
+{
+  "entries": [
+    {
+      "enum": "net/minecraft/world/inventory/RecipeBookType",
+      "name": "SEWINGKIT_SEWING",
+      "constructor": "()V",
+      "parameters": [ ]
+    }
+  ]
+}

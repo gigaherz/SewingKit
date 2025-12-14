@@ -67,7 +67,6 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, SewingRecipe recipe, IFocusGroup focuses)
     {
-
         var tool = recipe.getTool().stream().flatMap(s -> Arrays.stream(s.getItems())).toList();
         var pattern =recipe.getPattern().stream().flatMap(s -> Arrays.stream(s.getItems())).toList();
         var inputs = recipe.getMaterials();

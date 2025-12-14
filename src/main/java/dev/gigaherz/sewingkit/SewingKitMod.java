@@ -2,8 +2,12 @@ package dev.gigaherz.sewingkit;
 
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import dev.gigaherz.sewingkit.api.SewingMaterial;
+import dev.gigaherz.sewingkit.api.SewingMaterialSlotDisplay;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
-import dev.gigaherz.sewingkit.api.ClientSewingRecipeAccessor;
+import dev.gigaherz.sewingkit.api.SewingRecipeDisplay;
 import dev.gigaherz.sewingkit.file.FileItem;
 import dev.gigaherz.sewingkit.loot.RandomDye;
 import dev.gigaherz.sewingkit.needle.Needles;
@@ -34,12 +38,14 @@ import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.inventory.RecipeBookType;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.ItemLore;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.equipment.EquipmentAsset;
@@ -48,10 +54,7 @@ import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
@@ -74,7 +77,6 @@ import net.neoforged.neoforge.event.village.VillagerTradesEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.*;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -102,6 +104,8 @@ public class SewingKitMod
     private static final DeferredRegister<CreativeModeTab> CREATIVE_TABS = DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB, MODID);
     private static final DeferredRegister<IngredientType<?>> INGREDIENT_TYPE = DeferredRegister.create(NeoForgeRegistries.INGREDIENT_TYPES, MODID);
     private static final DeferredRegister<RecipeBookCategory> RECIPE_BOOK_CATEGORY = DeferredRegister.create(BuiltInRegistries.RECIPE_BOOK_CATEGORY, MODID);
+    private static final DeferredRegister<SlotDisplay.Type<?>> SLOT_DISPLAY = DeferredRegister.create(BuiltInRegistries.SLOT_DISPLAY, MODID);
+    private static final DeferredRegister<RecipeDisplay.Type<?>> RECIPE_DISPLAY = DeferredRegister.create(BuiltInRegistries.RECIPE_DISPLAY, MODID);
 
     public static final DeferredItem<Item> LEATHER_STRIP = ITEMS.registerItem("leather_strip",
             props -> new Item(props.stacksTo(64))
@@ -244,6 +248,9 @@ public class SewingKitMod
                 ImmutableSet.of(), null);
     });
 
+    public static final RecipeBookType SEWING_BOOK_CATEGORY = Enum.valueOf(RecipeBookType.class, "SEWINGKIT_SEWING");
+    public static final DeferredHolder<RecipeBookCategory, RecipeBookCategory>
+            SEWING_SEARCH = RECIPE_BOOK_CATEGORY.register("sewing_search", RecipeBookCategory::new);
     public static final DeferredHolder<RecipeBookCategory, RecipeBookCategory>
             SEWING_MISC = RECIPE_BOOK_CATEGORY.register("sewing_misc", RecipeBookCategory::new);
 
@@ -252,6 +259,14 @@ public class SewingKitMod
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<SewingRecipe>>
             SEWING_RECIPE = RECIPE_SERIALIZERS.register("sewing", SewingRecipe.Serializer::new);
+
+    public static final DeferredHolder<RecipeDisplay.Type<?>,RecipeDisplay.Type<SewingRecipeDisplay>> SEWING_DISPLAY = RECIPE_DISPLAY.register("sewing",
+            () -> new RecipeDisplay.Type<>(SewingRecipeDisplay.MAP_CODEC, SewingRecipeDisplay.STREAM_CODEC)
+    );
+
+    public static final DeferredHolder<SlotDisplay.Type<?>,SlotDisplay.Type<SewingMaterialSlotDisplay>> MATERIAL_SLOT_DISPLAY = SLOT_DISPLAY.register("material",
+            () -> new SlotDisplay.Type<>(SewingMaterialSlotDisplay.MAP_CODEC, SewingMaterialSlotDisplay.STREAM_CODEC)
+    );
 
     public static final DeferredHolder<MenuType<?>, MenuType<SewingTableMenu>>
             SEWING_STATION_MENU = MENU_TYPES.register("sewing_station", () -> new MenuType<>(SewingTableMenu::new, FeatureFlags.DEFAULT_FLAGS));
@@ -318,6 +333,8 @@ public class SewingKitMod
         CREATIVE_TABS.register(modBus);
         INGREDIENT_TYPE.register(modBus);
         RECIPE_BOOK_CATEGORY.register(modBus);
+        RECIPE_DISPLAY.register(modBus);
+        SLOT_DISPLAY.register(modBus);
 
         modBus.addListener(this::networkSetup);
 
@@ -530,7 +547,6 @@ public class SewingKitMod
             }
         };
     }
-
 
     @EventBusSubscriber(value = Dist.CLIENT)
     public static class ClientModBus
