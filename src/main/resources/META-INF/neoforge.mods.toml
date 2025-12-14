@@ -19,13 +19,13 @@ enumExtensions="META-INF/enumextensions.json"
 [[dependencies.sewingkit]]
     modId="neoforge"
     type="required"
-    versionRange="[21.9.11-beta,)"
+    versionRange="[21.11.6-beta,)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.sewingkit]]
     modId="minecraft"
     type="required"
-    versionRange="[1.21.9,1.22)"
+    versionRange="[1.21.11,1.22)"
     ordering="NONE"
     side="BOTH"
 [[dependencies.sewingkit]]
