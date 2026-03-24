@@ -14,6 +14,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
 public class SewingRecipe implements Recipe<SewingInput>
 {
     public static <T extends SewingRecipe> Products.P7<RecordCodecBuilder.Mu<T>, String, RecipeBookCategory,
-            NonNullList<SewingMaterial>, Optional<Ingredient>, Optional<Ingredient>, ItemStack, Boolean>
+            NonNullList<SewingMaterial>, Optional<Ingredient>, Optional<Ingredient>, ItemStackTemplate, Boolean>
     defaultSewingFields(RecordCodecBuilder.Instance<T> instance)
     {
         return instance.group(
@@ -39,7 +40,7 @@ public class SewingRecipe implements Recipe<SewingInput>
                 NonNullList.codecOf(SewingMaterial.CODEC).fieldOf("materials").forGetter(SewingRecipe::materials),
                 Ingredient.CODEC.optionalFieldOf("pattern").forGetter(recipe -> Optional.ofNullable(recipe.pattern())),
                 Ingredient.CODEC.optionalFieldOf("tool").forGetter(recipe -> Optional.ofNullable(recipe.tool())),
-                ItemStack.STRICT_CODEC.fieldOf("result").forGetter(SewingRecipe::output),
+                ItemStackTemplate.CODEC.fieldOf("result").forGetter(SewingRecipe::output),
                 Codec.BOOL.optionalFieldOf("show_notification", true).forGetter(SewingRecipe::showNotification)
         );
     }
@@ -52,7 +53,7 @@ public class SewingRecipe implements Recipe<SewingInput>
             ByteBufCodecs.collection(NonNullList::createWithCapacity, SewingMaterial.STREAM_CODEC), SewingRecipe::materials,
             SewingKitMod.nullable(Ingredient.CONTENTS_STREAM_CODEC), SewingRecipe::pattern,
             SewingKitMod.nullable(Ingredient.CONTENTS_STREAM_CODEC), SewingRecipe::tool,
-            ItemStack.STREAM_CODEC, SewingRecipe::output,
+            ItemStackTemplate.STREAM_CODEC, SewingRecipe::output,
             ByteBufCodecs.BOOL, SewingRecipe::showNotification,
             SewingRecipe::new
     );
@@ -64,18 +65,18 @@ public class SewingRecipe implements Recipe<SewingInput>
     private final Ingredient pattern;
     @Nullable
     private final Ingredient tool;
-    private final ItemStack output;
+    private final ItemStackTemplate output;
     private final boolean showNotification;
 
     private PlacementInfo placementInfo;
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    protected SewingRecipe(String group, RecipeBookCategory recipeBookCategory, NonNullList<SewingMaterial> materials, Optional<Ingredient> pattern, Optional<Ingredient> tool, ItemStack output, boolean showNotification)
+    protected SewingRecipe(String group, RecipeBookCategory recipeBookCategory, NonNullList<SewingMaterial> materials, Optional<Ingredient> pattern, Optional<Ingredient> tool, ItemStackTemplate output, boolean showNotification)
     {
         this(group, recipeBookCategory, materials, pattern.orElse(null), tool.orElse(null), output, showNotification);
     }
 
-    public SewingRecipe(String group, RecipeBookCategory recipeBookCategory, NonNullList<SewingMaterial> materials, @Nullable Ingredient pattern, @Nullable Ingredient tool, ItemStack output, boolean showNotification)
+    public SewingRecipe(String group, RecipeBookCategory recipeBookCategory, NonNullList<SewingMaterial> materials, @Nullable Ingredient pattern, @Nullable Ingredient tool, ItemStackTemplate output, boolean showNotification)
     {
         this.group = group;
         this.recipeBookCategory = recipeBookCategory;
@@ -137,9 +138,9 @@ public class SewingRecipe implements Recipe<SewingInput>
     }
 
     @Override
-    public ItemStack assemble(SewingInput container, HolderLookup.Provider provider)
+    public ItemStack assemble(SewingInput container)
     {
-        return output.copy();
+        return output.create();
     }
 
     public NonNullList<SewingMaterial> materials()
@@ -180,7 +181,7 @@ public class SewingRecipe implements Recipe<SewingInput>
         return pattern;
     }
 
-    public ItemStack output()
+    public ItemStackTemplate output()
     {
         return output;
     }
@@ -200,21 +201,5 @@ public class SewingRecipe implements Recipe<SewingInput>
                         new SlotDisplay.ItemSlotDisplay(Items.CRAFTING_TABLE)
                 )
         );
-    }
-
-    public static class Serializer implements RecipeSerializer<SewingRecipe>
-    {
-        @Override
-        public MapCodec<SewingRecipe> codec()
-        {
-            return CODEC;
-        }
-
-        @Deprecated
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, SewingRecipe> streamCodec()
-        {
-            return STREAM_CODEC;
-        }
     }
 }

@@ -2,15 +2,15 @@ plugins {
     id 'java-library'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.moddev' version '2.0.116'
+    id 'net.neoforged.moddev' version '2.0.140'
 }
 
-neoForge.version = "21.11.6-beta"
-version = '2.6.0'
+neoForge.version = "26.1.0.1-beta"
+version = '2.7.0'
 group = 'dev.gigaherz.sewingkit'
 base.archivesName = "SewingKit-${neoForge.minecraftVersion}"
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 java.withSourcesJar()
 
@@ -54,11 +54,6 @@ neoForge {
             clientData()
             programArguments.addAll '--mod', 'sewingkit', '--all', '--output', file('src/main/generated_resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
-    }
-
-    parchment {
-        minecraftVersion="1.21.11"
-        mappingsVersion="2025.12.20"
     }
 
     mods {

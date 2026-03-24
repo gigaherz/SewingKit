@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "minecraft:wool_shoes_dyed"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_wool_shoes": {
+      "conditions": {
+        "items": [
+          {
+            "items": "sewingkit:wool_shoes"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_wool_shoes"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "minecraft:wool_shoes_dyed"
+    ]
+  }
+}

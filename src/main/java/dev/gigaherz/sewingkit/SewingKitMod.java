@@ -2,9 +2,7 @@ package dev.gigaherz.sewingkit;
 
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
-import dev.gigaherz.sewingkit.api.SewingMaterial;
 import dev.gigaherz.sewingkit.api.SewingMaterialSlotDisplay;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import dev.gigaherz.sewingkit.api.SewingRecipeDisplay;
@@ -26,17 +24,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.RandomSource;
 import net.minecraft.util.Util;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.villager.VillagerProfession;
-import net.minecraft.world.entity.npc.villager.VillagerTrades;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.RecipeBookType;
@@ -51,9 +45,7 @@ import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.equipment.EquipmentAsset;
 import net.minecraft.world.item.equipment.EquipmentAssets;
-import net.minecraft.world.item.trading.ItemCost;
-import net.minecraft.world.item.trading.MerchantOffer;
-import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.item.trading.TradeSet;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
@@ -62,7 +54,7 @@ import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
+import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -74,7 +66,6 @@ import net.neoforged.neoforge.common.crafting.IngredientType;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
-import net.neoforged.neoforge.event.village.VillagerTradesEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.registries.*;
@@ -101,7 +92,7 @@ public class SewingKitMod
     private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(BuiltInRegistries.RECIPE_SERIALIZER, MODID);
     private static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(BuiltInRegistries.MENU, MODID);
     private static final DeferredRegister<StructureProcessorType<?>> STRUCTURE_PROCESSORS = DeferredRegister.create(BuiltInRegistries.STRUCTURE_PROCESSOR, MODID);
-    private static final DeferredRegister<LootItemFunctionType<?>> LOOT_FUNCTIONS = DeferredRegister.create(BuiltInRegistries.LOOT_FUNCTION_TYPE, MODID);
+    private static final DeferredRegister<MapCodec<? extends LootItemFunction>> LOOT_FUNCTIONS = DeferredRegister.create(BuiltInRegistries.LOOT_FUNCTION_TYPE, MODID);
     private static final DeferredRegister<CreativeModeTab> CREATIVE_TABS = DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB, MODID);
     private static final DeferredRegister<IngredientType<?>> INGREDIENT_TYPE = DeferredRegister.create(NeoForgeRegistries.INGREDIENT_TYPES, MODID);
     private static final DeferredRegister<RecipeBookCategory> RECIPE_BOOK_CATEGORY = DeferredRegister.create(BuiltInRegistries.RECIPE_BOOK_CATEGORY, MODID);
@@ -239,6 +230,11 @@ public class SewingKitMod
             STORING_SEWING_STATION_BLOCK.get().getStateDefinition().getPossibleStates().stream()
     ).collect(Collectors.toUnmodifiableSet()), 1, 1));
 
+    public static final ResourceKey<TradeSet> TAILOR_LEVEL_1 = ResourceKey.create(Registries.TRADE_SET, location("tailor/level_1"));
+    public static final ResourceKey<TradeSet> TAILOR_LEVEL_2 = ResourceKey.create(Registries.TRADE_SET, location("tailor/level_2"));
+    public static final ResourceKey<TradeSet> TAILOR_LEVEL_3 = ResourceKey.create(Registries.TRADE_SET, location("tailor/level_3"));
+    public static final ResourceKey<TradeSet> TAILOR_LEVEL_4 = ResourceKey.create(Registries.TRADE_SET, location("tailor/level_4"));
+    public static final ResourceKey<TradeSet> TAILOR_LEVEL_5 = ResourceKey.create(Registries.TRADE_SET, location("tailor/level_5"));
     public static final DeferredHolder<VillagerProfession, VillagerProfession>
             TAILOR = PROFESSIONS.register("tailor", () -> {
         var key = Objects.requireNonNull(TABLE_POI.getKey());
@@ -246,7 +242,14 @@ public class SewingKitMod
                 holder -> holder.is(key),
                 holder -> holder.is(key),
                 Arrays.stream(Needles.values()).map(Needles::getNeedle).collect(ImmutableSet.toImmutableSet()),
-                ImmutableSet.of(), null);
+                ImmutableSet.of(), null,
+                Int2ObjectMap.ofEntries(
+                        Int2ObjectMap.entry(1, TAILOR_LEVEL_1),
+                        Int2ObjectMap.entry(2, TAILOR_LEVEL_2),
+                        Int2ObjectMap.entry(3, TAILOR_LEVEL_3),
+                        Int2ObjectMap.entry(4, TAILOR_LEVEL_4),
+                        Int2ObjectMap.entry(5, TAILOR_LEVEL_5)
+                ));
     });
 
     public static final RecipeBookType SEWING_BOOK_CATEGORY = Enum.valueOf(RecipeBookType.class, "SEWINGKIT_SEWING");
@@ -259,7 +262,7 @@ public class SewingKitMod
             SEWING = RECIPE_TYPES.register("sewing", RecipeType::simple);
 
     public static final DeferredHolder<RecipeSerializer<?>, RecipeSerializer<SewingRecipe>>
-            SEWING_RECIPE = RECIPE_SERIALIZERS.register("sewing", SewingRecipe.Serializer::new);
+            SEWING_RECIPE = RECIPE_SERIALIZERS.register("sewing", () -> new RecipeSerializer<>(SewingRecipe.CODEC, SewingRecipe.STREAM_CODEC));
 
     public static final DeferredHolder<RecipeDisplay.Type<?>,RecipeDisplay.Type<SewingRecipeDisplay>> SEWING_DISPLAY = RECIPE_DISPLAY.register("sewing",
             () -> new RecipeDisplay.Type<>(SewingRecipeDisplay.MAP_CODEC, SewingRecipeDisplay.STREAM_CODEC)
@@ -272,8 +275,8 @@ public class SewingKitMod
     public static final DeferredHolder<MenuType<?>, MenuType<SewingTableMenu>>
             SEWING_STATION_MENU = MENU_TYPES.register("sewing_station", () -> new MenuType<>(SewingTableMenu::new, FeatureFlags.DEFAULT_FLAGS));
 
-    public static final DeferredHolder<LootItemFunctionType<?>, LootItemFunctionType<RandomDye>>
-            RANDOM_DYE = LOOT_FUNCTIONS.register("random_dye", () -> new LootItemFunctionType<>(RandomDye.CODEC));
+    public static final DeferredHolder<MapCodec<? extends LootItemFunction>, MapCodec<RandomDye>>
+            RANDOM_DYE = LOOT_FUNCTIONS.register("random_dye", () -> RandomDye.CODEC);
 
     public static final DeferredHolder<StructureProcessorType<?>, StructureProcessorType<TailorShopProcessor>>
             TAILOR_SHOP_PROCESSOR = STRUCTURE_PROCESSORS.register("tailor_shop_processor", () -> TailorShopProcessor::codec);
@@ -339,7 +342,6 @@ public class SewingKitMod
 
         modBus.addListener(this::networkSetup);
 
-        NeoForge.EVENT_BUS.addListener(this::villagerTrades);
         NeoForge.EVENT_BUS.addListener(this::addBuildingToVillages);
         NeoForge.EVENT_BUS.addListener(this::dataSync);
     }
@@ -405,112 +407,6 @@ public class SewingKitMod
         List<Pair<StructurePoolElement, Integer>> listOfPieceEntries = new ArrayList<>(pool.rawTemplates);
         listOfPieceEntries.add(new Pair<>(piece, weight));
         pool.rawTemplates = listOfPieceEntries;
-    }
-
-    private void villagerTrades(VillagerTradesEvent event)
-    {
-        if (event.getType() != TAILOR.getKey())
-            return;
-
-        Int2ObjectMap<List<VillagerTrades.ItemListing>> trademap = event.getTrades();
-
-        trademap.get(1).addAll(Arrays.asList(
-                new VillagerTrades.DyedArmorForEmeralds(WOOL_PANTS.get(), 3, 12, 1),
-                new VillagerTrades.DyedArmorForEmeralds(WOOL_SHOES.get(), 3, 12, 1),
-                new VillagerTrades.DyedArmorForEmeralds(WOOL_HAT.get(), 3, 12, 1),
-                new VillagerTrades.DyedArmorForEmeralds(WOOL_SHIRT.get(), 3, 12, 1),
-
-                buyItem(new ItemStack(Items.STRING, 16), 1, 12, 1, 2)
-        ));
-
-        trademap.get(2).addAll(Arrays.asList(
-                new SellRandomFromTag(ItemTags.WOOL_CARPETS, 8, 7, 8, 1, 2),
-                sellItem(COMMON_PATTERN.get(), 15, 1, 10, 4),
-
-                buyItem(new ItemStack(LEATHER_STRIP.get(), 2), 1, 12, 1, 0.5F),
-                buyItem(new ItemStack(Items.STRING, 16), 1, 12, 1, 2)
-        ));
-
-        trademap.get(3).addAll(Arrays.asList(
-                sellItem(UNCOMMON_PATTERN.get(), 15, 1, 10, 4)
-
-                // Buy something
-        ));
-
-        trademap.get(4).addAll(Arrays.asList(
-                sellItem(RARE_PATTERN.get(), 15, 1, 10, 4)
-        ));
-
-        trademap.get(5).addAll(Arrays.asList(
-                sellItem(LEGENDARY_PATTERN.get(), 15, 1, 10, 4)
-        ));
-
-            /*
-                   2, new VillagerTrades.ITrade[]{
-                            new VillagerTrades.EmeraldForItemsTrade(Items.IRON_INGOT, 4, 12, 10),
-                            new VillagerTrades.ItemsForEmeraldsTrade(new ItemStack(Items.BELL), 36, 1, 12, 5, 0.2F),
-                            new VillagerTrades.ItemsForEmeraldsTrade(new ItemStack(Items.CHAINMAIL_BOOTS), 1, 1, 12, 5, 0.2F),
-                            new VillagerTrades.ItemsForEmeraldsTrade(new ItemStack(Items.CHAINMAIL_LEGGINGS), 3, 1, 12, 5, 0.2F)},
-                   3, new VillagerTrades.ITrade[]{
-                            new VillagerTrades.EmeraldForItemsTrade(Items.LAVA_BUCKET, 1, 12, 20),
-                            new VillagerTrades.EmeraldForItemsTrade(Items.DIAMOND, 1, 12, 20),
-                            new VillagerTrades.ItemsForEmeraldsTrade(new ItemStack(Items.CHAINMAIL_HELMET), 1, 1, 12, 10, 0.2F),
-                            new VillagerTrades.ItemsForEmeraldsTrade(new ItemStack(Items.CHAINMAIL_CHESTPLATE), 4, 1, 12, 10, 0.2F),
-                            new VillagerTrades.ItemsForEmeraldsTrade(new ItemStack(Items.SHIELD), 5, 1, 12, 10, 0.2F)},
-                   4, new VillagerTrades.ITrade[]{
-                            new VillagerTrades.EnchantedItemForEmeraldsTrade(Items.DIAMOND_LEGGINGS, 14, 3, 15, 0.2F),
-                            new VillagerTrades.EnchantedItemForEmeraldsTrade(Items.DIAMOND_BOOTS, 8, 3, 15, 0.2F)},
-                   5, new VillagerTrades.ITrade[]{
-                            new VillagerTrades.EnchantedItemForEmeraldsTrade(Items.DIAMOND_HELMET, 8, 3, 30, 0.2F),
-                            new VillagerTrades.EnchantedItemForEmeraldsTrade(Items.DIAMOND_CHESTPLATE, 16, 3, 30, 0.2F)})));
-
-             */
-
-    }
-
-    private VillagerTrades.ItemListing sellItem(ItemLike thing, int price, int maxTrades, int xp, float priceMultiplier)
-    {
-        return sellItem(new ItemStack(thing), price, maxTrades, xp, priceMultiplier);
-    }
-
-    private VillagerTrades.ItemListing sellItem(ItemStack thing, int price, int maxTrades, int xp, float priceMultiplier)
-    {
-        return new BasicItemListing(new ItemStack(Items.EMERALD, price), thing, maxTrades, xp, priceMultiplier);
-    }
-
-    private VillagerTrades.ItemListing buyItem(ItemStack thing, int reward, int maxTrades, int xp, float priceMultiplier)
-    {
-        return new BasicItemListing(thing, new ItemStack(Items.EMERALD, reward), maxTrades, xp, priceMultiplier);
-    }
-
-    private static class SellRandomFromTag implements VillagerTrades.ItemListing
-    {
-        private final TagKey<Item> tagSource;
-        private final int quantity;
-        private final int price;
-        private final int maxUses;
-        private final int xp;
-        private final float priceMultiplier;
-
-        private SellRandomFromTag(TagKey<Item> tagSource, int quantity, int price, int maxUses, int xp, float priceMultiplier)
-        {
-            this.tagSource = tagSource;
-            this.quantity = quantity;
-            this.price = price;
-            this.maxUses = maxUses;
-            this.xp = xp;
-            this.priceMultiplier = priceMultiplier;
-        }
-
-        @Override
-        public @org.jspecify.annotations.Nullable MerchantOffer getOffer(ServerLevel serverLevel, Entity entity, RandomSource randomSource)
-        {
-            return BuiltInRegistries.ITEM.getRandomElementOf(tagSource, randomSource)
-                    .map(itemHolder -> new MerchantOffer(
-                            new ItemCost(Items.EMERALD, price),
-                            new ItemStack(itemHolder, quantity), this.maxUses, this.xp, this.priceMultiplier))
-                    .orElse(null);
-        }
     }
 
     private void gatherData(GatherDataEvent.Client event)

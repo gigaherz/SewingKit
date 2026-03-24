@@ -16,6 +16,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.level.ItemLike;
@@ -32,26 +33,26 @@ public class SewingRecipeBuilder
     private Ingredient tool;
     private Ingredient pattern;
     private final NonNullList<SewingMaterial> materials = NonNullList.create();
-    private final ItemStack result;
+    private final ItemStackTemplate result;
     private final Map<String, Criterion<?>> criteria = new LinkedHashMap<>();
     private boolean showNotification = true;
 
     public static SewingRecipeBuilder begin(HolderLookup.RegistryLookup<Item> items, RecipeCategory cat, Item result)
     {
-        return begin(items, cat, new ItemStack(result));
+        return begin(items, cat, new ItemStackTemplate(result));
     }
 
     public static SewingRecipeBuilder begin(HolderLookup.RegistryLookup<Item> items, RecipeCategory cat, Item result, int count)
     {
-        return begin(items, cat, new ItemStack(result, count));
+        return begin(items, cat, new ItemStackTemplate(result, count));
     }
 
-    public static SewingRecipeBuilder begin(HolderLookup.RegistryLookup<Item> items, RecipeCategory cat, ItemStack result)
+    public static SewingRecipeBuilder begin(HolderLookup.RegistryLookup<Item> items, RecipeCategory cat, ItemStackTemplate result)
     {
         return new SewingRecipeBuilder(items, cat, result);
     }
 
-    protected SewingRecipeBuilder(HolderLookup.RegistryLookup<Item> items, RecipeCategory cat, ItemStack result)
+    protected SewingRecipeBuilder(HolderLookup.RegistryLookup<Item> items, RecipeCategory cat, ItemStackTemplate result)
     {
         this.items = items;
         this.category = cat;
@@ -191,7 +192,7 @@ public class SewingRecipeBuilder
         };
     }
 
-    protected SewingRecipe build(String group, RecipeBookCategory category, NonNullList<SewingMaterial> materials, Ingredient pattern, Ingredient tool, ItemStack result, boolean showNotification)
+    protected SewingRecipe build(String group, RecipeBookCategory category, NonNullList<SewingMaterial> materials, Ingredient pattern, Ingredient tool, ItemStackTemplate result, boolean showNotification)
     {
         return new SewingRecipe(group, category, materials, pattern, tool, result, showNotification);
     }

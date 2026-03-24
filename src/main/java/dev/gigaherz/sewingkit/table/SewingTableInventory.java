@@ -10,10 +10,10 @@ class SewingTableInventory extends SimpleContainer implements InventoryProvider
     public SewingTableInventory()
     {
         super(6);
-        addListener(this::onContentsChanged);
     }
 
-    private void onContentsChanged(Container itemStacks)
+    @Override
+    public void setChanged()
     {
         listenable.doCallbacks();
     }

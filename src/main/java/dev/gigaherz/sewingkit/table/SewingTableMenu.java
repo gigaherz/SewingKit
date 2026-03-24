@@ -384,7 +384,7 @@ public class SewingTableMenu extends RecipeBookMenu
             var sewingRecipe = this.recipes.get(this.selectedRecipe.get());
             this.inventory.setRecipeUsed(sewingRecipe);
             var input = SewingInput.ofSewingTableInventory(inputInventory);
-            this.slots.get(OUTPUTS_START).set(sewingRecipe.value().assemble(input, level.registryAccess()));
+            this.slots.get(OUTPUTS_START).set(sewingRecipe.value().assemble(input));
         }
         else
         {

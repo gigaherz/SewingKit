@@ -12,7 +12,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.LootItemConditionalFunction;
-import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
 import java.util.List;
@@ -35,9 +34,9 @@ public class RandomDye extends LootItemConditionalFunction
     }
 
     @Override
-    public LootItemFunctionType<RandomDye> getType()
+    public MapCodec<? extends LootItemConditionalFunction> codec()
     {
-        return SewingKitMod.RANDOM_DYE.get();
+        return CODEC;
     }
 
     @Override
@@ -48,28 +47,25 @@ public class RandomDye extends LootItemConditionalFunction
 
     public static ItemStack getRandomDye(ItemStack original, RandomSource rand)
     {
-        if (original.is(ItemTags.DYEABLE))
+        List<DyeColor> list = Lists.newArrayList();
+        list.add(getRandomDye(rand));
+        if (rand.nextFloat() > 0.7F)
         {
-            List<DyeItem> list = Lists.newArrayList();
             list.add(getRandomDye(rand));
-            if (rand.nextFloat() > 0.7F)
-            {
-                list.add(getRandomDye(rand));
-            }
-
-            if (rand.nextFloat() > 0.8F)
-            {
-                list.add(getRandomDye(rand));
-            }
-
-            original = DyedItemColor.applyDyes(original, list);
         }
+
+        if (rand.nextFloat() > 0.8F)
+        {
+            list.add(getRandomDye(rand));
+        }
+
+        original = DyedItemColor.applyDyes(original, list);
 
         return original;
     }
 
-    public static DyeItem getRandomDye(RandomSource rand)
+    public static DyeColor getRandomDye(RandomSource rand)
     {
-        return DyeItem.byColor(DyeColor.byId(rand.nextInt(16)));
+        return DyeColor.byId(rand.nextInt(16));
     }
 }

@@ -1,0 +1,12 @@
+{
+  "gives": {
+    "id": "sewingkit:uncommon_pattern"
+  },
+  "max_uses": 16.0,
+  "reputation_discount": 0.05,
+  "wants": {
+    "count": 9.0,
+    "id": "minecraft:emerald"
+  },
+  "xp": 2.0
+}

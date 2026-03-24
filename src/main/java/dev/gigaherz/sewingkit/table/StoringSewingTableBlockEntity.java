@@ -72,16 +72,13 @@ public class StoringSewingTableBlockEntity extends BlockEntity implements Invent
 
     private class SewingTableContainer extends SimpleContainer implements ValueIOSerializable
     {
-        {
-            addListener(this::onContentsChanged);
-        }
-
         public SewingTableContainer()
         {
             super(6);
         }
 
-        private void onContentsChanged(Container itemStacks)
+        @Override
+        public void setChanged()
         {
             StoringSewingTableBlockEntity.this.setChanged();
             StoringSewingTableBlockEntity.this.listenable.doCallbacks();

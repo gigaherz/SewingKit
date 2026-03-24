@@ -7,7 +7,7 @@ import dev.gigaherz.sewingkit.api.SewingRecipe;
 import it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.navigation.ScreenPosition;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractRecipeBookScreen;
@@ -74,15 +74,15 @@ public class SewingTableScreen extends AbstractRecipeBookScreen<SewingTableMenu>
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks)
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
     {
-        super.render(graphics, mouseX, mouseY, partialTicks);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTicks);
         drawRecipeCosts(graphics, mouseX, mouseY);
-        this.renderTooltip(graphics, mouseX, mouseY);
+        this.extractTooltip(graphics, mouseX, mouseY);
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTicks, int x, int y)
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks)
     {
         int left = this.leftPos;
         int top = this.topPos;
@@ -93,14 +93,14 @@ public class SewingTableScreen extends AbstractRecipeBookScreen<SewingTableMenu>
         int leftRecipes = this.leftPos + 52;
         int topRecipes = this.topPos + 14;
         int selectedRecipe = this.recipeIndexOffset + 12;
-        this.renderButtons(graphics, x, y, leftRecipes, topRecipes, selectedRecipe);
+        this.renderButtons(graphics, mouseX, mouseY, leftRecipes, topRecipes, selectedRecipe);
         this.drawRecipesItems(graphics, leftRecipes, topRecipes, selectedRecipe);
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics graphics, int x, int y)
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int x, int y)
     {
-        super.renderTooltip(graphics, x, y);
+        super.extractTooltip(graphics, x, y);
         if (this.hasItemsInInputSlot)
         {
             int i = this.leftPos + 52;
@@ -116,19 +116,19 @@ public class SewingTableScreen extends AbstractRecipeBookScreen<SewingTableMenu>
                 if (x >= j1 && x < j1 + 16 && y >= k1 && y < k1 + 18)
                 {
                     recipeContext = list.get(l).value();
-                    ItemStack output = recipeContext.output();
+                    var output = recipeContext.output().create();
                     var lines = Screen.getTooltipFromItem(this.minecraft, output);
                     var clientComponents = ClientHooks.gatherTooltipComponents(output, lines, output.getTooltipImage(), x, graphics.guiWidth(), graphics.guiHeight(), font);
                     var mutable = new ArrayList<>(clientComponents);
                     mutable.add(ClientTooltipComponent.create(new RecipeTooltipComponent(recipeContext)));
-                    graphics.renderTooltip(font, mutable, x, y, DefaultTooltipPositioner.INSTANCE, output.get(DataComponents.TOOLTIP_STYLE), output);
+                    graphics.tooltip(font, mutable, x, y, DefaultTooltipPositioner.INSTANCE, output.get(DataComponents.TOOLTIP_STYLE), output);
                     recipeContext = null;
                 }
             }
         }
     }
 
-    private void drawRecipeCosts(GuiGraphics graphics, int mouseX, int mouseY)
+    private void drawRecipeCosts(GuiGraphicsExtractor graphics, int mouseX, int mouseY)
     {
         int recipeIdx = menu.getSelectedRecipe();
         if (recipeIdx < 0 || recipeIdx >= menu.getRecipeListSize())
@@ -162,7 +162,7 @@ public class SewingTableScreen extends AbstractRecipeBookScreen<SewingTableMenu>
                 int y = slot.y + topPos;
                 String text = String.format("%s", subtract);
                 int w = font.width(text);
-                graphics.drawString(font, text, x + 17 - w, y, 0xFFFFFF55);
+                graphics.text(font, text, x + 17 - w, y, 0xFFFFFF55);
             }
         }
     }
@@ -200,11 +200,11 @@ public class SewingTableScreen extends AbstractRecipeBookScreen<SewingTableMenu>
         }
 
         @Override
-        public void renderImage(Font font, int x, int y, int p_368529_, int p_368584_, GuiGraphics graphics)
+        public void extractImage(Font font, int x, int y, int w, int h, GuiGraphicsExtractor graphics)
         {
             y += font.lineHeight;
 
-            graphics.drawString(font, label, x, y, 0xFFFFFFFF);
+            graphics.text(font, label, x, y, 0xFFFFFFFF);
 
             y += font.lineHeight;
 
@@ -232,8 +232,8 @@ public class SewingTableScreen extends AbstractRecipeBookScreen<SewingTableMenu>
                 {
                     var ticks = Minecraft.getInstance().level != null ? Minecraft.getInstance().level.getGameTime() : 0;
                     ItemStack stack = stacks.get((int) ((ticks / 32) % stacks.size()));
-                    graphics.renderItem(stack, xx, y);
-                    graphics.renderItemDecorations(font, stack, xx, y);
+                    graphics.item(stack, xx, y);
+                    graphics.itemDecorations(font, stack, xx, y);
                 }
                 else
                 {
@@ -242,14 +242,14 @@ public class SewingTableScreen extends AbstractRecipeBookScreen<SewingTableMenu>
                 if (material.count() != 1)
                 {
                     String text = String.format("%d", material.count());
-                    int w = font.width(text);
-                    graphics.drawString(font, text, xx + 17 - w, y + 9, 0xFFFFFFFF);
+                    int ww = font.width(text);
+                    graphics.text(font, text, xx + 17 - ww, y + 9, 0xFFFFFFFF);
                 }
             }
         }
     }
 
-    private void renderButtons(GuiGraphics graphics, int x, int y, int buttonsLeft, int buttonsTop, int someOffset)
+    private void renderButtons(GuiGraphicsExtractor graphics, int x, int y, int buttonsLeft, int buttonsTop, int someOffset)
     {
         for (int index = this.recipeIndexOffset; index < someOffset && index < this.menu.getRecipeListSize(); ++index)
         {
@@ -271,7 +271,7 @@ public class SewingTableScreen extends AbstractRecipeBookScreen<SewingTableMenu>
         }
     }
 
-    private void drawRecipesItems(GuiGraphics graphics, int left, int top, int recipeIndexOffsetMax)
+    private void drawRecipesItems(GuiGraphicsExtractor graphics, int left, int top, int recipeIndexOffsetMax)
     {
         var poseStack = new PoseStack();
         List<RecipeHolder<SewingRecipe>> list = this.menu.getRecipeList();
@@ -283,9 +283,9 @@ public class SewingTableScreen extends AbstractRecipeBookScreen<SewingTableMenu>
             int l = j / 4;
             int i1 = top + l * 18 + 2;
             poseStack.translate(0.0F, 0.0F, 0.0F);
-            var resultItem = list.get(i).value().output();
-            graphics.renderItem(resultItem, k, i1);
-            graphics.renderItemDecorations(font, resultItem, k, i1);
+            var resultItem = list.get(i).value().output().create();
+            graphics.item(resultItem, k, i1);
+            graphics.itemDecorations(font, resultItem, k, i1);
         }
     }
 
