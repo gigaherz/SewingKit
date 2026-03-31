@@ -5,8 +5,8 @@ plugins {
     id 'net.neoforged.moddev' version '2.0.140'
 }
 
-neoForge.version = "26.1.0.1-beta"
-version = '2.7.0'
+neoForge.version = "26.1.0.14-beta"
+version = '2.7.1'
 group = 'dev.gigaherz.sewingkit'
 base.archivesName = "SewingKit-${neoForge.minecraftVersion}"
 
@@ -68,10 +68,10 @@ sourceSets {
 }
 
 dependencies {
-    //compileOnly "mezz.jei:jei-1.21.9-common-api:25.0.0.2"
-    //runtimeOnly "mezz.jei:jei-1.21.9-common:25.0.0.2"
-    //compileOnly "mezz.jei:jei-1.21.9-neoforge-api:25.0.0.2"
-    //runtimeOnly "mezz.jei:jei-1.21.9-neoforge:25.0.0.2"
+    compileOnly "mezz.jei:jei-26.1-common-api:29.2.0.20"
+    runtimeOnly "mezz.jei:jei-26.1-common:29.2.0.20"
+    compileOnly "mezz.jei:jei-26.1-neoforge-api:29.2.0.20"
+    runtimeOnly "mezz.jei:jei-26.1-neoforge:29.2.0.20"
 
     //compileOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19.2-5.1.1.0")
     //runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:1.19.2-5.1.1.0")

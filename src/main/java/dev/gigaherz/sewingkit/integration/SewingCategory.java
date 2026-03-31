@@ -1,30 +1,32 @@
 package dev.gigaherz.sewingkit.integration;
-/*
+
 import dev.gigaherz.sewingkit.SewingKitMod;
+import dev.gigaherz.sewingkit.api.SewingMaterial;
 import dev.gigaherz.sewingkit.api.SewingRecipe;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.types.IRecipeType;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class SewingCategory implements IRecipeCategory<SewingRecipe>
 {
     private static final Identifier GUI_TEXTURE_LOCATION = SewingKitMod.location("textures/gui/sewing_station.png");
     public static final Identifier UID = SewingKitMod.location("drying");
-    public static final RecipeType<SewingRecipe> SEWING = new RecipeType<>(UID, SewingRecipe.class);
+    public static final IRecipeType<SewingRecipe> SEWING = IRecipeType.create(UID, SewingRecipe.class);
 
     public static SewingCategory INSTANCE;
 
@@ -39,23 +41,33 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     }
 
     @Override
-    public RecipeType<SewingRecipe> getRecipeType()
+    public IRecipeType<SewingRecipe> getRecipeType()
     {
         return SEWING;
     }
 
-    @Nonnull
     @Override
     public Component getTitle()
     {
         return Component.translatable("jei.category.sewingkit.sewing");
     }
 
-    @Nonnull
     @Override
-    public IDrawable getBackground()
+    public int getWidth()
     {
-        return background;
+        return 159;
+    }
+
+    @Override
+    public int getHeight()
+    {
+        return 61;
+    }
+
+    @Override
+    public void draw(SewingRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY)
+    {
+        background.draw(guiGraphics);
     }
 
     @Override
@@ -67,37 +79,38 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, SewingRecipe recipe, IFocusGroup focuses)
     {
-        var tool = recipe.getTool().stream().flatMap(s -> Arrays.stream(s.getItems())).toList();
-        var pattern =recipe.getPattern().stream().flatMap(s -> Arrays.stream(s.getItems())).toList();
-        var inputs = recipe.getMaterials();
+        var tool = recipe.tool();
+        var pattern = recipe.pattern();
+        var inputs = recipe.materials();
 
-        List<List<ItemStack>> inputLists = new ArrayList<>();
-        for (SewingRecipe.Material material : inputs)
+        List<SlotDisplay> inputLists = new ArrayList<>();
+        for (SewingMaterial material : inputs)
         {
-            ItemStack[] stacks = material.ingredient().getItems();
-            List<ItemStack> expandedInput = Arrays.stream(stacks).map(stack -> {
-                ItemStack copy = stack.copy();
-                copy.setCount(material.count());
-                return copy;
-            }).collect(Collectors.toList());
-            inputLists.add(expandedInput);
+            inputLists.add(material.display());
         }
 
-        builder.addSlot(RecipeIngredientRole.CATALYST, slotX[0], slotY[0])
-                .addItemStacks(tool)
-                .setSlotName("tool");
-        builder.addSlot(RecipeIngredientRole.CATALYST, slotX[1], slotY[1])
-                .addItemStacks(pattern)
-                .setSlotName("pattern");
+        var builder1 = builder.addSlot(RecipeIngredientRole.INPUT, slotX[0], slotY[0]);
+
+        if (tool != null) builder1.add(tool);
+        builder1.setSlotName("tool");
+
+        var builder2 = builder.addSlot(RecipeIngredientRole.INPUT, slotX[1], slotY[1]);
+        if (pattern != null) builder2.add(pattern);
+        builder2.setSlotName("pattern");
 
         for (int i = 0; i < 4; i++)
         {
-            builder.addSlot(RecipeIngredientRole.INPUT, slotX[2 + i], slotY[2 + i])
-                    .addItemStacks((i < inputLists.size()) ? inputLists.get(i) : List.of());
+            var builder3 = builder.addSlot(RecipeIngredientRole.INPUT, slotX[2 + i], slotY[2 + i]);
+            if (i < inputLists.size())
+            {
+                var input = inputLists.get(i);
+                if (input != null)
+                    builder3.add(input);
+            }
         }
 
         builder.addSlot(RecipeIngredientRole.OUTPUT, slotX[6], slotY[6])
-                .addItemStack(recipe.getResultItem());
+                .add(new SlotDisplay.ItemStackSlotDisplay(recipe.output()));
     }
 
     private static final int[] slotX = {
@@ -119,4 +132,4 @@ public class SewingCategory implements IRecipeCategory<SewingRecipe>
             53 - 12,
             33 - 12
     };
-}*/
+}
