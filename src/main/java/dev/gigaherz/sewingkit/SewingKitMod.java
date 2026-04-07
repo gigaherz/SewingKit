@@ -366,23 +366,23 @@ public class SewingKitMod
         // Note, the Identifier is getting the pool files from the data folder. Not assets folder.
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 Identifier.parse("minecraft:village/plains/houses"),
-                "sewingkit:tailor_shop", 5);
+                "sewingkit:tailor_shop_plains", 5);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 Identifier.parse("minecraft:village/snowy/houses"),
-                "sewingkit:tailor_shop", 5);
+                "sewingkit:tailor_shop_snowy", 5);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 Identifier.parse("minecraft:village/savanna/houses"),
-                "sewingkit:tailor_shop", 5);
+                "sewingkit:tailor_shop_savanna", 5);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 Identifier.parse("minecraft:village/taiga/houses"),
-                "sewingkit:tailor_shop", 5);
+                "sewingkit:tailor_shop_taiga", 5);
 
         addBuildingToPool(templatePoolRegistry, processorListRegistry,
                 Identifier.parse("minecraft:village/desert/houses"),
-                "sewingkit:tailor_shop", 5);
+                "sewingkit:tailor_shop_desert", 5);
     }
 
     private static void addBuildingToPool(Registry<StructureTemplatePool> templatePoolRegistry,
