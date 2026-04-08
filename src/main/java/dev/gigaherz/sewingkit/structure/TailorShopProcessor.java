@@ -7,6 +7,7 @@ import dev.gigaherz.sewingkit.SewingKitMod;
 import dev.gigaherz.sewingkit.loot.RandomDye;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
@@ -44,7 +45,7 @@ public class TailorShopProcessor extends StructureProcessor
     @Override
     public StructureTemplate.StructureEntityInfo processEntity(LevelReader level, BlockPos seedPos, StructureTemplate.StructureEntityInfo rawEntityInfo, StructureTemplate.StructureEntityInfo entityInfo, StructurePlaceSettings placementSettings, StructureTemplate template)
     {
-        var id = entityInfo.nbt.getString("id");
+        var id = entityInfo.nbt.getStringOr("id", "");
         if (Objects.equals(id, "minecraft:armor_stand"))
         {
             var s = placementSettings.getRandom(entityInfo.blockPos);
@@ -54,31 +55,31 @@ public class TailorShopProcessor extends StructureProcessor
             entityInfo = new StructureTemplate.StructureEntityInfo(entityInfo.pos, entityInfo.blockPos, entityInfo.nbt.copy());
 
             // nbt -> ArmorItems[4] -> item NBT
-            var armorTag = entityInfo.nbt.getListOrEmpty("ArmorItems");
-            if (!entityInfo.nbt.contains("ArmorItems"))
-                entityInfo.nbt.put("ArmorItems", armorTag);
+            var armorTag = entityInfo.nbt.getCompoundOrEmpty("equipment");
+            if (!entityInfo.nbt.contains("equipment"))
+                entityInfo.nbt.put("equipment", armorTag);
 
             var provider = level.registryAccess();
-            putArmorPieceMaybe(armorTag, 3, s, provider, Items.LEATHER_HELMET, SewingKitMod.WOOL_HAT.get());
-            putArmorPieceMaybe(armorTag, 2, s, provider, Items.LEATHER_CHESTPLATE, SewingKitMod.WOOL_SHIRT.get());
-            putArmorPieceMaybe(armorTag, 1, s, provider, Items.LEATHER_LEGGINGS, SewingKitMod.WOOL_PANTS.get());
-            putArmorPieceMaybe(armorTag, 0, s, provider, Items.LEATHER_BOOTS, SewingKitMod.WOOL_SHOES.get());
+            int pieces = 0;
+            pieces += putArmorPieceMaybe(armorTag, "head", s, provider, Items.LEATHER_HELMET, SewingKitMod.WOOL_HAT.get());
+            pieces += putArmorPieceMaybe(armorTag, "chest", s, provider, Items.LEATHER_CHESTPLATE, SewingKitMod.WOOL_SHIRT.get());
+            pieces += putArmorPieceMaybe(armorTag, "legs", s, provider, Items.LEATHER_LEGGINGS, SewingKitMod.WOOL_PANTS.get());
+            pieces += putArmorPieceMaybe(armorTag, "feet", s, provider, Items.LEATHER_BOOTS, SewingKitMod.WOOL_SHOES.get());
+            if (pieces == 0) return null;
         }
         return entityInfo;
     }
 
-    private void putArmorPieceMaybe(ListTag armorTag, int index, RandomSource rand, HolderLookup.Provider provider, Item... items)
+    private int putArmorPieceMaybe(CompoundTag armorTag, String key, RandomSource rand, HolderLookup.Provider provider, Item... items)
     {
         if (items.length > 0 && rand.nextDouble() < 0.25f)
         {
             var item = items[rand.nextInt(items.length)];
             var stack = RandomDye.getRandomDye(new ItemStack(item), rand);
             var stackTag = ItemStack.CODEC.encodeStart(RegistryOps.create(NbtOps.INSTANCE, provider), stack).getOrThrow();
-            armorTag.set(index, stackTag);
+            armorTag.put(key, stackTag);
+            return 1;
         }
-        /*else
-        {
-            armorTag.set(index, new CompoundTag());
-        }*/
+        return 0;
     }
 }
