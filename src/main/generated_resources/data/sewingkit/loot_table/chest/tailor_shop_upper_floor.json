@@ -47,6 +47,42 @@
               "function": "sewingkit:random_dye"
             }
           ],
+          "name": "sewingkit:silk_cap"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "sewingkit:random_dye"
+            }
+          ],
+          "name": "sewingkit:silk_shirt"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "sewingkit:random_dye"
+            }
+          ],
+          "name": "sewingkit:silk_pants"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "sewingkit:random_dye"
+            }
+          ],
+          "name": "sewingkit:silk_socks"
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "function": "sewingkit:random_dye"
+            }
+          ],
           "name": "minecraft:leather_helmet"
         },
         {
@@ -154,6 +190,22 @@
           ],
           "name": "sewingkit:wool_trim",
           "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "functions": [
+            {
+              "add": false,
+              "count": {
+                "type": "minecraft:uniform",
+                "max": 3.0,
+                "min": 1.0
+              },
+              "function": "minecraft:set_count"
+            }
+          ],
+          "name": "sewingkit:silk_cloth",
+          "weight": 3
         },
         {
           "type": "minecraft:item",

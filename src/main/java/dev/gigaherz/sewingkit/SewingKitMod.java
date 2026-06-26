@@ -12,6 +12,8 @@ import dev.gigaherz.sewingkit.needle.Needles;
 import dev.gigaherz.sewingkit.network.SyncRecipeOrder;
 import dev.gigaherz.sewingkit.structure.TailorShopProcessor;
 import dev.gigaherz.sewingkit.table.*;
+import dev.gigaherz.sewingkit.tools.MatchBlock;
+import dev.gigaherz.sewingkit.tools.ConvertDrops;
 import io.netty.buffer.ByteBuf;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import net.minecraft.ChatFormatting;
@@ -25,7 +27,6 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Util;
 import net.minecraft.world.entity.LivingEntity;
@@ -55,6 +56,7 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProc
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -63,6 +65,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.common.*;
 import net.neoforged.neoforge.common.crafting.IngredientType;
+import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
@@ -98,6 +101,8 @@ public class SewingKitMod
     private static final DeferredRegister<RecipeBookCategory> RECIPE_BOOK_CATEGORY = DeferredRegister.create(BuiltInRegistries.RECIPE_BOOK_CATEGORY, MODID);
     private static final DeferredRegister<SlotDisplay.Type<?>> SLOT_DISPLAY = DeferredRegister.create(BuiltInRegistries.SLOT_DISPLAY, MODID);
     private static final DeferredRegister<RecipeDisplay.Type<?>> RECIPE_DISPLAY = DeferredRegister.create(BuiltInRegistries.RECIPE_DISPLAY, MODID);
+    private static final DeferredRegister<MapCodec<? extends IGlobalLootModifier>> GLOBAL_LOOT_MODIFIER_SERIALIZERS = DeferredRegister.create(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, MODID);
+    private static final DeferredRegister<MapCodec<? extends LootItemCondition>> LOOT_CONDITION_TYPES = DeferredRegister.create(Registries.LOOT_CONDITION_TYPE, MODID);
 
     public static final DeferredItem<Item> LEATHER_STRIP = ITEMS.registerItem("leather_strip",
             props -> new Item(props.stacksTo(64))
@@ -112,6 +117,14 @@ public class SewingKitMod
     );
 
     public static final DeferredItem<Item> WOOL_TRIM = ITEMS.registerItem("wool_trim",
+            props -> new Item(props.stacksTo(64))
+    );
+
+    public static final DeferredItem<Item> THREAD_ON_A_STICK = ITEMS.registerItem("thread_on_a_stick",
+            props -> new Item(props.stacksTo(64))
+    );
+
+    public static final DeferredItem<Item> SILK_CLOTH = ITEMS.registerItem("silk_cloth",
             props -> new Item(props.stacksTo(64))
     );
 
@@ -164,6 +177,7 @@ public class SewingKitMod
             () -> new BlockEntityType<>(StoringSewingTableBlockEntity::new, STORING_SEWING_STATION_BLOCK.get())
     );
 
+    public static final TagKey<Item> REPAIRS_WOOL_CLOTHES = TagKey.create(Registries.ITEM, location("repairs_wool_clothes"));
     public static final ResourceKey<EquipmentAsset> WOOL_ASSET = ResourceKey.create(EquipmentAssets.ROOT_ID, location("wool"));
     private static final EnumMap<ArmorType, Integer> WOOL_ARMOR_VALUES = Util.make(new EnumMap<>(ArmorType.class), map -> {
         map.put(ArmorType.BOOTS, 0);
@@ -173,7 +187,7 @@ public class SewingKitMod
         map.put(ArmorType.BODY, 0);
     });
     public static final ArmorMaterial WOOL = new ArmorMaterial(25, WOOL_ARMOR_VALUES, 25, SoundEvents.ARMOR_EQUIP_GENERIC,
-            0.0F, 0.01F, ItemTags.WOOL, WOOL_ASSET);
+            0.0F, 0.01F, REPAIRS_WOOL_CLOTHES, WOOL_ASSET);
 
     public static final DeferredItem<Item> WOOL_HAT = ITEMS.registerItem("wool_hat",
             props -> new Item(props.humanoidArmor(WOOL, ArmorType.HELMET))
@@ -195,6 +209,35 @@ public class SewingKitMod
                     return true;
                 }
             }
+    );
+
+    public static final TagKey<Item> SILKS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "silks"));
+    public static final TagKey<Item> REPAIRS_SILK_CLOTHES = TagKey.create(Registries.ITEM, location("repairs_silk_clothes"));
+    public static final ResourceKey<EquipmentAsset> SILK_ASSET = ResourceKey.create(EquipmentAssets.ROOT_ID, location("silk"));
+    private static final EnumMap<ArmorType, Integer> SILK_ARMOR_VALUES = Util.make(new EnumMap<>(ArmorType.class), map -> {
+        map.put(ArmorType.BOOTS, 0);
+        map.put(ArmorType.LEGGINGS, 0);
+        map.put(ArmorType.CHESTPLATE, 0);
+        map.put(ArmorType.HELMET, 0);
+        map.put(ArmorType.BODY, 0);
+    });
+    public static final ArmorMaterial SILK = new ArmorMaterial(25, SILK_ARMOR_VALUES, 25, SoundEvents.ARMOR_EQUIP_GENERIC,
+            0.0F, 0.01F, SILKS, SILK_ASSET);
+
+    public static final DeferredItem<Item> SILK_CAP = ITEMS.registerItem("silk_cap",
+            props -> new Item(props.humanoidArmor(SILK, ArmorType.HELMET))
+    );
+
+    public static final DeferredItem<Item> SILK_SHIRT = ITEMS.registerItem("silk_shirt",
+            props -> new Item(props.humanoidArmor(SILK, ArmorType.CHESTPLATE))
+    );
+
+    public static final DeferredItem<Item> SILK_PANTS = ITEMS.registerItem("silk_pants",
+            props -> new Item(props.humanoidArmor(SILK, ArmorType.LEGGINGS))
+    );
+
+    public static final DeferredItem<Item> SILK_SOCKS = ITEMS.registerItem("silk_socks",
+            props -> new Item(props.humanoidArmor(SILK, ArmorType.BOOTS))
     );
 
     public static final DeferredItem<Item> COMMON_PATTERN = ITEMS.registerItem("common_pattern",
@@ -284,6 +327,12 @@ public class SewingKitMod
     private static final ResourceKey<StructureProcessorList>
             TAILOR_SHOP_PROCESSOR_LIST_KEY = ResourceKey.create(Registries.PROCESSOR_LIST, location("tailor_shop_processors"));
 
+    private static final DeferredHolder<MapCodec<? extends IGlobalLootModifier>, MapCodec<ConvertDrops>>
+            REPLACE_DROPS = GLOBAL_LOOT_MODIFIER_SERIALIZERS.register("replace_drops", () -> ConvertDrops.CODEC);
+
+    private static final DeferredHolder<MapCodec<? extends LootItemCondition>, MapCodec<MatchBlock>>
+            MATCH_BLOCK = LOOT_CONDITION_TYPES.register("match_block", () -> MatchBlock.CODEC);
+
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab>
             SEWING_KIT_TAB = CREATIVE_TABS.register("sewing_kit", () -> new CreativeModeTab.Builder(CreativeModeTab.Row.TOP, 0)
             .icon(() -> new ItemStack(WOOD_SEWING_NEEDLE.get()))
@@ -299,14 +348,20 @@ public class SewingKitMod
                 output.accept(DIAMOND_SEWING_NEEDLE.get());
                 output.accept(NETHERITE_SEWING_NEEDLE.get());
                 output.accept(FILE.get());
+                output.accept(THREAD_ON_A_STICK.get());
                 output.accept(LEATHER_STRIP.get());
                 output.accept(LEATHER_SHEET.get());
                 output.accept(WOOL_ROLL.get());
                 output.accept(WOOL_TRIM.get());
+                output.accept(SILK_CLOTH.get());
                 output.accept(WOOL_HAT.get());
                 output.accept(WOOL_SHIRT.get());
                 output.accept(WOOL_PANTS.get());
                 output.accept(WOOL_SHOES.get());
+                output.accept(SILK_CAP.get());
+                output.accept(SILK_SHIRT.get());
+                output.accept(SILK_PANTS.get());
+                output.accept(SILK_SOCKS.get());
                 output.accept(COMMON_PATTERN.get());
                 output.accept(UNCOMMON_PATTERN.get());
                 output.accept(RARE_PATTERN.get());
@@ -314,11 +369,11 @@ public class SewingKitMod
             }).build()
     );
 
-    public static final TagKey<Item> WOOD_OR_HIGHER = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/wood_or_higher"));
-    public static final TagKey<Item> BONE_OR_HIGHER = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/bone_or_higher"));
-    public static final TagKey<Item> IRON_OR_HIGHER = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/iron_or_higher"));
-    public static final TagKey<Item> DIAMOND_OR_HIGHER = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/diamond_or_higher"));
-    public static final TagKey<Item> NETHERITE_OR_HIGHER = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/netherite_or_higher"));
+    public static final TagKey<Item> WOOD_OR_HIGHER_NEEDLE = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/wood_or_higher"));
+    public static final TagKey<Item> BONE_OR_HIGHER_NEEDLE = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/bone_or_higher"));
+    public static final TagKey<Item> IRON_OR_HIGHER_NEEDLE = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/iron_or_higher"));
+    public static final TagKey<Item> DIAMOND_OR_HIGHER_NEEDLE = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/diamond_or_higher"));
+    public static final TagKey<Item> NETHERITE_OR_HIGHER_NEEDLE = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/netherite_or_higher"));
 
     public SewingKitMod(IEventBus modBus)
     {
@@ -339,6 +394,8 @@ public class SewingKitMod
         RECIPE_BOOK_CATEGORY.register(modBus);
         RECIPE_DISPLAY.register(modBus);
         SLOT_DISPLAY.register(modBus);
+        GLOBAL_LOOT_MODIFIER_SERIALIZERS.register(modBus);
+        LOOT_CONDITION_TYPES.register(modBus);
 
         modBus.addListener(this::networkSetup);
 

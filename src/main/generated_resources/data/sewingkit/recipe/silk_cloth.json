@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "s": "sewingkit:thread_on_a_stick"
+  },
+  "pattern": [
+    "ss",
+    "ss"
+  ],
+  "result": {
+    "id": "sewingkit:silk_cloth"
+  }
+}

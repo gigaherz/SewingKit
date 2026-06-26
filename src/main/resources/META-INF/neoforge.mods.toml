@@ -16,6 +16,9 @@ Sewing Kit is a base mod for anything that wants to add sewing features, such as
 '''
 enumExtensions="META-INF/enumextensions.json"
 
+[[mixins]]
+    config="sewingkit.mixins.json"
+
 [[dependencies.sewingkit]]
     modId="neoforge"
     type="required"

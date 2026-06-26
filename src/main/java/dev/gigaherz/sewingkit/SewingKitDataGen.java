@@ -4,8 +4,12 @@ import com.mojang.datafixers.util.Pair;
 import dev.gigaherz.sewingkit.api.SewingRecipeBuilder;
 import dev.gigaherz.sewingkit.loot.RandomDye;
 import dev.gigaherz.sewingkit.needle.Needles;
+import dev.gigaherz.sewingkit.tools.MatchBlock;
+import dev.gigaherz.sewingkit.tools.ConvertDrops;
+import dev.gigaherz.sewingkit.tools.StickWebHandler;
 import net.minecraft.advancements.criterion.DataComponentMatchers;
 import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.client.color.item.Constant;
 import net.minecraft.client.color.item.Dye;
 import net.minecraft.client.data.models.*;
 import net.minecraft.client.data.models.blockstates.MultiVariantGenerator;
@@ -44,6 +48,7 @@ import net.minecraft.world.item.trading.TradeSet;
 import net.minecraft.world.item.trading.VillagerTrade;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
@@ -52,13 +57,17 @@ import net.minecraft.world.level.storage.loot.functions.FilteredFunction;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.functions.SetRandomDyesFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
+import net.minecraft.world.level.storage.loot.predicates.MatchTool;
 import net.minecraft.world.level.storage.loot.providers.number.BinomialDistributionGenerator;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.Sum;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
+import net.neoforged.neoforge.common.data.GlobalLootModifierProvider;
 import net.neoforged.neoforge.common.data.LanguageProvider;
+import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.registries.DeferredItem;
 
@@ -69,6 +78,9 @@ import java.util.stream.Collectors;
 
 public class SewingKitDataGen
 {
+
+    public static final int SILK_DEFAULT_COLOR = 0xFFE3AEAA;
+
     public static void gatherData(GatherDataEvent.Client event)
     {
         DataGenerator gen = event.getGenerator();
@@ -85,6 +97,8 @@ public class SewingKitDataGen
         var reg = new RegistryProvider(gen.getPackOutput(), event.getLookupProvider());
         gen.addProvider(true, reg);
         gen.addProvider(true, new VillagerTradeTagGen(gen.getPackOutput(), reg.getRegistryProvider()));
+
+        gen.addProvider(true, new LootModifiers(gen.getPackOutput(), reg.getRegistryProvider()));
 
     }
 
@@ -124,6 +138,13 @@ public class SewingKitDataGen
             add(SewingKitMod.WOOL_ROLL.get(), "Wool Roll");
             add(SewingKitMod.WOOL_TRIM.get(), "Wool Trim");
 
+            add(SewingKitMod.THREAD_ON_A_STICK.get(), "Thread on a Stick");
+            add(SewingKitMod.SILK_CLOTH.get(), "Silk Cloth");
+            add(SewingKitMod.SILK_CAP.get(), "Silk Cap");
+            add(SewingKitMod.SILK_SHIRT.get(), "Silk Shirt");
+            add(SewingKitMod.SILK_PANTS.get(), "Silk Pants");
+            add(SewingKitMod.SILK_SOCKS.get(), "Silk Socks");
+
             add(SewingKitMod.COMMON_PATTERN.get(), "Common Pattern");
             add(SewingKitMod.UNCOMMON_PATTERN.get(), "Uncommon Pattern");
             add(SewingKitMod.RARE_PATTERN.get(), "Rare Pattern");
@@ -150,17 +171,31 @@ public class SewingKitDataGen
         @Override
         protected void registerModels(BiConsumer<ResourceKey<EquipmentAsset>, EquipmentClientInfo> output)
         {
-            Identifier textureId = SewingKitMod.location("wool");
+            Identifier woolTex = SewingKitMod.location("wool");
             output.accept(SewingKitMod.WOOL_ASSET, EquipmentClientInfo.builder()
-                    .addLayers(EquipmentClientInfo.LayerType.HUMANOID_LEGGINGS, whiteDefaultDyeable(textureId))
-                    .addLayers(EquipmentClientInfo.LayerType.HUMANOID, whiteDefaultDyeable(textureId))
+                    .addLayers(EquipmentClientInfo.LayerType.HUMANOID, dyeable(woolTex, -1))
+                    .addLayers(EquipmentClientInfo.LayerType.HUMANOID_LEGGINGS, dyeable(woolTex ,-1))
+                    .build());
+
+            Identifier silkTex = SewingKitMod.location("silk");
+            //Identifier silkTexOverlay = SewingKitMod.location("silk_overlay");
+            output.accept(SewingKitMod.SILK_ASSET, EquipmentClientInfo.builder()
+                    .addLayers(EquipmentClientInfo.LayerType.HUMANOID, dyeable(silkTex, SILK_DEFAULT_COLOR) /*, overlay(silkTexOverlay)*/)
+                    .addLayers(EquipmentClientInfo.LayerType.HUMANOID_LEGGINGS, dyeable(silkTex, SILK_DEFAULT_COLOR) /*, overlay(silkTexOverlay)*/)
                     .build());
         }
 
-        public static EquipmentClientInfo.Layer whiteDefaultDyeable(Identifier textureId)
+        public static EquipmentClientInfo.Layer dyeable(Identifier textureId, int defaultColor)
         {
             return new EquipmentClientInfo.Layer(
-                    textureId, Optional.of(new EquipmentClientInfo.Dyeable(Optional.of(-1))), false
+                    textureId, Optional.of(new EquipmentClientInfo.Dyeable(Optional.of(defaultColor))), false
+            );
+        }
+
+        public static EquipmentClientInfo.Layer overlay(Identifier textureId)
+        {
+            return new EquipmentClientInfo.Layer(
+                    textureId, Optional.of(new EquipmentClientInfo.Dyeable(Optional.empty())), false
             );
         }
     }
@@ -178,6 +213,8 @@ public class SewingKitDataGen
             horizontalWithExistingModel(blockModels, SewingKitMod.SEWING_STATION_BLOCK.get());
             horizontalWithExistingModel(blockModels, SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
 
+            itemModels.generateFlatItem(SewingKitMod.THREAD_ON_A_STICK.get(), ModelTemplates.FLAT_ITEM);
+
             itemModels.generateFlatItem(SewingKitMod.LEATHER_STRIP.get(), ModelTemplates.FLAT_ITEM);
             itemModels.generateFlatItem(SewingKitMod.LEATHER_SHEET.get(), ModelTemplates.FLAT_ITEM);
             for (Needles needle : Needles.values())
@@ -185,10 +222,18 @@ public class SewingKitDataGen
                 itemModels.generateFlatItem(needle.getNeedle(), ModelTemplates.FLAT_ITEM);
             }
 
-            armorItem(itemModels, SewingKitMod.WOOL_HAT);
-            armorItem(itemModels, SewingKitMod.WOOL_SHIRT);
-            armorItem(itemModels, SewingKitMod.WOOL_PANTS);
-            armorItem(itemModels, SewingKitMod.WOOL_SHOES);
+            dyedItem(itemModels, SewingKitMod.WOOL_HAT, -1);
+            dyedItem(itemModels, SewingKitMod.WOOL_SHIRT, -1);
+            dyedItem(itemModels, SewingKitMod.WOOL_PANTS, -1);
+            dyedItem(itemModels, SewingKitMod.WOOL_SHOES, -1);
+
+            Item silk = SewingKitMod.SILK_CLOTH.get();
+            itemModels.createFlatItemModel(silk, ModelTemplates.FLAT_ITEM);
+            itemModels.itemModelOutput.accept(silk, ItemModelUtils.tintedModel(ModelLocationUtils.getModelLocation(silk), new Constant(SILK_DEFAULT_COLOR)));
+            dyedItem(itemModels, SewingKitMod.SILK_CAP, SILK_DEFAULT_COLOR);
+            dyedItem(itemModels, SewingKitMod.SILK_SHIRT, SILK_DEFAULT_COLOR);
+            dyedItem(itemModels, SewingKitMod.SILK_PANTS, SILK_DEFAULT_COLOR);
+            dyedItem(itemModels, SewingKitMod.SILK_SOCKS, SILK_DEFAULT_COLOR);
 
             itemModels.generateFlatItem(SewingKitMod.WOOL_ROLL.get(), ModelTemplates.FLAT_ITEM);
             itemModels.generateFlatItem(SewingKitMod.WOOL_TRIM.get(), ModelTemplates.FLAT_ITEM);
@@ -223,11 +268,11 @@ public class SewingKitDataGen
                     .build());
         }
 
-        private static void armorItem(ItemModelGenerators itemModels, DeferredItem<Item> item)
+        private static void dyedItem(ItemModelGenerators itemModels, DeferredItem<Item> item, int defaultColor)
         {
             itemModels.createFlatItemModel(item.get(), ModelTemplates.FLAT_ITEM);
             itemModels.itemModelOutput.accept(item.get(),
-                    ItemModelUtils.tintedModel(ModelLocationUtils.getModelLocation(item.get()), new Dye(-1)));
+                    ItemModelUtils.tintedModel(ModelLocationUtils.getModelLocation(item.get()), new Dye(defaultColor)));
         }
 
         private static void horizontalWithExistingModel(BlockModelGenerators blockModels, Block block)
@@ -308,7 +353,7 @@ public class SewingKitDataGen
                             .save(output, SewingKitMod.location("leather_strip_from_leather"));
 
                     SewingRecipeBuilder.begin(items, RecipeCategory.MISC, Items.LEATHER_BOOTS)
-                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER_NEEDLE)
                             .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 2)
                             .addMaterial(SewingKitMod.LEATHER_STRIP.get())
                             .addMaterial(Tags.Items.STRINGS)
@@ -316,7 +361,7 @@ public class SewingKitDataGen
                             .save(output, SewingKitMod.location("leather_boots_via_sewing"));
 
                     SewingRecipeBuilder.begin(items, RecipeCategory.MISC, Items.LEATHER_LEGGINGS)
-                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER_NEEDLE)
                             .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 4)
                             .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 3)
                             .addMaterial(Tags.Items.STRINGS)
@@ -324,7 +369,7 @@ public class SewingKitDataGen
                             .save(output, SewingKitMod.location("leather_leggings_via_sewing"));
 
                     SewingRecipeBuilder.begin(items, RecipeCategory.MISC, Items.LEATHER_CHESTPLATE)
-                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER_NEEDLE)
                             .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 8)
                             .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 2)
                             .addMaterial(Tags.Items.STRINGS)
@@ -332,7 +377,7 @@ public class SewingKitDataGen
                             .save(output, SewingKitMod.location("leather_chestplate_via_sewing"));
 
                     SewingRecipeBuilder.begin(items, RecipeCategory.MISC, Items.LEATHER_HELMET)
-                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER_NEEDLE)
                             .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 2)
                             .addMaterial(SewingKitMod.LEATHER_STRIP.get())
                             .addMaterial(Tags.Items.STRINGS)
@@ -340,7 +385,7 @@ public class SewingKitDataGen
                             .save(output, SewingKitMod.location("leather_helmet_via_sewing"));
 
                     SewingRecipeBuilder.begin(items, RecipeCategory.MISC, Items.LEATHER_HORSE_ARMOR)
-                            .withTool(SewingKitMod.NETHERITE_OR_HIGHER)
+                            .withTool(SewingKitMod.NETHERITE_OR_HIGHER_NEEDLE)
                             .addMaterial(SewingKitMod.LEATHER_SHEET.get(), 12)
                             .addMaterial(SewingKitMod.LEATHER_STRIP.get(), 6)
                             .addMaterial(Tags.Items.STRINGS, 8)
@@ -373,7 +418,7 @@ public class SewingKitDataGen
                             .save(output, SewingKitMod.location("wool_trim_from_carpet"));
 
                     SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.WOOL_SHOES.get())
-                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER_NEEDLE)
                             .addMaterial(SewingKitMod.WOOL_ROLL.get(), 1)
                             .addMaterial(SewingKitMod.WOOL_TRIM.get(), 2)
                             .addMaterial(Tags.Items.STRINGS)
@@ -381,7 +426,7 @@ public class SewingKitDataGen
                             .save(output, SewingKitMod.location("wool_shoes_via_sewing"));
 
                     SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.WOOL_PANTS.get())
-                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER_NEEDLE)
                             .addMaterial(SewingKitMod.WOOL_ROLL.get(), 2)
                             .addMaterial(SewingKitMod.WOOL_TRIM.get(), 4)
                             .addMaterial(Tags.Items.STRINGS)
@@ -389,7 +434,7 @@ public class SewingKitDataGen
                             .save(output, SewingKitMod.location("wool_pants_via_sewing"));
 
                     SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.WOOL_SHIRT.get())
-                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER_NEEDLE)
                             .addMaterial(SewingKitMod.WOOL_ROLL.get(), 3)
                             .addMaterial(SewingKitMod.WOOL_TRIM.get(), 3)
                             .addMaterial(Tags.Items.STRINGS)
@@ -397,12 +442,49 @@ public class SewingKitDataGen
                             .save(output, SewingKitMod.location("wool_shirt_via_sewing"));
 
                     SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.WOOL_HAT.get())
-                            .withTool(SewingKitMod.WOOD_OR_HIGHER)
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER_NEEDLE)
                             .addMaterial(SewingKitMod.WOOL_ROLL.get(), 1)
                             .addMaterial(SewingKitMod.WOOL_TRIM.get(), 1)
                             .addMaterial(Tags.Items.STRINGS)
                             .addCriterion("has_wool", has(ItemTags.WOOL))
                             .save(output, SewingKitMod.location("wool_hat_via_sewing"));
+
+                    // Silk stuffs
+
+                    shaped(RecipeCategory.MISC, SewingKitMod.SILK_CLOTH.get())
+                            .pattern("ss")
+                            .pattern("ss")
+                            .define('s', SewingKitMod.THREAD_ON_A_STICK)
+                            .unlockedBy("has_silk", has(SewingKitMod.THREAD_ON_A_STICK))
+                            .save(output);
+
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.SILK_SOCKS.get())
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER_NEEDLE)
+                            .addMaterial(SewingKitMod.SILK_CLOTH, 3)
+                            .addMaterial(Tags.Items.STRINGS)
+                            .addCriterion("has_wool", has(SewingKitMod.SILKS))
+                            .save(output, SewingKitMod.location("silk_socks_via_sewing"));
+
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.SILK_PANTS.get())
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER_NEEDLE)
+                            .addMaterial(SewingKitMod.SILK_CLOTH, 4)
+                            .addMaterial(Tags.Items.STRINGS)
+                            .addCriterion("has_wool", has(SewingKitMod.SILKS))
+                            .save(output, SewingKitMod.location("silk_pants_via_sewing"));
+
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.SILK_SHIRT.get())
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER_NEEDLE)
+                            .addMaterial(SewingKitMod.SILK_CLOTH, 5)
+                            .addMaterial(Tags.Items.STRINGS)
+                            .addCriterion("has_wool", has(SewingKitMod.SILKS))
+                            .save(output, SewingKitMod.location("silk_shirt_via_sewing"));
+
+                    SewingRecipeBuilder.begin(items, RecipeCategory.MISC, SewingKitMod.SILK_CAP.get())
+                            .withTool(SewingKitMod.WOOD_OR_HIGHER_NEEDLE)
+                            .addMaterial(SewingKitMod.SILK_CLOTH, 2)
+                            .addMaterial(Tags.Items.STRINGS)
+                            .addCriterion("has_wool", has(SewingKitMod.SILKS))
+                            .save(output, SewingKitMod.location("silk_cap_via_sewing"));
 
 
                     // Dyeables
@@ -410,6 +492,12 @@ public class SewingKitDataGen
                     dyedItem(SewingKitMod.WOOL_SHIRT.get(), "dyed_armor");
                     dyedItem(SewingKitMod.WOOL_PANTS.get(), "dyed_armor");
                     dyedItem(SewingKitMod.WOOL_SHOES.get(), "dyed_armor");
+
+                    // Dyeables
+                    dyedItem(SewingKitMod.SILK_CAP.get(), "dyed_armor");
+                    dyedItem(SewingKitMod.SILK_SHIRT.get(), "dyed_armor");
+                    dyedItem(SewingKitMod.SILK_PANTS.get(), "dyed_armor");
+                    dyedItem(SewingKitMod.SILK_SOCKS.get(), "dyed_armor");
                 }
             };
         }
@@ -471,6 +559,10 @@ public class SewingKitDataGen
                                 .add(LootItem.lootTableItem(SewingKitMod.WOOL_SHIRT.get()).setWeight(1).apply(RandomDye.builder()))
                                 .add(LootItem.lootTableItem(SewingKitMod.WOOL_PANTS.get()).setWeight(1).apply(RandomDye.builder()))
                                 .add(LootItem.lootTableItem(SewingKitMod.WOOL_SHOES.get()).setWeight(1).apply(RandomDye.builder()))
+                                .add(LootItem.lootTableItem(SewingKitMod.SILK_CAP.get()).setWeight(1).apply(RandomDye.builder()))
+                                .add(LootItem.lootTableItem(SewingKitMod.SILK_SHIRT.get()).setWeight(1).apply(RandomDye.builder()))
+                                .add(LootItem.lootTableItem(SewingKitMod.SILK_PANTS.get()).setWeight(1).apply(RandomDye.builder()))
+                                .add(LootItem.lootTableItem(SewingKitMod.SILK_SOCKS.get()).setWeight(1).apply(RandomDye.builder()))
                                 .add(LootItem.lootTableItem(Items.LEATHER_HELMET).setWeight(1).apply(RandomDye.builder()))
                                 .add(LootItem.lootTableItem(Items.LEATHER_CHESTPLATE).setWeight(1).apply(RandomDye.builder()))
                                 .add(LootItem.lootTableItem(Items.LEATHER_LEGGINGS).setWeight(1).apply(RandomDye.builder()))
@@ -489,10 +581,12 @@ public class SewingKitDataGen
                         .withPool(LootPool.lootPool().setRolls(UniformGenerator.between(2, 5))
                                 .add(LootItem.lootTableItem(SewingKitMod.WOOL_ROLL.get()).setWeight(1).apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 3.0F))))
                                 .add(LootItem.lootTableItem(SewingKitMod.WOOL_TRIM.get()).setWeight(5).apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 5.0F))))
+                                .add(LootItem.lootTableItem(SewingKitMod.SILK_CLOTH.get()).setWeight(3).apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 3.0F))))
                                 .add(LootItem.lootTableItem(SewingKitMod.LEATHER_SHEET.get()).setWeight(1).apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 3.0F))))
                                 .add(LootItem.lootTableItem(SewingKitMod.LEATHER_STRIP.get()).setWeight(5).apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 5.0F))))
                                 .add(LootItem.lootTableItem(Items.STRING).setWeight(5).apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0F, 16.0F))))
                         )
+                        // patterns (TODO)
                 );
             }
         }
@@ -509,21 +603,28 @@ public class SewingKitDataGen
         @Override
         protected void addTags(HolderLookup.Provider lookup)
         {
+            tag(SewingKitMod.REPAIRS_WOOL_CLOTHES)
+                    .addTag(ItemTags.WOOL);
+
+            tag(SewingKitMod.REPAIRS_SILK_CLOTHES)
+                    .addTag(SewingKitMod.SILKS);
+
+            tag(SewingKitMod.SILKS)
+                    .add(SewingKitMod.SILK_CLOTH.get());
+
             tag(ItemTags.FREEZE_IMMUNE_WEARABLES)
                     .add(SewingKitMod.WOOL_HAT.get())
                     .add(SewingKitMod.WOOL_SHIRT.get())
                     .add(SewingKitMod.WOOL_PANTS.get())
                     .add(SewingKitMod.WOOL_SHOES.get());
 
-
             var list = List.of(
-                    Pair.of(SewingKitMod.WOOD_OR_HIGHER, List.of(SewingKitMod.WOOD_SEWING_NEEDLE.get(), SewingKitMod.GOLD_SEWING_NEEDLE.get())),
-                    Pair.of(SewingKitMod.BONE_OR_HIGHER, List.of(SewingKitMod.BONE_SEWING_NEEDLE.get(), SewingKitMod.STONE_SEWING_NEEDLE.get())),
-                    Pair.of(SewingKitMod.IRON_OR_HIGHER, List.of(SewingKitMod.IRON_SEWING_NEEDLE.get())),
-                    Pair.of(SewingKitMod.DIAMOND_OR_HIGHER, List.of(SewingKitMod.DIAMOND_SEWING_NEEDLE.get())),
-                    Pair.of(SewingKitMod.NETHERITE_OR_HIGHER, List.of(SewingKitMod.NETHERITE_SEWING_NEEDLE.get()))
+                    Pair.of(SewingKitMod.WOOD_OR_HIGHER_NEEDLE, List.of(SewingKitMod.WOOD_SEWING_NEEDLE.get(), SewingKitMod.GOLD_SEWING_NEEDLE.get())),
+                    Pair.of(SewingKitMod.BONE_OR_HIGHER_NEEDLE, List.of(SewingKitMod.BONE_SEWING_NEEDLE.get(), SewingKitMod.STONE_SEWING_NEEDLE.get())),
+                    Pair.of(SewingKitMod.IRON_OR_HIGHER_NEEDLE, List.of(SewingKitMod.IRON_SEWING_NEEDLE.get())),
+                    Pair.of(SewingKitMod.DIAMOND_OR_HIGHER_NEEDLE, List.of(SewingKitMod.DIAMOND_SEWING_NEEDLE.get())),
+                    Pair.of(SewingKitMod.NETHERITE_OR_HIGHER_NEEDLE, List.of(SewingKitMod.NETHERITE_SEWING_NEEDLE.get()))
             );
-
             for (int i = 0; i < list.size(); i++)
             {
                 var entry = list.get(i);
@@ -540,6 +641,16 @@ public class SewingKitDataGen
                     tagBuilder.addTag(list.get(j).getFirst());
                 }
             }
+
+
+            tag(StickWebHandler.C_WOODEN_STICKS)
+                    .add(Items.STICK);
+
+            tag(StickWebHandler.PRODUCES_THREAD)
+                    .addTag(StickWebHandler.C_WOODEN_STICKS);
+
+            tag(StickWebHandler.CONVERTS_TO_THREAD)
+                    .addTag(Tags.Items.STRINGS);
         }
     }
 
@@ -556,6 +667,18 @@ public class SewingKitDataGen
             tag(net.minecraft.tags.BlockTags.MINEABLE_WITH_AXE)
                     .add(SewingKitMod.SEWING_STATION_BLOCK.get())
                     .add(SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
+
+            tag(StickWebHandler.C_COBWEBS)
+                    .add(Blocks.COBWEB);
+
+            tag(StickWebHandler.PROVIDES_THREAD)
+                    .addTag(StickWebHandler.C_COBWEBS);
+            /*
+
+    public static final TagKey<Item> C_WOODEN_STICKS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "sticks/wooden"));
+    public static final TagKey<Item> PRODUCES_THREAD = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("sewingkit", "produces_thread"));
+
+             */
         }
     }
 
@@ -588,13 +711,22 @@ public class SewingKitDataGen
                     RegistryProvider.EMERALD_COMMON_PATTERN);
             // Level 3
             tag1(RegistryProvider.TAILOR_LEVEL_3).add(
+                    RegistryProvider.EMERALD_SILK_SHIRT,
+                    RegistryProvider.EMERALD_SILK_SOCKS,
                     RegistryProvider.EMERALD_UNCOMMON_PATTERN,
                     RegistryProvider.WOOL_TRIM_EMERALD,
                     RegistryProvider.WOOL_ROLL_EMERALD);
             // Level 4
-            tag1(RegistryProvider.TAILOR_LEVEL_4).add(RegistryProvider.EMERALD_RARE_PATTERN);
+            tag1(RegistryProvider.TAILOR_LEVEL_4).add(
+                    RegistryProvider.EMERALD_SILK_PANTS,
+                    RegistryProvider.EMERALD_SILK_CAP,
+                    RegistryProvider.EMERALD_RARE_PATTERN
+            );
             // Level 5
-            tag1(RegistryProvider.TAILOR_LEVEL_5).add(RegistryProvider.EMERALD_LEGENDARY_PATTERN);
+            tag1(RegistryProvider.TAILOR_LEVEL_5).add(
+                    RegistryProvider.SILK_CLOTH_EMERALD,
+                    RegistryProvider.EMERALD_LEGENDARY_PATTERN
+            );
         }
 
         protected TagAppender<ResourceKey<VillagerTrade>, VillagerTrade> tag1(TagKey<VillagerTrade> tag) {
@@ -657,12 +789,17 @@ public class SewingKitDataGen
         public static final ResourceKey<VillagerTrade> EMERALD_UNCOMMON_PATTERN = key(Registries.VILLAGER_TRADE, "tailor/3/emerald_uncommon_pattern");
         public static final ResourceKey<VillagerTrade> WOOL_TRIM_EMERALD = key(Registries.VILLAGER_TRADE, "tailor/3/wool_trim_emerald");
         public static final ResourceKey<VillagerTrade> WOOL_ROLL_EMERALD = key(Registries.VILLAGER_TRADE, "tailor/3/wool_roll_emerald");
+        public static final ResourceKey<VillagerTrade> EMERALD_SILK_SOCKS = key(Registries.VILLAGER_TRADE, "tailor/3/emerald_silk_socks");
+        public static final ResourceKey<VillagerTrade> EMERALD_SILK_SHIRT = key(Registries.VILLAGER_TRADE, "tailor/3/emerald_silk_shirt");
 
         // Level 4
         public static final ResourceKey<VillagerTrade> EMERALD_RARE_PATTERN = key(Registries.VILLAGER_TRADE, "tailor/4/emerald_rare_pattern");
+        public static final ResourceKey<VillagerTrade> EMERALD_SILK_PANTS = key(Registries.VILLAGER_TRADE, "tailor/4/emerald_silk_pants");
+        public static final ResourceKey<VillagerTrade> EMERALD_SILK_CAP = key(Registries.VILLAGER_TRADE, "tailor/4/emerald_silk_cap");
 
         // Level 5
         public static final ResourceKey<VillagerTrade> EMERALD_LEGENDARY_PATTERN = key(Registries.VILLAGER_TRADE, "tailor/5/emerald_legendary_pattern");
+        public static final ResourceKey<VillagerTrade> SILK_CLOTH_EMERALD = key(Registries.VILLAGER_TRADE, "tailor/5/silk_cloth_emerald");
 
         private static final RegistrySetBuilder BUILDER = new RegistrySetBuilder()
                 .add(Registries.TRADE_SET, context -> {
@@ -694,10 +831,15 @@ public class SewingKitDataGen
                     context.register(EMERALD_UNCOMMON_PATTERN, sellItem(SewingKitMod.UNCOMMON_PATTERN, 9));
                     context.register(WOOL_TRIM_EMERALD, sellItem(SewingKitMod.WOOL_TRIM, 8));
                     context.register(WOOL_ROLL_EMERALD, sellItem(SewingKitMod.WOOL_ROLL, 4));
+                    context.register(EMERALD_SILK_SOCKS, makeDyedItemTrade(items, SewingKitMod.SILK_SOCKS, 3));
+                    context.register(EMERALD_SILK_SHIRT, makeDyedItemTrade(items, SewingKitMod.SILK_SHIRT, 5));
                     // Level 4
                     context.register(EMERALD_RARE_PATTERN, sellItem(SewingKitMod.RARE_PATTERN, 9));
+                    context.register(EMERALD_SILK_PANTS, makeDyedItemTrade(items, SewingKitMod.SILK_PANTS, 4));
+                    context.register(EMERALD_SILK_CAP, makeDyedItemTrade(items, SewingKitMod.SILK_CAP, 3));
                     // Level 5
                     context.register(EMERALD_LEGENDARY_PATTERN, sellItem(SewingKitMod.UNCOMMON_PATTERN, 9));
+                    context.register(SILK_CLOTH_EMERALD, sellItem(SewingKitMod.SILK_CLOTH, 3));
                 });
 
         private static VillagerTrade buyItem(ItemLike what, int count)
@@ -742,6 +884,33 @@ public class SewingKitDataGen
         @SuppressWarnings("SameParameterValue")
         private static <T> ResourceKey<T> key(ResourceKey<? extends Registry<T>> reg, String keyName) {
             return ResourceKey.create(reg, SewingKitMod.location(keyName));
+        }
+    }
+
+    public static class LootModifiers extends GlobalLootModifierProvider
+    {
+        // Get the parameters from the `GatherDataEvent`s.
+        public LootModifiers(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+            super(output, registries, SewingKitMod.MODID);
+        }
+
+        @Override
+        protected void start() {
+
+            var blockLookup = this.registries.lookupOrThrow(Registries.BLOCK);
+            var itemLookup = this.registries.lookupOrThrow(Registries.ITEM);
+
+            this.add("replace_string_with_thread",
+                    new ConvertDrops(
+                            new LootItemCondition[]{
+                                    new MatchBlock(blockLookup.getOrThrow(StickWebHandler.PROVIDES_THREAD)),
+                                    MatchTool.toolMatches(ItemPredicate.Builder.item().of(itemLookup, StickWebHandler.PRODUCES_THREAD)).build()
+                            },
+                            IGlobalLootModifier.DEFAULT_PRIORITY,
+                            ItemPredicate.Builder.item().of(itemLookup, StickWebHandler.CONVERTS_TO_THREAD).build(),
+                            new ItemStackTemplate(SewingKitMod.THREAD_ON_A_STICK)
+                    )
+            );
         }
     }
 }

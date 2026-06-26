@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "sewingkit:item/silk_cloth",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": -1855830
+      }
+    ]
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_silk": {
+      "conditions": {
+        "items": [
+          {
+            "items": "sewingkit:thread_on_a_stick"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "sewingkit:silk_cloth"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_silk"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "sewingkit:silk_cloth"
+    ]
+  }
+}

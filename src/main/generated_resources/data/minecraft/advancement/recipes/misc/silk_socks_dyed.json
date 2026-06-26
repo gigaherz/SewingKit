@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_silk_socks": {
+      "conditions": {
+        "items": [
+          {
+            "items": "sewingkit:silk_socks"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "minecraft:silk_socks_dyed"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_silk_socks"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "minecraft:silk_socks_dyed"
+    ]
+  }
+}

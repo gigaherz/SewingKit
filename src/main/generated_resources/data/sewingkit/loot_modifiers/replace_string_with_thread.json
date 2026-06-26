@@ -1,0 +1,21 @@
+{
+  "type": "sewingkit:replace_drops",
+  "accepted_inputs": {
+    "items": "#sewingkit:converts_to_thread"
+  },
+  "conditions": [
+    {
+      "blocks": "#sewingkit:provides_thread",
+      "condition": "sewingkit:match_block"
+    },
+    {
+      "condition": "minecraft:match_tool",
+      "predicate": {
+        "items": "#sewingkit:produces_thread"
+      }
+    }
+  ],
+  "result": {
+    "id": "sewingkit:thread_on_a_stick"
+  }
+}

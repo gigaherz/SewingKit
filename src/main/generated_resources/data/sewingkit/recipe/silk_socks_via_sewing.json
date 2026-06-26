@@ -1,0 +1,18 @@
+{
+  "type": "sewingkit:sewing",
+  "category": "sewingkit:sewing_misc",
+  "materials": [
+    {
+      "count": 3,
+      "ingredient": "sewingkit:silk_cloth"
+    },
+    {
+      "count": 1,
+      "ingredient": "#c:strings"
+    }
+  ],
+  "result": {
+    "id": "sewingkit:silk_socks"
+  },
+  "tool": "#sewingkit:needles/wood_or_higher"
+}
