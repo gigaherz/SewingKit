@@ -7,8 +7,8 @@ import dev.gigaherz.sewingkit.needle.Needles;
 import dev.gigaherz.sewingkit.tools.MatchBlock;
 import dev.gigaherz.sewingkit.tools.ConvertDrops;
 import dev.gigaherz.sewingkit.tools.StickWebHandler;
-import net.minecraft.advancements.criterion.DataComponentMatchers;
-import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.advancements.predicates.DataComponentMatchers;
+import net.minecraft.advancements.predicates.ItemPredicate;
 import net.minecraft.client.color.item.Constant;
 import net.minecraft.client.color.item.Dye;
 import net.minecraft.client.data.models.*;
@@ -31,9 +31,13 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
 import net.minecraft.data.recipes.packs.VanillaRecipeProvider;
-import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
 import net.minecraft.data.tags.TagAppender;
+import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.data.worldgen.BootstrapContext;
+import net.minecraft.references.BlockIds;
+import net.minecraft.references.BlockItemId;
+import net.minecraft.references.BlockItemIds;
+import net.minecraft.references.ItemIds;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.ItemTags;
@@ -592,12 +596,11 @@ public class SewingKitDataGen
         }
     }
 
-    private static class ItemTagGen extends IntrinsicHolderTagsProvider<Item>
+    private static class ItemTagGen extends TagsProvider<Item>
     {
         public ItemTagGen(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookupProvider)
         {
-            //noinspection deprecation
-            super(packOutput, Registries.ITEM, lookupProvider, (item) -> item.builtInRegistryHolder().key(), SewingKitMod.MODID);
+            super(packOutput, Registries.ITEM, lookupProvider, SewingKitMod.MODID);
         }
 
         @Override
@@ -610,20 +613,20 @@ public class SewingKitDataGen
                     .addTag(SewingKitMod.SILKS);
 
             tag(SewingKitMod.SILKS)
-                    .add(SewingKitMod.SILK_CLOTH.get());
+                    .add(SewingKitMod.SILK_CLOTH.getKey());
 
             tag(ItemTags.FREEZE_IMMUNE_WEARABLES)
-                    .add(SewingKitMod.WOOL_HAT.get())
-                    .add(SewingKitMod.WOOL_SHIRT.get())
-                    .add(SewingKitMod.WOOL_PANTS.get())
-                    .add(SewingKitMod.WOOL_SHOES.get());
+                    .add(SewingKitMod.WOOL_HAT.getKey())
+                    .add(SewingKitMod.WOOL_SHIRT.getKey())
+                    .add(SewingKitMod.WOOL_PANTS.getKey())
+                    .add(SewingKitMod.WOOL_SHOES.getKey());
 
             var list = List.of(
-                    Pair.of(SewingKitMod.WOOD_OR_HIGHER_NEEDLE, List.of(SewingKitMod.WOOD_SEWING_NEEDLE.get(), SewingKitMod.GOLD_SEWING_NEEDLE.get())),
-                    Pair.of(SewingKitMod.BONE_OR_HIGHER_NEEDLE, List.of(SewingKitMod.BONE_SEWING_NEEDLE.get(), SewingKitMod.STONE_SEWING_NEEDLE.get())),
-                    Pair.of(SewingKitMod.IRON_OR_HIGHER_NEEDLE, List.of(SewingKitMod.IRON_SEWING_NEEDLE.get())),
-                    Pair.of(SewingKitMod.DIAMOND_OR_HIGHER_NEEDLE, List.of(SewingKitMod.DIAMOND_SEWING_NEEDLE.get())),
-                    Pair.of(SewingKitMod.NETHERITE_OR_HIGHER_NEEDLE, List.of(SewingKitMod.NETHERITE_SEWING_NEEDLE.get()))
+                    Pair.of(SewingKitMod.WOOD_OR_HIGHER_NEEDLE, List.of(SewingKitMod.WOOD_SEWING_NEEDLE.getKey(), SewingKitMod.GOLD_SEWING_NEEDLE.getKey())),
+                    Pair.of(SewingKitMod.BONE_OR_HIGHER_NEEDLE, List.of(SewingKitMod.BONE_SEWING_NEEDLE.getKey(), SewingKitMod.STONE_SEWING_NEEDLE.getKey())),
+                    Pair.of(SewingKitMod.IRON_OR_HIGHER_NEEDLE, List.of(SewingKitMod.IRON_SEWING_NEEDLE.getKey())),
+                    Pair.of(SewingKitMod.DIAMOND_OR_HIGHER_NEEDLE, List.of(SewingKitMod.DIAMOND_SEWING_NEEDLE.getKey())),
+                    Pair.of(SewingKitMod.NETHERITE_OR_HIGHER_NEEDLE, List.of(SewingKitMod.NETHERITE_SEWING_NEEDLE.getKey()))
             );
             for (int i = 0; i < list.size(); i++)
             {
@@ -644,7 +647,7 @@ public class SewingKitDataGen
 
 
             tag(StickWebHandler.C_WOODEN_STICKS)
-                    .add(Items.STICK);
+                    .add(ItemIds.STICK);
 
             tag(StickWebHandler.PRODUCES_THREAD)
                     .addTag(StickWebHandler.C_WOODEN_STICKS);
@@ -654,39 +657,33 @@ public class SewingKitDataGen
         }
     }
 
-    private static class BlockTagGen extends IntrinsicHolderTagsProvider<Block>
+    private static class BlockTagGen extends TagsProvider<Block>
     {
         public BlockTagGen(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookupProvider)
         {
-            super(packOutput, Registries.BLOCK, lookupProvider, block -> block.builtInRegistryHolder().key(), SewingKitMod.MODID);
+            super(packOutput, Registries.BLOCK, lookupProvider, SewingKitMod.MODID);
         }
 
         @Override
         protected void addTags(HolderLookup.Provider lookup)
         {
             tag(net.minecraft.tags.BlockTags.MINEABLE_WITH_AXE)
-                    .add(SewingKitMod.SEWING_STATION_BLOCK.get())
-                    .add(SewingKitMod.STORING_SEWING_STATION_BLOCK.get());
+                    .add(SewingKitMod.SEWING_STATION_BLOCK.getKey())
+                    .add(SewingKitMod.STORING_SEWING_STATION_BLOCK.getKey());
 
             tag(StickWebHandler.C_COBWEBS)
-                    .add(Blocks.COBWEB);
+                    .add(BlockItemIds.COBWEB.block());
 
             tag(StickWebHandler.PROVIDES_THREAD)
                     .addTag(StickWebHandler.C_COBWEBS);
-            /*
-
-    public static final TagKey<Item> C_WOODEN_STICKS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "sticks/wooden"));
-    public static final TagKey<Item> PRODUCES_THREAD = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("sewingkit", "produces_thread"));
-
-             */
         }
     }
 
-    private static class VillagerTradeTagGen extends IntrinsicHolderTagsProvider<VillagerTrade>
+    private static class VillagerTradeTagGen extends TagsProvider<VillagerTrade>
     {
         public VillagerTradeTagGen(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookupProvider)
         {
-            super(packOutput, Registries.VILLAGER_TRADE, lookupProvider, trade -> null, SewingKitMod.MODID);
+            super(packOutput, Registries.VILLAGER_TRADE, lookupProvider, SewingKitMod.MODID);
         }
 
         @SuppressWarnings("unchecked")
@@ -694,7 +691,7 @@ public class SewingKitDataGen
         protected void addTags(HolderLookup.Provider lookup)
         {
             // Level 1
-            var level1 = tag1(RegistryProvider.TAILOR_LEVEL_1);
+            var level1 = tag(RegistryProvider.TAILOR_LEVEL_1);
             level1.add(
                     RegistryProvider.EMERALD_WOOL_PANTS,
                     RegistryProvider.EMERALD_WOOL_HAT,
@@ -704,33 +701,29 @@ public class SewingKitDataGen
                 level1.add(value);
             }
             // Level 2
-            tag1(RegistryProvider.TAILOR_LEVEL_2).add(
+            tag(RegistryProvider.TAILOR_LEVEL_2).add(
                     RegistryProvider.EMERALD_WOOL_SHOES,
                     RegistryProvider.EMERALD_WOOL_SHIRT,
                     RegistryProvider.LEATHER_STRIP_EMERALD,
                     RegistryProvider.EMERALD_COMMON_PATTERN);
             // Level 3
-            tag1(RegistryProvider.TAILOR_LEVEL_3).add(
+            tag(RegistryProvider.TAILOR_LEVEL_3).add(
                     RegistryProvider.EMERALD_SILK_SHIRT,
                     RegistryProvider.EMERALD_SILK_SOCKS,
                     RegistryProvider.EMERALD_UNCOMMON_PATTERN,
                     RegistryProvider.WOOL_TRIM_EMERALD,
                     RegistryProvider.WOOL_ROLL_EMERALD);
             // Level 4
-            tag1(RegistryProvider.TAILOR_LEVEL_4).add(
+            tag(RegistryProvider.TAILOR_LEVEL_4).add(
                     RegistryProvider.EMERALD_SILK_PANTS,
                     RegistryProvider.EMERALD_SILK_CAP,
                     RegistryProvider.EMERALD_RARE_PATTERN
             );
             // Level 5
-            tag1(RegistryProvider.TAILOR_LEVEL_5).add(
+            tag(RegistryProvider.TAILOR_LEVEL_5).add(
                     RegistryProvider.SILK_CLOTH_EMERALD,
                     RegistryProvider.EMERALD_LEGENDARY_PATTERN
             );
-        }
-
-        protected TagAppender<ResourceKey<VillagerTrade>, VillagerTrade> tag1(TagKey<VillagerTrade> tag) {
-            return TagAppender.forBuilder(this.getOrCreateRawBuilder(tag));
         }
     }
 
@@ -760,22 +753,22 @@ public class SewingKitDataGen
         public static final ResourceKey<VillagerTrade> EMERALD_WOOL_HAT = key(Registries.VILLAGER_TRADE, "tailor/1/emerald_wool_hat");
         public static final ResourceKey<VillagerTrade> STRING_EMERALD = key(Registries.VILLAGER_TRADE, "tailor/1/string_emerald");
         public static final Map<Item, ResourceKey<VillagerTrade>> DYE_EMERALD_LIST = Util.make(new HashMap<>(), map -> {
-            map.put(Items.WHITE_DYE, key(Registries.VILLAGER_TRADE, "trades/1/white_dye_emerald"));
-            map.put(Items.ORANGE_DYE, key(Registries.VILLAGER_TRADE, "trades/1/orange_dye_emerald"));
-            map.put(Items.MAGENTA_DYE, key(Registries.VILLAGER_TRADE, "trades/1/magenta_dye_emerald"));
-            map.put(Items.LIGHT_BLUE_DYE, key(Registries.VILLAGER_TRADE, "trades/1/light_blue_dye_emerald"));
-            map.put(Items.YELLOW_DYE, key(Registries.VILLAGER_TRADE, "trades/1/yellow_dye_emerald"));
-            map.put(Items.LIME_DYE, key(Registries.VILLAGER_TRADE, "trades/1/lime_dye_emerald"));
-            map.put(Items.PINK_DYE, key(Registries.VILLAGER_TRADE, "trades/1/pink_dye_emerald"));
-            map.put(Items.GRAY_DYE, key(Registries.VILLAGER_TRADE, "trades/1/gray_dye_emerald"));
-            map.put(Items.LIGHT_GRAY_DYE, key(Registries.VILLAGER_TRADE, "trades/1/light_gray_dye_emerald"));
-            map.put(Items.CYAN_DYE, key(Registries.VILLAGER_TRADE, "trades/1/cyan_dye_emerald"));
-            map.put(Items.PURPLE_DYE, key(Registries.VILLAGER_TRADE, "trades/1/purple_dye_emerald"));
-            map.put(Items.BLUE_DYE, key(Registries.VILLAGER_TRADE, "trades/1/blue_dye_emerald"));
-            map.put(Items.BROWN_DYE, key(Registries.VILLAGER_TRADE, "trades/1/brown_dye_emerald"));
-            map.put(Items.GREEN_DYE, key(Registries.VILLAGER_TRADE, "trades/1/green_dye_emerald"));
-            map.put(Items.RED_DYE, key(Registries.VILLAGER_TRADE, "trades/1/red_dye_emerald"));
-            map.put(Items.BLACK_DYE, key(Registries.VILLAGER_TRADE, "trades/1/black_dye_emerald"));
+            map.put(Items.DYE.white(), key(Registries.VILLAGER_TRADE, "trades/1/white_dye_emerald"));
+            map.put(Items.DYE.orange(), key(Registries.VILLAGER_TRADE, "trades/1/orange_dye_emerald"));
+            map.put(Items.DYE.magenta(), key(Registries.VILLAGER_TRADE, "trades/1/magenta_dye_emerald"));
+            map.put(Items.DYE.lightBlue(), key(Registries.VILLAGER_TRADE, "trades/1/light_blue_dye_emerald"));
+            map.put(Items.DYE.yellow(), key(Registries.VILLAGER_TRADE, "trades/1/yellow_dye_emerald"));
+            map.put(Items.DYE.lime(), key(Registries.VILLAGER_TRADE, "trades/1/lime_dye_emerald"));
+            map.put(Items.DYE.pink(), key(Registries.VILLAGER_TRADE, "trades/1/pink_dye_emerald"));
+            map.put(Items.DYE.gray(), key(Registries.VILLAGER_TRADE, "trades/1/gray_dye_emerald"));
+            map.put(Items.DYE.lightGray(), key(Registries.VILLAGER_TRADE, "trades/1/light_gray_dye_emerald"));
+            map.put(Items.DYE.cyan(), key(Registries.VILLAGER_TRADE, "trades/1/cyan_dye_emerald"));
+            map.put(Items.DYE.purple(), key(Registries.VILLAGER_TRADE, "trades/1/purple_dye_emerald"));
+            map.put(Items.DYE.blue(), key(Registries.VILLAGER_TRADE, "trades/1/blue_dye_emerald"));
+            map.put(Items.DYE.brown(), key(Registries.VILLAGER_TRADE, "trades/1/brown_dye_emerald"));
+            map.put(Items.DYE.green(), key(Registries.VILLAGER_TRADE, "trades/1/green_dye_emerald"));
+            map.put(Items.DYE.red(), key(Registries.VILLAGER_TRADE, "trades/1/red_dye_emerald"));
+            map.put(Items.DYE.black(), key(Registries.VILLAGER_TRADE, "trades/1/black_dye_emerald"));
         });
 
         // Level 2

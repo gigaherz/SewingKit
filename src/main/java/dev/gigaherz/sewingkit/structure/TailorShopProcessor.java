@@ -25,19 +25,13 @@ import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemp
 import javax.annotation.Nullable;
 import java.util.Objects;
 
-public class TailorShopProcessor extends StructureProcessor
+public class TailorShopProcessor implements StructureProcessor
 {
     public static final MapCodec<TailorShopProcessor> CODEC = Codec.EMPTY.xmap(u -> new TailorShopProcessor(), p -> Unit.INSTANCE);
 
-    public static MapCodec<TailorShopProcessor> codec()
+    public MapCodec<TailorShopProcessor> codec()
     {
         return CODEC;
-    }
-
-    @Override
-    protected StructureProcessorType<?> getType()
-    {
-        return SewingKitMod.TAILOR_SHOP_PROCESSOR.get();
     }
 
     @SuppressWarnings("NullableProblems")

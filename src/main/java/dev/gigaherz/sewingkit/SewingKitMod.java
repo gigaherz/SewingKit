@@ -52,6 +52,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.levelgen.structure.pools.SinglePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructurePoolElement;
 import net.minecraft.world.level.levelgen.structure.pools.StructureTemplatePool;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessor;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorList;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureProcessorType;
 import net.minecraft.world.level.material.MapColor;
@@ -94,7 +95,7 @@ public class SewingKitMod
     private static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(BuiltInRegistries.RECIPE_TYPE, MODID);
     private static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(BuiltInRegistries.RECIPE_SERIALIZER, MODID);
     private static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(BuiltInRegistries.MENU, MODID);
-    private static final DeferredRegister<StructureProcessorType<?>> STRUCTURE_PROCESSORS = DeferredRegister.create(BuiltInRegistries.STRUCTURE_PROCESSOR, MODID);
+    private static final DeferredRegister<MapCodec<? extends StructureProcessor>> STRUCTURE_PROCESSORS = DeferredRegister.create(BuiltInRegistries.STRUCTURE_PROCESSOR, MODID);
     private static final DeferredRegister<MapCodec<? extends LootItemFunction>> LOOT_FUNCTIONS = DeferredRegister.create(BuiltInRegistries.LOOT_FUNCTION_TYPE, MODID);
     private static final DeferredRegister<CreativeModeTab> CREATIVE_TABS = DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB, MODID);
     private static final DeferredRegister<IngredientType<?>> INGREDIENT_TYPE = DeferredRegister.create(NeoForgeRegistries.INGREDIENT_TYPES, MODID);
@@ -321,8 +322,8 @@ public class SewingKitMod
     public static final DeferredHolder<MapCodec<? extends LootItemFunction>, MapCodec<RandomDye>>
             RANDOM_DYE = LOOT_FUNCTIONS.register("random_dye", () -> RandomDye.CODEC);
 
-    public static final DeferredHolder<StructureProcessorType<?>, StructureProcessorType<TailorShopProcessor>>
-            TAILOR_SHOP_PROCESSOR = STRUCTURE_PROCESSORS.register("tailor_shop_processor", () -> TailorShopProcessor::codec);
+    public static final DeferredHolder<MapCodec<? extends StructureProcessor>, MapCodec<TailorShopProcessor>>
+            TAILOR_SHOP_PROCESSOR = STRUCTURE_PROCESSORS.register("tailor_shop_processor", () -> TailorShopProcessor.CODEC);
 
     private static final ResourceKey<StructureProcessorList>
             TAILOR_SHOP_PROCESSOR_LIST_KEY = ResourceKey.create(Registries.PROCESSOR_LIST, location("tailor_shop_processors"));
