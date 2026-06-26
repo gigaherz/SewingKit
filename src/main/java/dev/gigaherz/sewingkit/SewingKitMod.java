@@ -375,6 +375,17 @@ public class SewingKitMod
     public static final TagKey<Item> DIAMOND_OR_HIGHER_NEEDLE = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/diamond_or_higher"));
     public static final TagKey<Item> NETHERITE_OR_HIGHER_NEEDLE = TagKey.create(Registries.ITEM, SewingKitMod.location("needles/netherite_or_higher"));
 
+    @Deprecated(forRemoval = true)
+    public static final TagKey<Item> WOOD_OR_HIGHER = WOOD_OR_HIGHER_NEEDLE;
+    @Deprecated(forRemoval = true)
+    public static final TagKey<Item> BONE_OR_HIGHER = BONE_OR_HIGHER_NEEDLE;
+    @Deprecated(forRemoval = true)
+    public static final TagKey<Item> IRON_OR_HIGHER = IRON_OR_HIGHER_NEEDLE;
+    @Deprecated(forRemoval = true)
+    public static final TagKey<Item> DIAMOND_OR_HIGHER = DIAMOND_OR_HIGHER_NEEDLE;
+    @Deprecated(forRemoval = true)
+    public static final TagKey<Item> NETHERITE_OR_HIGHER = NETHERITE_OR_HIGHER_NEEDLE;
+
     public SewingKitMod(IEventBus modBus)
     {
         modBus.addListener(this::gatherData);

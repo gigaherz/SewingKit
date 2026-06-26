@@ -6,7 +6,7 @@ plugins {
 }
 
 neoForge.version = "26.1.2.76"
-version = '2.8.0'
+version = '2.8.1'
 group = 'dev.gigaherz.sewingkit'
 base.archivesName = "SewingKit-${neoForge.minecraftVersion}"
 
